@@ -1,17 +1,21 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token, showcaseChannelId } = require('./config.json');
+const { prefix, token, testToken, showcaseChannelId } = require('./config.json');
 
 const cooldowns = new Discord.Collection();
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFolders = fs.readdirSync('./commands');
 
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    client.commands.set(command.name, command);
+for (const folder of commandFolders) {
+    const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
+
+    for (const file of commandFiles) {
+        const command = require(`./commands/${folder}/${file}`);
+        client.commands.set(command.name, command);
+    }
 }
 
 client.once('ready', () => {
@@ -44,7 +48,34 @@ client.on('message', message => {
 
     if (!client.commands.has(commandName)) return;
 
-    const command = client.commands.get(commandName);
+    const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+    if (!command) return;
+
+    if (command.owner && message.author.id != message.guild.ownerID) {
+        return message.reply('You can not use owner exclusive commands.');
+    }
+
+    if (command.guildOnly && message.channel.type === 'dm') {
+        return message.reply('I can\'t execute that command inside DMs!');
+    }
+
+    if (command.permissions) {
+        const authorPerms = message.channel.permissionsFor(message.author);
+        if (!authorPerms || !authorPerms.has(command.permissions)) {
+            return message.reply('You can not do this!');
+        }
+    }
+
+    if (command.args && !args.length) {
+        let reply = `You didn't provide any arguments, ${message.author}`;
+        
+        if (command.usage) {
+            reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+        }
+
+        return message.channel.send(reply);
+    }
 
     if (!cooldowns.has(command.name)) {
         cooldowns.set(command.name, new Discord.Collection());
@@ -74,4 +105,9 @@ client.on('message', message => {
     }
 });
 
-client.login(token);
+var args = process.argv.slice(2);
+if (args[0]) {
+    client.login(testToken);
+} else {
+    client.login(token);
+}
