@@ -1,10 +1,10 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token, testToken, showcaseChannelId } = require('./config.json');
+const { prefix, token, testToken, showcaseChannelId, channelRulesId, emojiYaysId, roleMemberId } = require('./config.json');
 
 const cooldowns = new Discord.Collection();
 
-const client = new Discord.Client();
+const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 client.commands = new Discord.Collection();
 
 const commandFolders = fs.readdirSync('./commands');
@@ -21,6 +21,44 @@ for (const folder of commandFolders) {
 client.once('ready', () => {
     console.log('Ready!');
 });
+
+client.on('messageReactionAdd', async (reaction, user) => {
+    if (reaction.partial) {
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Something went wrong when fetching the message: ', error);
+            return;
+        }
+
+        if (reaction.message.id === channelRulesId) {
+            if (reaction.emoji.id === emojiYaysId) {
+                let guild = reaction.message.guild;
+                let member = guild.members.resolve(user.id);
+                member.roles.add(guild.roles.resolve(roleMemberId));
+            }
+        }
+    }
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+    if (reaction.partial) {
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Something went wrong when fetching the message: ', error);
+            return;
+        }
+
+        if (reaction.message.id === channelRulesId) {
+            if (reaction.emoji.id === emojiYaysId) {
+                let guild = reaction.message.guild;
+                let member = guild.members.resolve(user.id);
+                member.roles.remove(guild.roles.resolve(roleMemberId));
+            }
+        }
+    }
+})
 
 client.on('message', message => {
     //Showcase check
