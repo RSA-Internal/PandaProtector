@@ -1,3 +1,4 @@
+const Discord = require('discord.js');
 const glua = require('glua');
 
 module.exports = {
@@ -8,6 +9,7 @@ module.exports = {
     execute(message, args) {
         var src = args.join(' ');
         var output = [];
+        var errors = [];
 
         try {
             glua.runWithGlobals({
@@ -19,11 +21,28 @@ module.exports = {
                 io: `nil`,
                 os: `nil`,
                 debug: `nil`
+                //Can leave room for future implementation of other classes such as Vector2, Vector3, etc
             }, src);
         } catch ( error ) {
-            output.push(`ERR: ${error}`);
+            errors.push(error);
         }
 
-        message.channel.send(`**Output**\n\n${output.join('\n')}`);
+        const resultEmbed = new Discord.MessageEmbed()
+            .setColor('#0cc218')
+            .setTitle('Result of Code')
+            .setAuthor(`${message.guild.members.resolve(message.author.id).displayName}`)
+            .setDescription('Lua Code')
+            .addFields(
+                { name: 'Source Preview', value: src.slice(0, 100)},
+                { name: 'Output', value: output.join('\n')},
+            )
+            .setTimestamp();
+
+        if (errors.length) {
+            resultEmbed.setColor('#e32214');
+            resultEmbed.addField('Error(s)', errors.join('\n'));
+        }
+
+        message.channel.send(resultEmbed);
     }
 }
