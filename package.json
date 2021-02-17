@@ -17,6 +17,7 @@
   },
   "homepage": "https://gitlab.com/rsa-bots/pandaprotector#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "discord.js": "^12.5.1",
+    "glua": "^1.0.2"
   }
 }
