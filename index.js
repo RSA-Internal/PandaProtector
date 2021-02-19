@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token, testToken, showcaseChannelId, channelRulesId, emojiYaysId, roleMemberId } = require('./config.json');
+const { prefix, token, testToken, channelShowcaseId, channelRulesId, emojiYaysId, roleMemberId } = require('./config.json');
 
 const cooldowns = new Discord.Collection();
 
@@ -67,7 +67,7 @@ client.on('message', message => {
 
     const deleted = false;
 
-    if (channel.id == showcaseChannelId) {
+    if (channel.id == channelShowcaseId) {
         if (message.attachments.length == 0) {
             if (!content.includes(".com") || !content.includes(".net") || !content.includes("prnt.sc")) {
                 message.delete();
