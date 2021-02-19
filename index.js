@@ -22,6 +22,18 @@ client.once('ready', () => {
     console.log('Ready!');
 });
 
+function shouldHandleReaction(messageId, checkMessageId, reactionId, checkReactionId) {
+    if (reaction.message.id === channelRulesId) {
+        if (reaction.emoji.id === emojiYaysId) {
+            let guild = reaction.message.guild;
+            let member = guild.members.resolve(user.id);
+            return {guild, member}
+        }
+    }
+
+    return null;
+}
+
 client.on('messageReactionAdd', async (reaction, user) => {
     if (reaction.partial) {
         try {
@@ -31,12 +43,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
             return;
         }
 
-        if (reaction.message.id === channelRulesId) {
-            if (reaction.emoji.id === emojiYaysId) {
-                let guild = reaction.message.guild;
-                let member = guild.members.resolve(user.id);
-                member.roles.add(guild.roles.resolve(roleMemberId));
-            }
+        let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
+
+        if (handleReaction) {
+            handleReaction[1].roles.add(handleReaction[0].roles.resolve(roleMemberId));
         }
     }
 });
@@ -50,12 +60,10 @@ client.on('messageReactionRemove', async (reaction, user) => {
             return;
         }
 
-        if (reaction.message.id === channelRulesId) {
-            if (reaction.emoji.id === emojiYaysId) {
-                let guild = reaction.message.guild;
-                let member = guild.members.resolve(user.id);
-                member.roles.remove(guild.roles.resolve(roleMemberId));
-            }
+        let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
+
+        if (handleReaction) {
+            handleReaction[1].roles.add(handleReaction[0].roles.resolve(roleMemberId));
         }
     }
 })
