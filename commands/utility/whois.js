@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const https = require('https');
-const rbxAccount = require('../db/models/rbxAccountModel');
+const rbxAccount = require('../../db/models/rbxAccountModel');
 
 function getUserFromMention(client, mention) {
     if (!mention) return;
@@ -33,7 +33,11 @@ module.exports = {
                 if (!user) {
                     let res = await message.guild.members.fetch({query: args[0], limit: 1});
                     let first = res.entries().next().value;
-                    userId = first[0];
+                    if (first[0]) {
+                        userId = first[0];
+                    } else { 
+                        return message.channel.send('Failed to retrieve user. Try mentioning them instead.');
+                    }
                 } else {
                     userId = user.id;
                 }
@@ -54,13 +58,13 @@ module.exports = {
                     res.setEncoding('utf-8');
                     
                     res.on('data', function(chunk) {
+                        if (chunk.includes('errors')) {
+                            return message.channel.send('Failed to retrieve data');
+                        }
+
                         let robloxData = JSON.parse(chunk);
 
                         console.log(robloxData);
-
-                        if (robloxData['errors']) {
-                            return message.channel.send('Failed to retrieve data');
-                        }
 
                         const statusOptions = new URL(`https://users.roblox.com/v1/users/${boundAccount.robloxId}/status`);
 

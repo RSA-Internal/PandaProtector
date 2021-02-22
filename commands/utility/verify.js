@@ -43,7 +43,12 @@ module.exports = {
         });
 
         if (boundAccount) {
-            author.send(`Your account is already linked to an account [${boundAccount.robloxUsername}]. Relinking accounts is not currently implemented, please try again later.`)
+            let response = `Your account is already linked to an account [${boundAccount.robloxUsername}]. Relinking accounts is not currently implemented, please try again later.`;
+            try {
+                author.send(response);
+            } catch (a) {
+                message.channel.send(response);
+            }
             return;
         };
 
@@ -64,6 +69,10 @@ module.exports = {
                 res.setEncoding('utf-8');
                 
                 res.on('data', function(chunk) {
+                    if (chunk.includes('errors')) {
+                        return message.channel.send('Unable to retrieve associated roblox account. Please ensure the proper id was provided.');
+                    }
+
                     let body = JSON.parse(chunk);
 
                     let desc = body['description'];
@@ -88,7 +97,11 @@ module.exports = {
             data[0] = robloxId;
             data[1] = generateBlurb();
 
-            author.send(`Please set the following blurb as your description, then run \`;verify\` again!\n\nBlurb: \`${data[1]}\``);
+            try {
+                author.send(`Please set the following blurb as your description, then run \`;verify\` again!\n\nBlurb: \`${data[1]}\``);
+            } catch {
+                message.reply('I am unable to DM you. Please enable DMs and try again.');
+            }
 
             verifying[author] = data;
         }
