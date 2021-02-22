@@ -8,10 +8,19 @@ module.exports = {
     async execute(message, args) {
         var src = args.join(' ');
 
+        if (src.includes('```lua')) {
+            src = src.replace('```lua', '');
+        }
+
+        if (src.includes('```')) {
+            src = src.replace('```', '');
+        }
+
         var output = [];
         var errors = [];
 
         await runWandbox.fromString(src, {'compiler': 'lua-5.3.0'}, function clbk( error, results) {
+            results = JSON.parse(results);
             if (results.program_error) {
                 errors.push(results.program_error);
             }
@@ -19,6 +28,8 @@ module.exports = {
             if (results.program_output) {
                 output.push(results.program_output);
             }
+
+            console.log(results);
 
             if (error) {
                 errors.push(error);

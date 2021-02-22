@@ -49,8 +49,7 @@ module.exports = {
 
             if (boundAccount) {
                 const options = new URL(`https://users.roblox.com/v1/users/${boundAccount.robloxId}`)
-                console.log(options);
-
+                
                 const req = https.get(options, res => {
                     res.setEncoding('utf-8');
                     

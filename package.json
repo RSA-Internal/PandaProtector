@@ -19,6 +19,6 @@
   "dependencies": {
     "discord.js": "^12.5.1",
     "mongoose": "^5.11.17",
-    "wandbox-api-updated": "0.1.4"
+    "wandbox-api-updated": "0.1.5"
   }
 }
