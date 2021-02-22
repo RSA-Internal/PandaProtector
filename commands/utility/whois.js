@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const https = require('https');
-const rbxAccount = require('../db/models/rbxAccountModel');
+const rbxAccount = require('../../db/models/rbxAccountModel');
 
 function getUserFromMention(client, mention) {
     if (!mention) return;

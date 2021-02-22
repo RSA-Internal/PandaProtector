@@ -1,6 +1,6 @@
 const { verify } = require('crypto');
 const https = require('https');
-const rbxAccount = require('../db/models/rbxAccountModel');
+const rbxAccount = require('../../db/models/rbxAccountModel');
 
 /* To track those in process of verifying. */
 /* stored as track[author] = {robloxId, blurb} */
