@@ -20,16 +20,22 @@ module.exports = {
         var errors = [];
 
         await runWandbox.fromString(src, {'compiler': 'lua-5.3.0'}, function clbk( error, results) {
-            results = JSON.parse(results);
-            if (results.program_error) {
-                errors.push(results.program_error);
-            }
+            let resultsParse = '';
+            try {
+                resultsParse = JSON.parse(results);
 
-            if (results.program_output) {
-                output.push(results.program_output);
-            }
+                if (resultsParse.program_error) {
+                    errors.push(resultsParse.program_error);
+                }
+    
+                if (resultsParse.program_output) {
+                    output.push(resultsParse.program_output);
+                }
 
-            console.log(results);
+                console.log(resultsParse);
+            } catch (a) {
+                errors.push(a);
+            }
 
             if (error) {
                 errors.push(error);
