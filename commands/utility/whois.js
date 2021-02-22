@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const https = require('https');
-const rbxAccount = require('../../db/models/rbxAccountModel');
+const rbxAccount = require('../db/models/rbxAccountModel');
 
 function getUserFromMention(client, mention) {
     if (!mention) return;
@@ -56,6 +56,12 @@ module.exports = {
                     res.on('data', function(chunk) {
                         let robloxData = JSON.parse(chunk);
 
+                        console.log(robloxData);
+
+                        if (robloxData['errors']) {
+                            return message.channel.send('Failed to retrieve data');
+                        }
+
                         const statusOptions = new URL(`https://users.roblox.com/v1/users/${boundAccount.robloxId}/status`);
 
                         const statusReq = https.get(statusOptions, statusRes => {
@@ -92,16 +98,16 @@ module.exports = {
                                                 .setThumbnail(thumbnail)
                                                 .setURL(`https://www.roblox.com/users/${robloxData['id']}/profile`)
                                                 .addFields(
-                                                    { name: 'Username', value: robloxData['name'], inline: true },
-                                                    { name: 'Display Name', value: robloxData['displayName'], inline: true},
+                                                    { name: 'Username', value: robloxData['name'] || '\u200B', inline: true },
+                                                    { name: 'Display Name', value: robloxData['displayName'] || '\u200B', inline: true},
                                                     { name: '\u200B', value: '\u200B', inline: true },
-                                                    { name: 'Description', value: robloxData['description'], inline: true },
-                                                    { name: 'Status', value: status, inline: true },
+                                                    { name: 'Description', value: robloxData['description'] || '\u200B', inline: true },
+                                                    { name: 'Status', value: status || 'No status', inline: true },
                                                     { name: '\u200B', value: '\u200B', inline: true },
-                                                    { name: 'Creation Time', value: robloxData['created'], inline: true },
+                                                    { name: 'Creation Time', value: robloxData['created'] || '\u200B', inline: true },
                                                     { name: 'IsBanned', value: robloxData['isBanned'], inline: true },
                                                     { name: '\u200B', value: '\u200B', inline: true },
-                                                    { name: 'Username History', value: usernameHistory, inline: true},
+                                                    { name: 'Username History', value: usernameHistory || '\u200B', inline: true},
                                                 );
 
                                                 return message.channel.send(robloxEmbed);
