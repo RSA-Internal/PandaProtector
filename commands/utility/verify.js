@@ -1,10 +1,10 @@
 const { verify } = require('crypto');
-const https = require('https')
+const https = require('https');
+const rbxAccount = require('../db/models/rbxAccountModel');
 
 /* To track those in process of verifying. */
 /* stored as track[author] = {robloxId, blurb} */
 const verifying = [];
-const bindings = [];
 
 const words = ['builderman', 'guest', 'robux', 'tix', 'script', 'studio', 'sword', 'simulator', 'obby', 'johndoe', 'devex', 'dued1', 'adoptme'];
 
@@ -16,12 +16,36 @@ function generateBlurb() {
     return blurb.join(' ');
 }
 
+function getUserdata(id) {
+    return null;
+}
+
+async function bindAccount(authorId, robloxName, robloxId) {
+    let rbxAccountBinding = new rbxAccount({
+        authorId: authorId,
+        robloxUsername: robloxName,
+        robloxId: robloxId
+    })
+
+    await rbxAccountBinding.save();
+}
+
 module.exports = {
     name: 'verify',
     description: 'Link Roblox Account',
-    execute(message, args) {
+    async execute(message, args) {
         var channel = message.channel;
         var author = message.author;
+
+        const robloxId = args[0];
+        let boundAccount = await rbxAccount.findOne({
+            authorId: author.id
+        });
+
+        if (boundAccount) {
+            author.send(`Your account is already linked to an account [${boundAccount.robloxUsername}]. Relinking accounts is not currently implemented, please try again later.`)
+            return;
+        };
 
         if (args.length == 0) {
             if (!verifying[author]) {
@@ -29,15 +53,6 @@ module.exports = {
                 return;
             }
         }
-
-        const robloxId = args[0];
-
-        if (bindings[author.id]) {
-            let binding = bindings[author.id];
-
-            author.send(`Your account is already linked to an account [${binding['name']}]. Relinking accounts is not currently implemented, please try again later.`)
-            return;
-        };
         
         if (verifying[author]) {
             var data = verifying[author];
@@ -57,7 +72,7 @@ module.exports = {
 
                     if (desc === data[1]) {
                         author.send(`Successfully verified account ${name}!`);
-                        bindings[author.id] = {['name']: name, ['id']: id};
+                        bindAccount(author.id, name, id);
                         delete verifying[author];
                     } else {
                         author.send('The description does not seem to have been set. Please ensure you have changed the desciption of your account, and try again.');

@@ -1,6 +1,12 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token, testToken, showcaseChannelId, channelRulesId, emojiYaysId, roleMemberId } = require('./config.json');
+const mongoose = require('mongoose');
+const { prefix, token, testToken, showcaseChannelId, channelRulesId, emojiYaysId, roleMemberId, mongoUsername, mongoPassword, dbRSA, collectionRBXAccount } = require('./config.json');
+
+var mongoDB = `mongodb+srv://${mongoUsername}:${mongoPassword}@cluster0.oo0g2.mongodb.net/${dbRSA}?retryWrites=true&w=majority`
+mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
+
+var db = mongoose.connection;
 
 const cooldowns = new Discord.Collection();
 
