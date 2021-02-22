@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const mongoose = require('mongoose');
-const { prefix, token, testToken, showcaseChannelId, channelRulesId, emojiYaysId, roleMemberId, mongoUsername, mongoPassword, dbRSA, collectionRBXAccount } = require('./config.json');
+const { prefix, token, testToken, channelShowcaseId, channelRulesId, emojiYaysId, roleMemberId, mongoUsername, mongoPassword, dbRSA, collectionRBXAccount } = require('./config.json');
 
 var mongoDB = `mongodb+srv://${mongoUsername}:${mongoPassword}@cluster0.oo0g2.mongodb.net/${dbRSA}?retryWrites=true&w=majority`
 mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
@@ -28,6 +28,18 @@ client.once('ready', () => {
     console.log('Ready!');
 });
 
+function shouldHandleReaction(messageId, checkMessageId, reactionId, checkReactionId) {
+    if (reaction.message.id === channelRulesId) {
+        if (reaction.emoji.id === emojiYaysId) {
+            let guild = reaction.message.guild;
+            let member = guild.members.resolve(user.id);
+            return {guild, member}
+        }
+    }
+
+    return null;
+}
+
 client.on('messageReactionAdd', async (reaction, user) => {
     if (reaction.partial) {
         try {
@@ -37,12 +49,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
             return;
         }
 
-        if (reaction.message.id === channelRulesId) {
-            if (reaction.emoji.id === emojiYaysId) {
-                let guild = reaction.message.guild;
-                let member = guild.members.resolve(user.id);
-                member.roles.add(guild.roles.resolve(roleMemberId));
-            }
+        let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
+
+        if (handleReaction) {
+            handleReaction[1].roles.add(handleReaction[0].roles.resolve(roleMemberId));
         }
     }
 });
@@ -56,12 +66,10 @@ client.on('messageReactionRemove', async (reaction, user) => {
             return;
         }
 
-        if (reaction.message.id === channelRulesId) {
-            if (reaction.emoji.id === emojiYaysId) {
-                let guild = reaction.message.guild;
-                let member = guild.members.resolve(user.id);
-                member.roles.remove(guild.roles.resolve(roleMemberId));
-            }
+        let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
+
+        if (handleReaction) {
+            handleReaction[1].roles.add(handleReaction[0].roles.resolve(roleMemberId));
         }
     }
 })
@@ -73,7 +81,7 @@ client.on('message', message => {
 
     const deleted = false;
 
-    if (channel.id == showcaseChannelId) {
+    if (channel.id == channelShowcaseId) {
         if (message.attachments.length == 0) {
             if (!content.includes(".com") || !content.includes(".net") || !content.includes("prnt.sc")) {
                 message.delete();
