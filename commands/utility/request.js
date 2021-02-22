@@ -1,4 +1,4 @@
-const { requestChannelId, staffId } = require('../../config.json');
+const { channelRequestId, roleStaffId } = require('../../config.json');
 
 module.exports = {
     name: 'request',
@@ -9,7 +9,7 @@ module.exports = {
     execute(message, args) {
         const guild = message.guild;
         const channelLocation = message.channel;
-        const channel = guild.channels.resolve(requestChannelId);
+        const channel = guild.channels.resolve(channelRequestId);
         const reason = args.join(' ');
         const author = message.author
 
@@ -19,7 +19,7 @@ module.exports = {
         }
 
         if (channel) {
-            let staffMembers = guild.roles.resolve(staffId).members.filter(member => member.presence.status == 'online' || member.presence.status == 'idle');
+            let staffMembers = guild.roles.resolve(roleStaffId).members.filter(member => member.presence.status == 'online' || member.presence.status == 'idle');
             let staffMentions = "";
 
             staffMembers.each(member => staffMentions = `${staffMentions} ${member},`);
