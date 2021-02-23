@@ -8,6 +8,8 @@ module.exports = {
     args: true,
     cooldown: 15,
     async execute(message, args) {
+        let money = helper.getMoneyEmoji(message);
+
         if (args.length < 2) {
             return message.channel.send('Not enough arguments provided.');
         }
@@ -16,15 +18,23 @@ module.exports = {
         let payee = await helper.queryUser(message, args);
         let amount = parseInt(args[1]);
 
+        if (isNaN(amount)) {
+            return message.channel.send(`We send ${money}, not malformed numbers.`);
+        }
+
         if (amount < 0) {
             return message.channel.send('Can not send negative money.');   
+        }
+
+        if (amount == 0) {
+            return message.channel.send('No money to send');
         }
 
         let payerAccount = await helper.getUserEcoAccount(payer.id);
         let payeeAccount = await helper.getUserEcoAccount(payee.id);
 
         if (payerAccount.balance < amount) {
-            return message.channel.send(`You need ${amount-payerAccount.balance} more [insertEmoteHere].`);
+            return message.channel.send(`You need ${amount-payerAccount.balance} more ${money}.`);
         }
 
         let payerNewBalance = payerAccount.balance - amount;

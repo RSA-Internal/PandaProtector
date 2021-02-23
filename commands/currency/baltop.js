@@ -8,10 +8,11 @@ module.exports = {
     guildOnly: true,
     cooldown: 15,
     async execute(message, args) {
+        let money = helper.getMoneyEmoji(message);
         const leaderboard = new Discord.MessageEmbed()
             .setColor('#373737')
-            .setTitle(`${helper.getMoneyEmoji(message)} board`)
-            .setDescription(`Top 10 ${helper.getMoneyEmoji(message)} holders`);
+            .setTitle(`${money} board`)
+            .setDescription(`Top 10 ${money} holders`);
 
         let accounts = await userEco.find().sort({balance: -1}).limit(10).exec({
             function(err, accounts) {
@@ -19,16 +20,15 @@ module.exports = {
             }
         })
 
-        console.log(accounts);
-
         for (var account in accounts) {
-            console.log(account);
-            console.log(accounts[account]);
-            console.log(accounts[account].userId);
-            console.log(accounts[account].balance);
-            console.log(await message.guild.members.fetch( { user: accounts[account].userId, force: true }));
+            let display = '[Server]';
 
-            leaderboard.addField(`${message.guild.members.resolve(accounts[account].userId).displayName}`, `${accounts[account].balance} ${helper.getMoneyEmoji(message)}`, false);
+            if (accounts[account].userId != '-1') {
+                await message.guild.members.fetch( { user: accounts[account].userId, force: true })
+                display = message.guild.members.resolve(accounts[account].userId).displayName
+            }
+            
+            leaderboard.addField(`${display}`, `${accounts[account].balance} ${money}`, false);
         }
 
         message.channel.send(leaderboard);

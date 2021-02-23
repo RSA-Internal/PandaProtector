@@ -1,4 +1,5 @@
-const userEco = require('../db/models/userEcoModel')
+const userEco = require('../db/models/userEcoModel');
+const userInv = require('../db/models/userInventoryModel');
 const { emojiTixId } = require('../config.json');
 
 function getUserFromMention(client, mention) {
@@ -54,6 +55,22 @@ module.exports = {
         }
 
         return account
+    },
+
+    getUserInventory: async function(userId) {
+        let inv = await userInv.findOne({
+            userId: userId
+        })
+
+        if (!inv) {
+            inv = new userInv({
+                userId: userId
+            })
+
+            await inv.save();
+        }
+
+        return inv;
     },
 
     getMoneyEmoji: function(message) {

@@ -1,4 +1,6 @@
 var mongoose = require('mongoose');
+require('mongoose-long')(mongoose);
+var Long = mongoose.Schema.Types.Long;
 
 var Schema = mongoose.Schema;
 
@@ -8,7 +10,7 @@ var userEcoModelSchema = new Schema({
         required: true
     },
     balance: {
-        type: Number,
+        type: Long,
         required: true
     }
 })

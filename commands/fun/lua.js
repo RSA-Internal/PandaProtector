@@ -19,8 +19,9 @@ module.exports = {
         var output = [];
         var errors = [];
 
-        await runWandbox.fromString(src, {'compiler': 'lua-5.3.0'}, function clbk( error, results) {
+        await runWandbox.fromString(`os=nil; io=nil; debug=nil;\n\n` + src, {'compiler': 'lua-5.3.0'}, function clbk( error, results) {
             let resultsParse = '';
+            console.log(results);
             try {
                 resultsParse = JSON.parse(results);
 
