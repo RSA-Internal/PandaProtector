@@ -11,7 +11,9 @@ module.exports = {
         if (currentMilli - lastLogin >= 1000*60*60*24) {
             await helper.updateBalance(message.author, 25);
 
-            return message.channel.send('Thank you for your daily login! Hopefully you help a few people today.')
+            return message.reply('Thank you for your daily login! Hopefully you help a few people today.')
+        } else {
+            return message.reply('You have already received the daily reward in the past 24 hours.');
         }
     }
 }

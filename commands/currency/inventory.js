@@ -12,17 +12,10 @@ module.exports = {
         let account = await helper.getUserEcoAccount(message.author.id);
         let money = await helper.getMoneyEmoji(message);
 
-        console.log(inventory);
-
         let jsonInv = JSON.parse(inventory.inventory);
 
-        console.log(jsonInv);
-
-        const embed = new Discord.MessageEmbed()
-            .setTitle(`${message.member.displayName}'s Inventory`)
-            .setColor(helper.randomColorHex())
+        const embed = helper.generateEmptyEmbed(message.author.avatarURL(), `${message.member.displayName}'s Inventory`)
             .addField('Balance', `${account.balance} ${money}`)
-            .setThumbnail(message.author.avatarURL())
 
         if (Object.keys(jsonInv).length === 0) {
             embed.addField('Backpack', 'Not even a cobweb to be seen.', false);
@@ -30,7 +23,6 @@ module.exports = {
             var ret = "";
 
             for (var item in jsonInv) {
-                console.log(item);
                 ret += `${item}: ${jsonInv[item]}\n`;
             }
 

@@ -24,6 +24,10 @@ var userStatsModelSchema = new Schema({
     crafting: {
         type: Long,
         default: 0
+    },
+    hunting: {
+        type: Long,
+        default: 0
     }
 });
 

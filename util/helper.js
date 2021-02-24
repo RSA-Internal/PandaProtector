@@ -130,11 +130,11 @@ module.exports = {
         await userStats.updateOne({userId: userId}, stats);
     },
 
-    generateEmptyEmbed: function(user, title) {
+    generateEmptyEmbed: function(avatarURL, title) {
         const embed = new Discord.MessageEmbed()
             .setTitle(title)
             .setColor(this.randomColorHex())
-            .setThumbnail(user.avatarURL());
+            .setThumbnail(avatarURL);
 
         return embed;
     },
@@ -144,7 +144,7 @@ module.exports = {
         let member = message.member;
 
         let stats = await this.getUserStats(user.id);
-        let embed = this.generateEmptyEmbed(user, `${member.displayName}'s Stats`);
+        let embed = this.generateEmptyEmbed(user.avatarURL(), `${member.displayName}'s Stats`);
 
         userStats.schema.eachPath(function(path) {
             if (path != 'userId' && path != '_id' && path != '__v') {
@@ -155,8 +155,8 @@ module.exports = {
         return embed;
     },
 
-    updateInventory: async function(user, item, quantity) {
-        let inv = await this.getUserInventory(user.id);
+    updateInventory: async function(userId, item, quantity) {
+        let inv = await this.getUserInventory(userId);
         let jsonInv = JSON.parse(inv.inventory);
 
         if (jsonInv[item]) {
@@ -175,24 +175,36 @@ module.exports = {
         }
 
         for (var emp in empty) {
-            delete jsonInv[emp];
+            delete jsonInv[empty[emp]];
         }
 
         inv.inventory = JSON.stringify(jsonInv);
 
-        await userInv.updateOne({userId: user.id}, inv);
+        await userInv.updateOne({userId: userId}, inv);
     },
 
-    updateBalance: async function(user, amount) {
-        let account = await this.getUserEcoAccount(user.id);
+    updateBalance: async function(userId, amount) {
+        let account = await this.getUserEcoAccount(userId);
         let balance = parseInt(account.balance);
         balance = balance + parseInt(amount);
         account.balance = balance;
-        await userEco.updateOne({userId: user.id}, account);
+        await userEco.updateOne({userId: userId}, account);
     },
 
     getUserLastLogin: async function(user) {
         let account = await this.getUserEcoAccount(user.id);
         return account.login || 0;
+    },
+    
+    getUserBalance: async function(userId) {
+        let account = await this.getUserEcoAccount(userId);
+        return parseInt(account.balance);
+    },
+
+    updateShopItem: async function(itemName, amount) {
+        let item = await shopItem.findOne({name: itemName});
+        item['amount'] = parseInt(item['amount']) + amount;
+        
+        await shopItem.updateOne({name: itemName}, item);
     }
 }

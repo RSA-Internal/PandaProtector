@@ -40,16 +40,16 @@ module.exports = {
             }
             let items = await shopItem.find({ category: localized });
 
-            const embed = new Discord.MessageEmbed()
-                .setTitle(`${localized} Shop`)
-                .setColor('#328823');
+            const embed = helper.generateEmptyEmbed('https://cdn2.iconfinder.com/data/icons/market-and-economics-21/48/23-512.png', `${localized} Shop`);
 
             let added = false;
+            let count = 0;
 
             for (var item in items) {
                 let data = items[item];
 
                 if (data.amount > 0) {
+                    count += 1;
                     added = true;
                     let sellDisplay = 'Unsellable';
                     if (data.sell > 0) {
@@ -61,8 +61,12 @@ module.exports = {
                         itemLocalized = itemLocalized.replace(' ', '_');
                     }
 
-                    embed.addField(data['name'], `Buy: ${data.buy}\nAmount in shop: ${data.amount}`, false);
+                    embed.addField(`${data['name']}: ${data.buy} ${money}`, `Amount in shop: ${data.amount}`, true);
                 }
+            }
+
+            for (var i=count%3;i<3;i++) {
+                embed.addField('\u200b', '\u200b', true);
             }
 
             if (!added) {
@@ -113,10 +117,7 @@ module.exports = {
                         itemDisplay = itemDisplay + 's';
                     }
 
-                    let userAccount = await helper.getUserEcoAccount(message.author.id);
-                    let balance = userAccount.balance;
-
-                    let userInventory = await helper.getUserInventory(message.author.id);
+                    let balance = await helper.getUserBalance(message.author.id);
 
                     if (shopHave == 0) {
                         return message.channel.send(`The shop has 0 ${itemDisplay}`);
@@ -126,24 +127,9 @@ module.exports = {
                         return message.channel.send(`You do not have enough ${money} to purchase ${amount} ${itemDisplay}`);
                     }
 
-                    item.amount = item.amount - amount;
-                    userAccount.balance = balance - totalCost;
-
-                    await shopItem.updateOne({name: item.name}, item);
-                    await userEco.updateOne({userId: message.author.id}, userAccount);
-                    //update inventory
-
-                    let jsonInv = JSON.parse(userInventory.inventory);
-                    let count = 0;
-                    if (jsonInv[item.name]) {
-                        count = parseInt(jsonInv[item.name]);
-                    }
-
-                    count = count + amount;
-                    jsonInv[item.name] = count;
-                    userInventory.inventory = JSON.stringify(jsonInv);
-
-                    await userInv.updateOne({userId: message.author.id}, userInventory);
+                    await helper.updateShopItem(item.name, -amount);
+                    await helper.updateBalance(message.author.id, -totalCost);
+                    await helper.updateInventory(message.author.id, item.name, amount);
 
                     return message.channel.send(`Successfully purchased ${amount} ${itemDisplay} for ${totalCost} ${money}`);
                 }
@@ -183,8 +169,6 @@ module.exports = {
                     return message.channel.send(`The shop can not buy ${itemDisplay}.`);
                 }
 
-                let userAccount = await helper.getUserEcoAccount(message.author.id);
-                let shopAccount = await helper.getUserEcoAccount(-1);
                 let userInventory = await helper.getUserInventory(message.author.id);
                 var jsonInv = JSON.parse(userInventory.inventory);
 
@@ -196,24 +180,16 @@ module.exports = {
                     }
 
                     let totalSell = sellPrice * amount;
-                    let shopBal = parseInt(shopAccount.balance);
-                    let userBal = parseInt(userAccount.balance);
+                    let shopBal = await helper.getUserBalance(-1);
 
                     if (shopBal < totalSell) {
                         return message.channel.send('The server does not have enough money for this transaction.');
                     }
 
-                    shopAccount.balance = shopBal - totalSell;
-                    userAccount.balance = userBal + totalSell;
-
-                    item.amount = parseInt(item.amount) + amount;
-                    jsonInv[itemQuery] = userHave - amount;
-                    userInventory.inventory = JSON.stringify(jsonInv);
-
-                    await shopItem.updateOne({name: item.name}, item);
-                    await userInv.updateOne({userId: message.author.id}, userInventory);
-                    await userEco.updateOne({userId: -1}, shopAccount);
-                    await userEco.updateOne({userId: message.author.id}, userAccount);
+                    await helper.updateShopItem(item.name, amount);
+                    await helper.updateInventory(message.author.id, item.name, -amount);
+                    await helper.updateBalance(-1, -totalSell);
+                    await helper.updateBalance(message.author.id, totalSell);
                     
                     return message.channel.send(`Sold ${amount} ${itemDisplay} for ${totalSell} ${money}`);
                 } else {

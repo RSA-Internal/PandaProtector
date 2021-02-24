@@ -33,8 +33,8 @@ module.exports = {
 
                 console.log(`Grew ${count} seeds`);
 
-                await helper.updateInventory(message.author, 'seeds', -count);
-                await helper.updateInventory(message.author, 'wheat', count);
+                await helper.updateInventory(message.author.id, 'seeds', -count);
+                await helper.updateInventory(message.author.id, 'wheat', count);
             }
         }
 
@@ -45,14 +45,14 @@ module.exports = {
             let item = items[itemChance];
 
             if (item === '5 tix') {
-                await helper.updateBalance(message.author, 5);
+                await helper.updateBalance(message.author.id, 5);
             } else {
-                await helper.updateInventory(message.author, item, 1);
+                await helper.updateInventory(message.author.id, item, 1);
             }
 
-            return message.channel.send(`You obtained ${item}`);
+            return message.reply(`You obtained ${item}`);
         } else {
-            return message.channel.send('Better luck next time.');
+            return message.reply('Better luck next time.');
         }
     }
 }
