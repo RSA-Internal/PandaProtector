@@ -12,8 +12,8 @@ module.exports = {
         if (args[0]) { user = await helper.queryUser(message, args); }
         if (!user) { return message.channel.send('Failed to retrieve user account.'); }
 
-        let account = await helper.getUserEcoAccount(user.id);
+        let balance = await helper.getUserBalance(user.id);
 
-        return message.channel.send(`Balance of ${message.guild.members.resolve(user).displayName}: ${account.balance} ${helper.getMoneyEmoji(message)}`);
+        return message.channel.send(`Balance of ${message.guild.members.resolve(user).displayName}: ${balance} ${helper.getMoneyEmoji(message)}`);
     }
 }

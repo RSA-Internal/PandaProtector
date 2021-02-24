@@ -38,7 +38,7 @@ module.exports = {
             if (localized === undefined) {
                 return message.channel.send('Please provide a valid shop category to browse available items.');
             }
-            let items = await shopItem.find({ category: localized });
+            let items = await shopItem.find({ category: localized }).sort({buy : 1});
 
             const embed = helper.generateEmptyEmbed('https://cdn2.iconfinder.com/data/icons/market-and-economics-21/48/23-512.png', `${localized} Shop`);
 
@@ -51,17 +51,24 @@ module.exports = {
                 if (data.amount > 0) {
                     count += 1;
                     added = true;
-                    let sellDisplay = 'Unsellable';
-                    if (data.sell > 0) {
-                        sellDisplay = `${data.sell} ${money}`
-                    }
 
                     let itemLocalized = data['name'];
                     while (itemLocalized.includes(' ')) {
                         itemLocalized = itemLocalized.replace(' ', '_');
                     }
 
-                    embed.addField(`${data['name']}: ${data.buy} ${money}`, `Amount in shop: ${data.amount}`, true);
+                    let status = '';
+
+                    if (data.buy == 0) {
+                        status = '\nUnbuyable';
+                    }
+
+                    let display = `${data['name']}: ${data.buy} ${money}`;
+                    let rarity = data.rarity;
+
+                    display = helper.prependRarity(rarity, display);
+
+                    embed.addField(`${display}`, `Amount in shop: ${data.amount}${status}`, true);
                 }
             }
 

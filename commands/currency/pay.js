@@ -27,8 +27,8 @@ module.exports = {
 
         if (payerAccount.balance < amount) { return message.channel.send(`You need ${amount-payerAccount.balance} more ${money}.`); }
 
-        await helper.updateBalance(payer, -amount);
-        await helper.updateBalance(payee, amount);
+        await helper.updateBalance(payer.id, -amount);
+        await helper.updateBalance(payee.id, amount);
 
         return message.channel.send(`Successfully sent ${amount} ${helper.getMoneyEmoji(message)} to ${payee}`);
     }

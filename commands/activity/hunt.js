@@ -30,21 +30,30 @@ module.exports = {
                 let jsonInv = JSON.parse(inv.inventory);
                 let items = [];
 
+                let hasItems = false;
+
                 for (var i in jsonInv) {
                     items.push(i);
                 }
 
-                let random = Math.floor(Math.random()*items.length);
-                let item = items[random];
-                let count = parseInt(jsonInv[item]);
+                if (items.length > 0) {
+                    hasItems = true;
+                    let random = Math.floor(Math.random()*items.length);
+                    let item = items[random];
+                    let count = parseInt(jsonInv[item]);
 
-                await helper.updateInventory(message.author.id, item, -count);
-                
-                if (count > 1) {
-                    item = item + 's';
+                    await helper.updateInventory(message.author.id, item, -count);
+                    
+                    if (count > 1) {
+                        item = item + 's';
+                    }
                 }
 
-                return message.reply(`got into a fight with a bear, and lost ${count} ${item}`);
+                if (hasItems) {
+                    return message.reply(`got into a fight with a bear, and lost ${count} ${item}`);
+                } else {
+                    return message.reply('got into a fight with a bear');
+                }
             } else {
                 return message.reply('Better luck next time.');
             }

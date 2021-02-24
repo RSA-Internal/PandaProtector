@@ -24,6 +24,10 @@ var shopItemModelSchema = new Schema({
     category: {
         type: String,
         required: true
+    },
+    rarity: {
+        type: String,
+        default: "Common"
     }
 });
 

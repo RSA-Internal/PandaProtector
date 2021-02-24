@@ -9,7 +9,7 @@ module.exports = {
         let currentMilli = new Date().getTime();
 
         if (currentMilli - lastLogin >= 1000*60*60*24) {
-            await helper.updateBalance(message.author, 25);
+            await helper.updateBalance(message.author.id, 25);
 
             return message.reply('Thank you for your daily login! Hopefully you help a few people today.')
         } else {

@@ -23,7 +23,8 @@ function getUserFromMention(client, mention) {
 }
 
 module.exports = {
-    queryUser: async function(message, args) {
+    /** async */
+    queryMember: async function(message, args) {
         user = getUserFromMention(message.client, args[0]);
         let userId = null;
 
@@ -51,6 +52,7 @@ module.exports = {
         return null;
     },
 
+    /** async */
     getUserEcoAccount: async function(userId) {
         let account = await userEco.findOne({
             userId: userId
@@ -68,6 +70,7 @@ module.exports = {
         return account
     },
 
+    /** async */
     getUserInventory: async function(userId) {
         let inv = await userInv.findOne({
             userId: userId
@@ -88,6 +91,7 @@ module.exports = {
         return message.guild.emojis.resolve(emojiTixId);
     },
 
+    /** async */
     getCategories: async function() {
         let categories = await shopItem.find().distinct('category', function(err, categories) {
             if (err) {
@@ -109,6 +113,7 @@ module.exports = {
         return '#' + hex;
     },
 
+    /** async */
     getUserStats: async function(userId) {
         let stats = await userStats.findOne({userId: userId});
         if (!stats) {
@@ -122,6 +127,7 @@ module.exports = {
         return stats;
     },
 
+    /** async */
     updateUserStat: async function(userId, statName) {
         let stats = await this.getUserStats(userId);
 
@@ -139,6 +145,7 @@ module.exports = {
         return embed;
     },
 
+    /** async */
     renderUserStats: async function(message) {
         let user = message.author;
         let member = message.member;
@@ -155,6 +162,7 @@ module.exports = {
         return embed;
     },
 
+    /** async */
     updateInventory: async function(userId, item, quantity) {
         let inv = await this.getUserInventory(userId);
         let jsonInv = JSON.parse(inv.inventory);
@@ -183,6 +191,7 @@ module.exports = {
         await userInv.updateOne({userId: userId}, inv);
     },
 
+    /** async */
     updateBalance: async function(userId, amount) {
         let account = await this.getUserEcoAccount(userId);
         let balance = parseInt(account.balance);
@@ -191,20 +200,70 @@ module.exports = {
         await userEco.updateOne({userId: userId}, account);
     },
 
+    /** async */
     getUserLastLogin: async function(user) {
         let account = await this.getUserEcoAccount(user.id);
         return account.login || 0;
     },
     
+    /** async */
     getUserBalance: async function(userId) {
         let account = await this.getUserEcoAccount(userId);
         return parseInt(account.balance);
     },
 
+    /** async */
     updateShopItem: async function(itemName, amount) {
         let item = await shopItem.findOne({name: itemName});
         item['amount'] = parseInt(item['amount']) + amount;
         
         await shopItem.updateOne({name: itemName}, item);
+    },
+
+    /** async */
+    getItemList: async function() {
+        let shop = await shopItem.find({});
+        let list = [];
+
+        for (var item in shop) {
+            list.push(shop[item].name);
+        }
+
+        return list;
+    },
+
+    /** async */
+    getItem: async function(itemName) {
+        let item = await shopItem.findOne({name: itemName});
+
+        return item;
+    },
+
+    /** async */
+    getAllItemsInWorld: async function(itemName) {
+        let allInv = await userInv.find({});
+        let allCount = 0;
+
+        for (var invIndex in allInv) {
+            let inv = allInv[invIndex].inventory;
+            let jsonInv = JSON.parse(inv);
+
+            if (jsonInv[itemName]) {
+                allCount += parseInt(jsonInv[itemName]);
+            }
+        }
+
+        return allCount;
+    },
+
+    prependRarity: function(rarity, display) {
+        if (rarity === 'Common') { display = `[C] ${display}` }
+        else if (rarity === 'Uncommon') { display = `[U] ${display}` }
+        else if (rarity === 'Rare') { display = `[R] ${display}` }
+        else if (rarity === 'Epic') { display = `[E] ${display}` }
+        else if (rarity === 'Forbidden') { display = `[F] ${display}` }
+        else if (rarity === '???') { display = `[?] ${display}` }
+
+        return display;
     }
 }
