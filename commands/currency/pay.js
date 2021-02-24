@@ -18,6 +18,10 @@ module.exports = {
         let payee = await helper.queryUser(message, args);
         let amount = parseInt(args[1]);
 
+        if (payer.id === payee.id) {
+            return message.channel.send(`It is pointless to exchange money with yourself.`);
+        }
+
         if (isNaN(amount)) {
             return message.channel.send(`We send ${money}, not malformed numbers.`);
         }
@@ -37,8 +41,8 @@ module.exports = {
             return message.channel.send(`You need ${amount-payerAccount.balance} more ${money}.`);
         }
 
-        let payerNewBalance = payerAccount.balance - amount;
-        let payeeNewBalance = payeeAccount.balance + amount;
+        let payerNewBalance = parseInt(payerAccount.balance) - amount;
+        let payeeNewBalance = parseInt(payeeAccount.balance) + amount;
 
         await userEco.updateOne({
             userId: payer.id

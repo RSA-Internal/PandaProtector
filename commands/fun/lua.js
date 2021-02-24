@@ -19,7 +19,7 @@ module.exports = {
         var output = [];
         var errors = [];
 
-        await runWandbox.fromString(`os=nil; io=nil; debug=nil;\n\n` + src, {'compiler': 'lua-5.3.0'}, function clbk( error, results) {
+        await runWandbox.fromString(`debug.sethook(function() error("Exhausted script") end, "", 200); os=nil; io=nil; debug=nil;\n\n` + src, {'compiler': 'lua-5.3.0'}, function clbk( error, results) {
             let resultsParse = '';
             console.log(results);
             try {
@@ -35,7 +35,8 @@ module.exports = {
 
                 console.log(resultsParse);
             } catch (a) {
-                errors.push(a);
+                //errors.push(a);
+                errors.push('Unexpected end of JSON string');
             }
 
             if (error) {
