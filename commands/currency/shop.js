@@ -44,20 +44,29 @@ module.exports = {
                 .setTitle(`${localized} Shop`)
                 .setColor('#328823');
 
+            let added = false;
+
             for (var item in items) {
                 let data = items[item];
 
-                let sellDisplay = 'Unsellable';
-                if (data.sell > 0) {
-                    sellDisplay = `${data.sell} ${money}`
-                }
+                if (data.amount > 0) {
+                    added = true;
+                    let sellDisplay = 'Unsellable';
+                    if (data.sell > 0) {
+                        sellDisplay = `${data.sell} ${money}`
+                    }
 
-                let itemLocalized = data['name'];
-                while (itemLocalized.includes(' ')) {
-                    itemLocalized = itemLocalized.replace(' ', '_');
-                }
+                    let itemLocalized = data['name'];
+                    while (itemLocalized.includes(' ')) {
+                        itemLocalized = itemLocalized.replace(' ', '_');
+                    }
 
-                embed.addField(data['name'], `Buy: ${data.buy}\nSell: ${sellDisplay}\nAmount in shop: ${data.amount}\nID: ${data._id}\nLocalized Name: ${itemLocalized}`, false);
+                    embed.addField(data['name'], `Buy: ${data.buy}\nSell: ${sellDisplay}\nAmount in shop: ${data.amount}\nID: ${data._id}\nLocalized Name: ${itemLocalized}`, false);
+                }
+            }
+
+            if (!added) {
+                embed.addField('\u200b', 'Unfortunately we do not sell cobwebs.', false);
             }
 
             message.channel.send(embed);
