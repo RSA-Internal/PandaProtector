@@ -17,19 +17,13 @@ module.exports = {
 
         if (args.length == 0) {
             //display categories to choose from
-            let categories = await shopItem.find().distinct('category', function(err, categories) {
-                if (err) {
-                    console.log(err);
-                    return message.channel.send('Error fetching shop data. Please try again later.');
-                }
-            })
-
+            let categories = await helper.getCategories();
             let list = [];
 
             for (var category in categories) {
                 console.log(category);
                 console.log(categories[category]);
-                list.push(categories[category]);
+                list.push(categories[category])
             }
 
             return message.channel.send(`Please use \`;shop [category]\` to get a list of items in that category.\n${"-".repeat(75)}\n${list.join('\n')}`);
@@ -58,7 +52,12 @@ module.exports = {
                     sellDisplay = `${data.sell} ${money}`
                 }
 
-                embed.addField(data['name'], `Buy: ${data.buy}\nSell: ${sellDisplay}\nAmount in shop: ${data.amount}\nID: ${data._id}`, false);
+                let itemLocalized = data['name'];
+                while (itemLocalized.includes(' ')) {
+                    itemLocalized = itemLocalized.replace(' ', '_');
+                }
+
+                embed.addField(data['name'], `Buy: ${data.buy}\nSell: ${sellDisplay}\nAmount in shop: ${data.amount}\nID: ${data._id}\nLocalized Name: ${itemLocalized}`, false);
             }
 
             message.channel.send(embed);
@@ -70,19 +69,27 @@ module.exports = {
              */
             let subCommand = args[0].toLowerCase();
             let itemQuery = args[1];
-            let amount = args[2] || 1;
+            let amount = parseInt(args[2]) || 1;
             
             if (subCommand === 'buy') {
+                let localized = itemQuery;
+                while (localized.includes('_')) {
+                    localized = localized.replace('_', ' ');
+                }
+
                 let item = await shopItem.findOne({ name: itemQuery });
                 if (!item) {
-                    item = await shopItem.findById(itemQuery);
+                    item = await shopItem.findOne({ name: localized });
+                    if (!item) {
+                        item = await shopItem.findById(itemQuery);
+                    }
                 }
 
                 if (!item) {
                     return message.channel.send('Failed to find the item specified.');
                 } else {
-                    let shopHave = item.amount;
-                    let itemCost = item.buy;
+                    let shopHave = parseInt(item.amount);
+                    let itemCost = parseInt(item.buy);
                     let totalCost = itemCost * amount;
 
                     /* Set purchase amount to store amount, unless store has infinite */
@@ -118,7 +125,7 @@ module.exports = {
                     let jsonInv = JSON.parse(userInventory.inventory);
                     let count = 0;
                     if (jsonInv[item.name]) {
-                        count = jsonInv[item.name];
+                        count = parseInt(jsonInv[item.name]);
                     }
 
                     count = count + amount;
@@ -128,6 +135,72 @@ module.exports = {
                     await userInv.updateOne({userId: message.author.id}, userInventory);
 
                     return message.channel.send(`Successfully purchased ${amount} ${itemDisplay} for ${totalCost} ${money}`);
+                }
+            } else if (subCommand === 'sell') {
+                let localized = itemQuery;
+                while (localized.includes('_')) {
+                    localized = localized.replace('_', ' ');
+                }
+
+                let foundBy = itemQuery;
+                let foundById = false;
+
+                let item = await shopItem.findOne({ name: itemQuery });
+                if (!item) {
+                    item = await shopItem.findOne({ name: localized });
+                    foundBy = localized;
+                    if (!item) {
+                        item = await shopItem.findById(itemQuery);
+                        foundById = true;
+                    }
+                }
+
+                let itemDisplay = item.name;
+                if (amount > 1 || amount == 0) {
+                    itemDisplay = itemDisplay + 's';
+                }
+
+                let sellPrice = parseInt(item.sell);
+
+                if (sellPrice == 0) {
+                    return message.channel.send(`The shop can not buy ${itemDisplay}.`);
+                }
+
+                let userAccount = await helper.getUserEcoAccount(message.author.id);
+                let shopAccount = await helper.getUserEcoAccount(-1);
+                let userInventory = await helper.getUserInventory(message.author.id);
+                var jsonInv = JSON.parse(userInventory.inventory);
+
+                if (jsonInv[itemQuery]) {
+                    let userHave = parseInt(jsonInv[itemQuery]);
+
+                    if (userHave < amount) {
+                        amount = userHave;
+                    }
+
+                    let totalSell = sellPrice * amount;
+                    let shopBal = parseInt(shopAccount.balance);
+                    let userBal = parseInt(userAccount.balance);
+
+                    if (shopBal < totalSell) {
+                        return message.channel.send('The server does not have enough money for this transaction.');
+                    }
+
+                    shopAccount.balance = shopBal - totalSell;
+                    userAccount.balance = userBal + totalSell;
+
+                    item.amount = parseInt(item.amount) + amount;
+                    jsonInv[itemQuery] = userHave - amount;
+                    userInventory.inventory = JSON.stringify(jsonInv);
+
+                    await shopItem.updateOne({name: item.name}, item);
+                    await userInv.updateOne({userId: message.author.id}, userInventory);
+                    await userEco.updateOne({userId: -1}, shopAccount);
+                    await userEco.updateOne({userId: message.author.id}, userAccount);
+                    
+                    return message.channel.send(`Sold ${amount} ${itemDisplay} for ${totalSell} ${money}`);
+                } else {
+                    return message.channel.send(`You don't have any ${itemQuery}s to sell`);
                 }
             }
         }

@@ -1,6 +1,9 @@
 const userEco = require('../db/models/userEcoModel');
 const userInv = require('../db/models/userInventoryModel');
+const shopItem = require('../db/models/shopItemModel');
 const { emojiTixId } = require('../config.json');
+
+const chars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
 
 function getUserFromMention(client, mention) {
     if (!mention) return;
@@ -75,5 +78,26 @@ module.exports = {
 
     getMoneyEmoji: function(message) {
         return message.guild.emojis.resolve(emojiTixId);
+    },
+
+    getCategories: async function() {
+        let categories = await shopItem.find().distinct('category', function(err, categories) {
+            if (err) {
+                console.log(err);
+                return message.channel.send('Error fetching shop data. Please try again later.');
+            }
+        })
+    
+        return categories;
+    },
+
+    randomColorHex: function() {
+        let hex = '';
+        for (var i=0;i<6;i++) {
+            let rand = Math.floor(Math.random()*16);
+            hex += chars[rand];
+        }
+
+        return '#' + hex;
     }
 }
