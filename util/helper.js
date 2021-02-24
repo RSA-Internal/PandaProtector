@@ -30,7 +30,9 @@ module.exports = {
             if (!user) {
                 let res = await message.guild.members.fetch({query: args[0], limit: 1});
                 let first = res.entries().next().value;
-                userId = first[0];
+                if (first) {
+                    userId = first[0];
+                }
             } else {
                 userId = user.id;
             }
@@ -38,9 +40,12 @@ module.exports = {
             userId = user.id;
         }
         
-        user = await message.guild.members.fetch(userId);
+        if (userId) {
+            user = await message.guild.members.fetch(userId);
 
-        return user;
+            return user;
+        }
+        return null;
     },
 
     getUserEcoAccount: async function(userId) {
@@ -51,7 +56,7 @@ module.exports = {
         if (!account) {
             account = new userEco({
                 userId: userId,
-                balance: 0
+                balance: 500
             })
 
             await account.save()
