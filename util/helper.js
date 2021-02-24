@@ -181,5 +181,18 @@ module.exports = {
         inv.inventory = JSON.stringify(jsonInv);
 
         await userInv.updateOne({userId: user.id}, inv);
+    },
+
+    updateBalance: async function(user, amount) {
+        let account = await this.getUserEcoAccount(user.id);
+        let balance = parseInt(account.balance);
+        balance = balance + parseInt(amount);
+        account.balance = balance;
+        await userEco.updateOne({userId: user.id}, account);
+    },
+
+    getUserLastLogin: async function(user) {
+        let account = await this.getUserEcoAccount(user.id);
+        return account.login || 0;
     }
 }

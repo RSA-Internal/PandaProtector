@@ -1,8 +1,5 @@
 const items = ['fish', 'boot', 'kelp', '5 tix', 'fish', 'boot', 'kelp', 'boot', 'kelp', 'fish', 'boot', 'kelp', 'kelp'];
-
 const helper = require('../../util/helper');
-const userEco = require('../../db/models/userEcoModel');
-const userInv = require('../../db/models/userInventoryModel');
 
 module.exports = {
     name: 'fish',
@@ -18,12 +15,7 @@ module.exports = {
             let item = items[itemChance];
 
             if (item === '5 tix') {
-                let userAccount = await helper.getUserEcoAccount(message.author.id);
-                let bal = parseInt(userAccount.balance);
-                bal = bal + 5;
-
-                userAccount.balance = bal;
-                await userEco.updateOne({userId: message.author.id}, userAccount);
+                await helper.updateBalance(message.author, 5);
             } else {
                 await helper.updateInventory(message.author, item, 1);
             }
