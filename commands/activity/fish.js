@@ -10,6 +10,7 @@ module.exports = {
     guildOnly: true,
     cooldown: 30,
     async execute(message, args) {
+        await helper.updateUserStat(message.author.id, 'fishing');
         let chance = Math.floor(Math.random()*100)
 
         if (chance <= 40) {
@@ -24,18 +25,7 @@ module.exports = {
                 userAccount.balance = bal;
                 await userEco.updateOne({userId: message.author.id}, userAccount);
             } else {
-                let inv = await helper.getUserInventory(message.author.id);
-                let jsonInv = JSON.parse(inv.inventory);
-                let quantity = 1;
-
-                if (jsonInv[item]) {
-                    quantity = quantity + parseInt(jsonInv[item]);
-                }
-
-                jsonInv[item] = quantity;
-                inv.inventory = JSON.stringify(jsonInv);
-
-                await userInv.updateOne({userId: message.author.id}, inv);
+                await helper.updateInventory(message.author, item, 1);
             }
 
             return message.channel.send(`You obtained ${item}`);

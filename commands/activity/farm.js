@@ -10,7 +10,36 @@ module.exports = {
     guildOnly: true,
     cooldown: 30,
     async execute(message, args) {
+        await helper.updateUserStat(message.author.id, 'farming');
         let chance = Math.floor(Math.random()*100)
+
+        let inv = await helper.getUserInventory(message.author.id);
+        let jsonInv = JSON.parse(inv.inventory);
+        let _count = parseInt(jsonInv['seeds']);
+        let count = _count;
+
+        if (_count > 0) { 
+            if (chance >= 80) {
+                if (chance >= 80) {
+                    count = Math.floor(count * 0.2);
+                } else if(chance >= 90) {
+                    count = Math.floor(count * 0.45);
+                } else if(chance >= 96) {
+                    count = count;
+                }
+
+                if (count < 1) {
+                    count = 1;
+                }
+
+                console.log(`Grew ${count} seeds`);
+
+                await helper.updateInventory(message.author, 'seeds', -count);
+                await helper.updateInventory(message.author, 'wheat', count);
+            }
+        }
+
+        chance = Math.floor(Math.random()*100);
 
         if (chance <= 40) {
             let itemChance = Math.floor(Math.random()*items.length);
@@ -24,18 +53,7 @@ module.exports = {
                 userAccount.balance = bal;
                 await userEco.updateOne({userId: message.author.id}, userAccount);
             } else {
-                let inv = await helper.getUserInventory(message.author.id);
-                let jsonInv = JSON.parse(inv.inventory);
-                let quantity = 1;
-
-                if (jsonInv[item]) {
-                    quantity = quantity + parseInt(jsonInv[item]);
-                }
-
-                jsonInv[item] = quantity;
-                inv.inventory = JSON.stringify(jsonInv);
-
-                await userInv.updateOne({userId: message.author.id}, inv);
+                await helper.updateInventory(message.author, item, 1);
             }
 
             return message.channel.send(`You obtained ${item}`);

@@ -1,6 +1,9 @@
+const Discord = require('discord.js');
+
 const userEco = require('../db/models/userEcoModel');
 const userInv = require('../db/models/userInventoryModel');
 const shopItem = require('../db/models/shopItemModel');
+const userStats = require('../db/models/userStatsModel');
 const { emojiTixId } = require('../config.json');
 
 const chars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
@@ -104,5 +107,79 @@ module.exports = {
         }
 
         return '#' + hex;
+    },
+
+    getUserStats: async function(userId) {
+        let stats = await userStats.findOne({userId: userId});
+        if (!stats) {
+            stats = new userStats({
+                userId: userId
+            });
+
+            await stats.save();
+        }
+
+        return stats;
+    },
+
+    updateUserStat: async function(userId, statName) {
+        let stats = await this.getUserStats(userId);
+
+        stats[statName] = parseInt(stats[statName]) + 1
+
+        await userStats.updateOne({userId: userId}, stats);
+    },
+
+    generateEmptyEmbed: function(user, title) {
+        const embed = new Discord.MessageEmbed()
+            .setTitle(title)
+            .setColor(this.randomColorHex())
+            .setThumbnail(user.avatarURL());
+
+        return embed;
+    },
+
+    renderUserStats: async function(message) {
+        let user = message.author;
+        let member = message.member;
+
+        let stats = await this.getUserStats(user.id);
+        let embed = this.generateEmptyEmbed(user, `${member.displayName}'s Stats`);
+
+        userStats.schema.eachPath(function(path) {
+            if (path != 'userId' && path != '_id' && path != '__v') {
+                embed.addField(path, `Performed: ${stats[path]}\nLevel: 1`, false)
+            }
+        });
+        
+        return embed;
+    },
+
+    updateInventory: async function(user, item, quantity) {
+        let inv = await this.getUserInventory(user.id);
+        let jsonInv = JSON.parse(inv.inventory);
+
+        if (jsonInv[item]) {
+            quantity = quantity + parseInt(jsonInv[item]);
+        }
+
+        jsonInv[item] = quantity;
+
+        let empty = [];
+
+        for (var item in jsonInv) {
+            let count = parseInt(jsonInv[item]);
+            if (count == 0) {
+                empty.push(item);
+            }
+        }
+
+        for (var emp in empty) {
+            delete jsonInv[emp];
+        }
+
+        inv.inventory = JSON.stringify(jsonInv);
+
+        await userInv.updateOne({userId: user.id}, inv);
     }
 }

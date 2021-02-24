@@ -5,6 +5,7 @@ module.exports = {
     name: 'inventory',
     description: 'Display your inventory',
     guildOnly: true,
+    aliases: ['inv'],
     cooldown: 15,
     async execute(message, args) {
         let inventory = await helper.getUserInventory(message.author.id);
