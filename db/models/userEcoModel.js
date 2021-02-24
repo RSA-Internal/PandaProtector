@@ -12,6 +12,10 @@ var userEcoModelSchema = new Schema({
     balance: {
         type: Long,
         required: true
+    },
+    login: {
+        type: Long,
+        default: 0
     }
 })
 
