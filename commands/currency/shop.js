@@ -61,7 +61,7 @@ module.exports = {
                         itemLocalized = itemLocalized.replace(' ', '_');
                     }
 
-                    embed.addField(data['name'], `Buy: ${data.buy}\nSell: ${sellDisplay}\nAmount in shop: ${data.amount}\nID: ${data._id}\nLocalized Name: ${itemLocalized}`, false);
+                    embed.addField(data['name'], `Buy: ${data.buy}\nAmount in shop: ${data.amount}`, false);
                 }
             }
 
@@ -90,12 +90,14 @@ module.exports = {
                 if (!item) {
                     item = await shopItem.findOne({ name: localized });
                     if (!item) {
-                        item = await shopItem.findById(itemQuery);
+                        if (itemQuery.length == 24) {
+                            item = await shopItem.findById(itemQuery)
+                        }
                     }
                 }
 
                 if (!item) {
-                    return message.channel.send('Failed to find the item specified.');
+                    return message.channel.send('Failed to find the item specified. Perhaps it is a forbidden item?');
                 } else {
                     let shopHave = parseInt(item.amount);
                     let itemCost = parseInt(item.buy);
@@ -159,9 +161,15 @@ module.exports = {
                     item = await shopItem.findOne({ name: localized });
                     foundBy = localized;
                     if (!item) {
-                        item = await shopItem.findById(itemQuery);
-                        foundById = true;
+                        if (itemQuery.length == 24) {
+                            item = await shopItem.findById(itemQuery);
+                            foundById = true;
+                        }
                     }
+                }
+
+                if (!item) {
+                    return message.channel.send('The shop can not buy this item. Perhaps it is a forbidden item?');
                 }
 
                 let itemDisplay = item.name;

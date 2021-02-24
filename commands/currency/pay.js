@@ -18,6 +18,10 @@ module.exports = {
         let payee = await helper.queryUser(message, args);
         let amount = parseInt(args[1]);
 
+        if (!payee) {
+            return message.channel.send('The was no valid target to send money to.');
+        }
+
         if (payer.id === payee.id) {
             return message.channel.send(`It is pointless to exchange money with yourself.`);
         }
