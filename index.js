@@ -88,13 +88,22 @@ client.on('message', message => {
     const content = message.content;
     const channel = message.channel;
 
-    const deleted = false;
+    var deleted = false;
 
     if (channel.id == channelShowcaseId) {
-        if (message.attachments.length == 0) {
-            if (!content.includes(".com") || !content.includes(".net") || !content.includes("prnt.sc")) {
+        console.log(message.attachments);
+        console.log(message.attachments.array().length);
+        if (!message.attachments.array().length || message.attachments.array().length == 0) {
+            console.log('deleting');
+            var toDelete = true;
+
+            if (content.includes(".com") || content.includes(".net") || content.includes("prnt.sc")) {
+                toDelete = false;
+            }
+
+            if (toDelete) {
                 message.delete();
-                deleted = true;
+                deleted = true; 
             }
         }
     }
