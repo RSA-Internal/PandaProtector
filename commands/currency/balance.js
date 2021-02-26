@@ -1,3 +1,4 @@
+const dataHelper = require('../../util/dataHelper');
 const helper = require('../../util/helper');
 
 module.exports = {
@@ -7,13 +8,13 @@ module.exports = {
     guildOnly: true,
     cooldown: 5,
     async execute(message, args) {
-        let user = message.author;
+        let member = await helper.queryMember(message, args);
+        let id = member.user.id;
 
-        if (args[0]) { user = await helper.queryUser(message, args); }
-        if (!user) { return message.channel.send('Failed to retrieve user account.'); }
+        let account = await dataHelper.getAccount(id);
 
-        let balance = await helper.getUserBalance(user.id);
+        let balance = account.wallet[0]['tix']['amount'];
 
-        return message.channel.send(`Balance of ${message.guild.members.resolve(user).displayName}: ${balance} ${helper.getMoneyEmoji(message)}`);
+        return message.channel.send(`Balance of ${member.displayName}: ${balance} ${helper.getMoneyEmoji(message)}`);
     }
 }

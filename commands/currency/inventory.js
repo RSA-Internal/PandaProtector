@@ -1,5 +1,5 @@
-const Discord = require('discord.js')
-const helper = require('../../util/helper')
+const dataHelper = require('../../util/dataHelper');
+const helper = require('../../util/helper');
 
 module.exports = {
     name: 'inventory',
@@ -8,38 +8,54 @@ module.exports = {
     aliases: ['inv'],
     cooldown: 15,
     async execute(message, args) {
-        let member = message.member;
-        if (args[0]) { member = await helper.queryMember(message, args); }
-        let user = member.user;
-
-        if (!user) { return message.channel.send('Failed to find user.'); };
-
-        let inventory = await helper.getUserInventory(user.id);
-        let account = await helper.getUserEcoAccount(user.id);
+        let account = null;
+        let displayName = '';
+        let avatar = '';
+        if (args[0] && args[0] == -2) {
+            account = await dataHelper.getAccount(-2);
+            displayName = 'Bear';
+            avatar = 'https://www.clipartmax.com/png/middle/185-1850409_pixel-bear-icon.png';
+        } else {
+            let member = await helper.queryMember(message, args);
+            let id = member.user.id;
+            account = await dataHelper.getAccount(id);
+            displayName = member.displayName;
+            avatar = member.user.avatarURL();
+        }
+        
         let money = await helper.getMoneyEmoji(message);
 
-        let jsonInv = JSON.parse(inventory.inventory);
+        let inventory = account.inventory[0];
+        let wallet = account.wallet[0];
 
-        const embed = helper.generateEmptyEmbed(user.avatarURL(), `${member.displayName}'s Inventory`)
-            .addField('Balance', `${account.balance} ${money}`)
+        const embed = helper.generateEmptyEmbed(avatar, `${displayName}'s Inventory`)
 
-        if (Object.keys(jsonInv).length === 0) {
-            embed.addField('Backpack', 'Not even a cobweb to be seen.', false);
-        } else {
-            var ret = "";
-            var worth = 0;
-
-            for (var item in jsonInv) {
-                let itemData = await helper.getItem(item);
-                let display = helper.prependRarity(itemData.rarity, itemData.name);
-
-                ret += `${display}: ${jsonInv[item]}\n`;
-
-                worth += parseInt(itemData.sell);
-            }
-
-            embed.addField(`Backpack (worth: ${worth} ${money})`, ret, false);
+        let moneyRet = [];
+        for (var currency in wallet) {
+            let cur = wallet[currency];
+            moneyRet.push(`${money}: ${cur.amount}`);
         }
+        embed.addField('Wallet', moneyRet.join('\n'), false);
+
+        let worth = 0;
+        let itemRet = [];
+        for (var item in inventory) {
+            let it = inventory[item];
+            if (it.amount > 0) {
+                itemRet.push(`[${it.rarity.slice(0,1)}] ${it.name}: ${it.amount}`);
+                worth += it.sell;
+            }
+        }
+
+        let title = 'Backpack';
+        let display = 'Not even a cobweb to be seen.';
+        if (itemRet.length) {
+            title = `Backpack (worth: ${worth} ${money})`
+            display = itemRet.join('\n');
+        }
+
+        embed.addField(title, display, true);
+        embed.addField('\u200b', '\u200b', true);
 
         return message.channel.send(embed);
     }

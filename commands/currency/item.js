@@ -1,33 +1,43 @@
 const helper = require('../../util/helper');
+const dataHelper = require('../../util/dataHelper');
 
 module.exports = {
     name: 'item',
     description: 'Display all items, or item specific details',
     guildOnly: true,
-    cooldown: 30,
+    cooldown: 10,
+    owner: true,
     async execute(message, args) {
-        let items = await helper.getItemList();
+        if (args.length) {
+            let query = args.join(' ');
+            let item = dataHelper.getItem(query);
 
-        if (args[0]) {
-            if (items.includes(args[0].toLowerCase())) {
-                let item = await helper.getItem(args[0].toLowerCase());
-                let money = await helper.getMoneyEmoji(message);
+            if (item) {
+                let data = [];
+                for (var info in item) {
+                    data.push(`${info}: ${item[info]}`);
+                }
 
-                let embed = helper.generateEmptyEmbed('https://image.flaticon.com/icons/png/512/1710/1710414.png', `${item.name} details`);
-
-                embed.addField('Buy Price', `${item.buy} ${money}`, true);
-                embed.addField('Sell Price', `${item.sell} ${money}`, true);
-                embed.addField('Rarity', `${item.rarity}`, true);
-                embed.addField('Category', `${item.category}`, true);
-                embed.addField('Amount in shop', `${item.amount}`, true);
-                embed.addField('Total in world', await helper.getAllItemsInWorld(item.name), true);
+                const embed = helper.generateEmptyEmbed('', `${item.name}'s Details`);
+                embed.addField('\u200b', data.join('\n'), false);
 
                 return message.channel.send(embed);
             } else {
-                return message.channel.send('That is not a valid item');
+                return message.channel.send(`Could not find an item ${query.replace('@', '')}`);
             }
         } else {
-            return message.channel.send(`Item List\n---------\n${items.join('\n')}`);
+            let items = require('../../util/containers/item');
+            let list = [];
+            for (var index in items) {
+                let item = items[index];
+                list.push(`${item.name} [${item.localized}]`);
+            }
+
+            const embed = helper.generateEmptyEmbed('', 'Item List');
+            embed.setDescription('Listing goes \'Item Name\' [localized name]');
+            embed.addField('\u200b', list.join('\n'), false);
+
+            return message.channel.send(embed);
         }
     }
 }

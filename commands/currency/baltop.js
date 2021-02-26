@@ -1,35 +1,34 @@
-const Discord = require('discord.js')
-const userEco = require('../../db/models/userEcoModel');
 const helper = require('../../util/helper')
+const dataHelper = require('../../util/dataHelper')
 
 module.exports = {
     name: 'baltop',
     description: 'Get the top money holders',
     guildOnly: true,
-    cooldown: 15,
+    cooldown: 5,
     async execute(message, args) {
         let money = helper.getMoneyEmoji(message);
-        const leaderboard = new Discord.MessageEmbed()
-            .setColor('#373737')
-            .setTitle(`${money} board`)
-            .setDescription(`Top 10 ${money} holders`);
+        const leaderboard = helper.generateEmptyEmbed('', `${money} board`);
+        leaderboard.setDescription(`Top 10 ${money} holders`);
 
-        let accounts = await userEco.find().sort({balance: -1}).limit(10).exec({
-            function(err, accounts) {
-                console.log(err);
+        let data = await dataHelper.getAllBalances();
+        let balances = data['tempBalance'];
+
+        let count = 0;
+
+        for (var userId in balances) {
+            if (count >= 10) { break; }
+            count++;
+            let displayName = userId;
+            if (userId > 0) {
+                displayName = await helper.getDisplayNameFromId(message.guild, userId);
+            } else if (userId == -1) {
+                displayName = '[Server]';
             }
-        })
-
-        for (var account in accounts) {
-            let display = '[Server]';
-
-            if (accounts[account].userId != '-1') {
-                await message.guild.members.fetch( { user: accounts[account].userId, force: true })
-                display = message.guild.members.resolve(accounts[account].userId).displayName
-            }
-            
-            leaderboard.addField(`${display}`, `${accounts[account].balance} ${money}`, false);
+            leaderboard.addField(displayName, `${balances[userId]} ${money}`, false);
         }
+
+        leaderboard.setFooter(`Last Updated: ${data['lastUpdated']}`);
 
         message.channel.send(leaderboard);
     }

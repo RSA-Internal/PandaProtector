@@ -1,12 +1,5 @@
-const Discord = require('discord.js');
-const shopItem = require('../../db/models/shopItemModel');
-const userEco = require('../../db/models/userEcoModel');
-const userInv = require('../../db/models/userInventoryModel');
 const helper = require('../../util/helper');
-
-const localization = {['items']: 'Items',
-                      ['currency']: 'Currency',
-                      ['roles']: 'Roles'};
+const dataHelper = require('../../util/dataHelper');
 
 module.exports = {
     name: 'shop',
@@ -16,191 +9,143 @@ module.exports = {
         let money = helper.getMoneyEmoji(message);
 
         if (args.length == 0) {
-            //display categories to choose from
-            let categories = await helper.getCategories();
-            let list = [];
+            //display categories
+            let categories = dataHelper.getCategories();
 
-            for (var category in categories) {
-                console.log(category);
-                console.log(categories[category]);
-                list.push(categories[category])
-            }
-
-            return message.channel.send(`Please use \`;shop [category]\` to get a list of items in that category.\n${"-".repeat(75)}\n${list.join('\n')}`);
+            return message.channel.send(`Please use \`;shop [category]\` to get a list of items in that category.\n${"-".repeat(75)}\n${categories.join('\n')}`);
         }
+
         if (args.length == 1) {
-            /**
-             * ;shop [category]
-             * ;shop [itemName]
-             * ;shop [itemID]
-             */
-            let localized = localization[args[0].toLowerCase()];
-            if (localized === undefined) {
-                return message.channel.send('Please provide a valid shop category to browse available items.');
-            }
-            let items = await shopItem.find({ category: localized }).sort({buy : 1});
+            //;shop category
+            let category = args[0];
 
-            const embed = helper.generateEmptyEmbed('https://cdn2.iconfinder.com/data/icons/market-and-economics-21/48/23-512.png', `${localized} Shop`);
-
-            let added = false;
-            let count = 0;
-
-            for (var item in items) {
-                let data = items[item];
-
-                if (data.amount > 0) {
-                    count += 1;
-                    added = true;
-
-                    let itemLocalized = data['name'];
-                    while (itemLocalized.includes(' ')) {
-                        itemLocalized = itemLocalized.replace(' ', '_');
-                    }
-
-                    let status = '';
-
-                    if (data.buy == 0) {
-                        status = '\nUnbuyable';
-                    }
-
-                    let display = `${data['name']}: ${data.buy} ${money}`;
-                    let rarity = data.rarity;
-
-                    display = helper.prependRarity(rarity, display);
-
-                    embed.addField(`${display}`, `Amount in shop: ${data.amount}${status}`, true);
+            let categories = dataHelper.getCategories();
+            for (var cat in categories) {
+                console.log(categories[cat]);
+                if (categories[cat].toLowerCase() === category.toLowerCase()) {
+                    category = categories[cat];
                 }
             }
 
-            for (var i=count%3;i<3;i++) {
-                embed.addField('\u200b', '\u200b', true);
+            let shopAccount = await dataHelper.getAccount(-1);
+            let inventory = shopAccount.inventory[0];
+
+            const embed = helper.generateEmptyEmbed('https://cdn2.iconfinder.com/data/icons/market-and-economics-21/48/23-512.png', `${category} Shop`);
+
+            let available = [];
+
+            for (var it in inventory) {
+                let item = inventory[it];
+                if (item.category.toLowerCase() === category.toLowerCase()) {
+                    if (item.amount > 0) {
+                        available.push(item);
+                    }
+                }
             }
 
-            if (!added) {
-                embed.addField('\u200b', 'Unfortunately we do not sell cobwebs.', false);
+            if (available.length) {
+                let count = 0;
+                
+                for (var it in available) {
+                    count += 1;
+                    let item = available[it];
+
+                    let display = `[${item.rarity.slice(0,1)}] ${item.name}: ${item.buy} ${money}`;
+                    let amount = `Amount in shop: ${item.amount}`;
+                    
+                    embed.addField(display, amount, true);
+                }
+
+                for (var i=count%3;i<3;i++) {
+                    embed.addField('\u200b', '\u200b', true);
+                }
+            } else {
+                embed.addField('\u200b', 'Alas, we do not sell cobwebs here.', false);
             }
 
-            message.channel.send(embed);
+            return message.reply(embed);
         }
+
         if (args.length >= 2) {
             /**
-             * ;shop buy [itemName](or itemID {will be mongo _id}) <amount>
-             * ;shop sell [itemName](or itemID {will be mongo _id}) <amount>
+             * ;shop buy [itemName](or itemId) <amount>
+             * ;shop sell [itemName](or itemId) <amount>
              */
+
             let subCommand = args[0].toLowerCase();
-            let itemQuery = args[1];
-            let amount = parseInt(args[2]) || 1;
-            
+            let amount = 1;
+            let sliceFrom = 2;
+            if (parseInt(args[1])) {
+                amount = parseInt(args[1]);
+            } else {
+                sliceFrom = 1;
+            }
+            let itemQuery = args.slice(sliceFrom).join(' ');
+
+            let shopAccount = await dataHelper.getAccount(dataHelper.SHOP_ID);
+            let userAccount = await dataHelper.getAccount(message.author.id);
+
+            let shopInventory = shopAccount.inventory[0];
+            let userInventory = userAccount.inventory[0];
+
+            let shopBalance = shopAccount.wallet[0]['tix']['amount'];
+            let userBalance = userAccount.wallet[0]['tix']['amount'];
+
             if (subCommand === 'buy') {
-                let localized = itemQuery;
-                while (localized.includes('_')) {
-                    localized = localized.replace('_', ' ');
-                }
-
-                let item = await shopItem.findOne({ name: itemQuery });
-                if (!item) {
-                    item = await shopItem.findOne({ name: localized });
-                    if (!item) {
-                        if (itemQuery.length == 24) {
-                            item = await shopItem.findById(itemQuery)
-                        }
+                let item = dataHelper.getItem(itemQuery);
+                
+                if (item) {
+                    let identifier = item.localized;
+                    let output = identifier;
+                    let shopAmount = shopInventory[identifier]['amount'];
+                    let userAmount = userInventory[identifier]['amount'];
+                    let worth = item.buy;
+                    let totalCost = worth * amount;
+                    if (amount > 1) {
+                        output += 's';
                     }
-                }
 
-                if (!item) {
-                    return message.channel.send('Failed to find the item specified. Perhaps it is a forbidden item?');
+                    if (shopAmount == 0) { return message.channel.send(`The shop does not have any ${output} to buy.`); }
+                    if (shopAmount < amount) { return message.channel.send(`The shop does not have ${amount} ${output} to buy.`); }
+                    if (!item.buyable) { return message.channel.send(`${item.name} can not be purchased.`); }
+                    if (userBalance < totalCost) { return message.channel.send('You can not afford this transaction.'); }
+
+                    await dataHelper.updateBalanceForAccount(userAccount, 'tix', userBalance-totalCost);
+                    await dataHelper.updateBalanceForAccount(shopAccount, 'tix', shopBalance+totalCost);
+                    await dataHelper.updateItemForAccount(shopAccount, identifier, shopAmount-amount);
+                    await dataHelper.updateItemForAccount(userAccount, identifier, userAmount+amount);
+
+                    return message.channel.send(`Bought ${amount} ${output} for ${totalCost} ${money}`);
                 } else {
-                    let shopHave = parseInt(item.amount);
-                    let itemCost = parseInt(item.buy);
-                    let totalCost = itemCost * amount;
-
-                    /* Set purchase amount to store amount, unless store has infinite */
-                    if (amount > shopHave && shopHave != -1) {
-                        amount = shopHave;
-                    }
-
-                    let itemDisplay = item.name;
-                    if (amount > 1 || amount == 0) {
-                        itemDisplay = itemDisplay + 's';
-                    }
-
-                    let balance = await helper.getUserBalance(message.author.id);
-
-                    if (shopHave == 0) {
-                        return message.channel.send(`The shop has 0 ${itemDisplay}`);
-                    }
-
-                    if (balance < totalCost) {
-                        return message.channel.send(`You do not have enough ${money} to purchase ${amount} ${itemDisplay}`);
-                    }
-
-                    await helper.updateShopItem(item.name, -amount);
-                    await helper.updateBalance(message.author.id, -totalCost);
-                    await helper.updateInventory(message.author.id, item.name, amount);
-
-                    return message.channel.send(`Successfully purchased ${amount} ${itemDisplay} for ${totalCost} ${money}`);
+                    return message.channel.send(`${itemQuery.replace('@', '')} is not a valid item.`);
                 }
             } else if (subCommand === 'sell') {
-                let localized = itemQuery;
-                while (localized.includes('_')) {
-                    localized = localized.replace('_', ' ');
-                }
-
-                let foundBy = itemQuery;
-                let foundById = false;
-
-                let item = await shopItem.findOne({ name: itemQuery });
-                if (!item) {
-                    item = await shopItem.findOne({ name: localized });
-                    foundBy = localized;
-                    if (!item) {
-                        if (itemQuery.length == 24) {
-                            item = await shopItem.findById(itemQuery);
-                            foundById = true;
-                        }
-                    }
-                }
-
-                if (!item) {
-                    return message.channel.send('The shop can not buy this item. Perhaps it is a forbidden item?');
-                }
-
-                let itemDisplay = item.name;
-                if (amount > 1 || amount == 0) {
-                    itemDisplay = itemDisplay + 's';
-                }
-
-                let sellPrice = parseInt(item.sell);
-
-                if (sellPrice == 0) {
-                    return message.channel.send(`The shop can not buy ${itemDisplay}.`);
-                }
-
-                let userInventory = await helper.getUserInventory(message.author.id);
-                var jsonInv = JSON.parse(userInventory.inventory);
-
-                if (jsonInv[itemQuery]) {
-                    let userHave = parseInt(jsonInv[itemQuery]);
-
-                    if (userHave < amount) {
-                        amount = userHave;
+                let item = dataHelper.getItem(itemQuery);
+                
+                if (item) {
+                    let identifier = item.localized;
+                    let output = identifier;
+                    let shopAmount = shopInventory[identifier]['amount'];
+                    let userAmount = userInventory[identifier]['amount'];
+                    let worth = item.sell;
+                    let totalCost = worth * amount;
+                    if (amount > 1) {
+                        output += 's';
                     }
 
-                    let totalSell = sellPrice * amount;
-                    let shopBal = await helper.getUserBalance(-1);
+                    if (userAmount == 0) { return message.channel.send(`You do not have any ${output} to sell.`); }
+                    if (userAmount < amount) { return message.channel.send(`You do not have ${amount} ${output} to sell`); }
+                    if (!item.sellable) { return message.channel.send(`${item.name} can not be sold.`); }
+                    if (shopBalance < totalCost) { return message.channel.send('The shop can not afford this transaction.'); }
 
-                    if (shopBal < totalSell) {
-                        return message.channel.send('The server does not have enough money for this transaction.');
-                    }
+                    await dataHelper.updateItemForAccount(userAccount, identifier, userAmount-amount);
+                    await dataHelper.updateItemForAccount(shopAccount, identifier, shopAmount+amount);
+                    await dataHelper.updateBalanceForAccount(shopAccount, 'tix', shopBalance-totalCost);
+                    await dataHelper.updateBalanceForAccount(userAccount, 'tix', userBalance+totalCost);
 
-                    await helper.updateShopItem(item.name, amount);
-                    await helper.updateInventory(message.author.id, item.name, -amount);
-                    await helper.updateBalance(-1, -totalSell);
-                    await helper.updateBalance(message.author.id, totalSell);
-                    
-                    return message.channel.send(`Sold ${amount} ${itemDisplay} for ${totalSell} ${money}`);
+                    return message.channel.send(`Sold ${amount} ${output} for ${totalCost} ${money}`);
                 } else {
-                    return message.channel.send(`You don't have any ${itemQuery}s to sell`);
+                    return message.channel.send(`${itemQuery.replace('@', '')} is not a valid item.`);
                 }
             }
         }

@@ -1,7 +1,7 @@
-const items = ['wheat', 'seeds', 'carrot', '5 tix', 'wheat', 'potato', 'seeds', 'carrot', 'boot', 'carrot', 'wheat', 'seeds', 'carrot', 'potato', 'carrot'];
+const items = ['wheat', 'seeds', 'carrot', 'tix', 'wheat', 'potato', 'seeds', 'carrot', 'boot', 'carrot', 'wheat', 'seeds', 'carrot', 'potato', 'carrot'];
 
 const helper = require('../../util/helper');
-const userInv = require('../../db/models/userInventoryModel');
+const dataHelper = require('../../util/dataHelper');
 
 module.exports = {
     name: 'farm',
@@ -9,12 +9,13 @@ module.exports = {
     guildOnly: true,
     cooldown: 30,
     async execute(message, args) {
-        await helper.updateUserStat(message.author.id, 'farming');
-        let chance = Math.floor(Math.random()*100)
+        let userId = message.author.id;
+        let account = await dataHelper.getAccount(userId);
 
-        let inv = await helper.getUserInventory(message.author.id);
-        let jsonInv = JSON.parse(inv.inventory);
-        let _count = parseInt(jsonInv['seeds']);
+        dataHelper.incrementStatForAccount(account, 'farming');
+
+        let chance = Math.floor(Math.random()*100)
+        let _count = account.inventory[0]['seeds']['amount'];
         let count = _count;
 
         if (_count > 0) { 
@@ -31,10 +32,8 @@ module.exports = {
                     count = 1;
                 }
 
-                console.log(`Grew ${count} seeds`);
-
-                await helper.updateInventory(message.author.id, 'seeds', -count);
-                await helper.updateInventory(message.author.id, 'wheat', count);
+                dataHelper.updateItemForAccount(account, 'seeds', _count-count);
+                dataHelper.updateItemForAccount(account, 'wheat', account.inventory[0]['wheat']['amount'] + count);
             }
         }
 
@@ -45,12 +44,19 @@ module.exports = {
             let item = items[itemChance];
 
             if (item === '5 tix') {
-                await helper.updateBalance(message.author.id, 5);
+                let found = Math.floor(Math.random()*4) + 1;
+                dataHelper.updateBalanceForAccount(account, 'tix', account.wallet[0]['tix']['amount'] + found);
+                return message.reply(`You found ${found} tix!`);
             } else {
-                await helper.updateInventory(message.author.id, item, 1);
+                let amount = 1;
+                if (account.inventory) {
+                    if (account.inventory[0] && account.inventory[0][item]) {
+                        amount += account.inventory[0][item]['amount'];
+                    }
+                }
+                dataHelper.updateItemForAccount(account, item, amount);
+                return message.reply(`You found a ${item}`);
             }
-
-            return message.reply(`You obtained ${item}`);
         } else {
             return message.reply('Better luck next time.');
         }

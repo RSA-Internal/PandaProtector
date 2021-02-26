@@ -1,5 +1,5 @@
-const userEco = require('../../db/models/userEcoModel');
-const helper = require('../../util/helper')
+const helper = require('../../util/helper');
+const dataHelper = require('../../util/dataHelper');
 
 module.exports = {
     name: 'pay',
@@ -13,7 +13,7 @@ module.exports = {
         if (args.length < 2) { return message.channel.send('Not enough arguments provided.'); }
 
         let payer = message.author;
-        let payee = await helper.queryUser(message, args);
+        let payee = await helper.queryMember(message, args);
         let amount = parseInt(args[1]);
 
         if (!payee) { return message.channel.send('The was no valid target to send money to.'); }
@@ -22,14 +22,17 @@ module.exports = {
         if (amount < 0) { return message.channel.send('Can not send negative money.'); }
         if (amount == 0) { return message.channel.send('No money to send'); }
 
-        let payerAccount = await helper.getUserEcoAccount(payer.id);
-        let payeeAccount = await helper.getUserEcoAccount(payee.id);
+        let payerAccount = await dataHelper.getAccount(payer.id);
+        let payeeAccount = await dataHelper.getAccount(payee.id);
 
-        if (payerAccount.balance < amount) { return message.channel.send(`You need ${amount-payerAccount.balance} more ${money}.`); }
+        let payerBalance = payerAccount.wallet[0].tix.amount;
+        let payeeBalance = payeeAccount.wallet[0].tix.amount;
 
-        await helper.updateBalance(payer.id, -amount);
-        await helper.updateBalance(payee.id, amount);
+        if (payerBalance < amount) { return message.channel.send(`You need ${amount-payerBalance} more ${money}.`); }
 
-        return message.channel.send(`Successfully sent ${amount} ${helper.getMoneyEmoji(message)} to ${payee}`);
+        dataHelper.updateBalanceForAccount(payerAccount, 'tix', payerBalance-amount);
+        dataHelper.updateBalanceForAccount(payeeAccount, 'tix', payeeBalance+amount);
+        
+        return message.channel.send(`Successfully sent ${amount} ${money} to ${payee}`);
     }
 }

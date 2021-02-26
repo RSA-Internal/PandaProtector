@@ -1,12 +1,8 @@
 const Discord = require('discord.js');
-
-const userEco = require('../db/models/userEcoModel');
-const userInv = require('../db/models/userInventoryModel');
-const shopItem = require('../db/models/shopItemModel');
-const userStats = require('../db/models/userStatsModel');
 const { emojiTixId } = require('../config.json');
 
 const chars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+const displayNameCache = [];
 
 function getUserFromMention(client, mention) {
     if (!mention) return;
@@ -25,82 +21,38 @@ function getUserFromMention(client, mention) {
 module.exports = {
     /** async */
     queryMember: async function(message, args) {
-        user = getUserFromMention(message.client, args[0]);
-        let userId = null;
-
-        if (!user) {
-            let user = message.guild.members.resolve(args[0]);
+        if (args[0]) {
+            user = getUserFromMention(message.client, args[0]);
+            let userId = null;
 
             if (!user) {
-                let res = await message.guild.members.fetch({query: args[0], limit: 1});
-                let first = res.entries().next().value;
-                if (first) {
-                    userId = first[0];
+                let user = message.guild.members.resolve(args[0]);
+
+                if (!user) {
+                    let res = await message.guild.members.fetch({query: args[0], limit: 1});
+                    let first = res.entries().next().value;
+                    if (first) {
+                        userId = first[0];
+                    }
+                } else {
+                    userId = user.id;
                 }
             } else {
                 userId = user.id;
             }
-        } else {
-            userId = user.id;
-        }
-        
-        if (userId) {
-            user = await message.guild.members.fetch(userId);
+            
+            if (userId) {
+                user = await message.guild.members.fetch(userId);
 
-            return user;
-        }
-        return null;
-    },
-
-    /** async */
-    getUserEcoAccount: async function(userId) {
-        let account = await userEco.findOne({
-            userId: userId
-        })
-
-        if (!account) {
-            account = new userEco({
-                userId: userId,
-                balance: 500
-            })
-
-            await account.save()
+                return user;
+            }
         }
 
-        return account
-    },
-
-    /** async */
-    getUserInventory: async function(userId) {
-        let inv = await userInv.findOne({
-            userId: userId
-        })
-
-        if (!inv) {
-            inv = new userInv({
-                userId: userId
-            })
-
-            await inv.save();
-        }
-
-        return inv;
+        return message.member;
     },
 
     getMoneyEmoji: function(message) {
         return message.guild.emojis.resolve(emojiTixId);
-    },
-
-    /** async */
-    getCategories: async function() {
-        let categories = await shopItem.find().distinct('category', function(err, categories) {
-            if (err) {
-                console.log(err);
-                return message.channel.send('Error fetching shop data. Please try again later.');
-            }
-        })
-    
-        return categories;
     },
 
     randomColorHex: function() {
@@ -113,29 +65,6 @@ module.exports = {
         return '#' + hex;
     },
 
-    /** async */
-    getUserStats: async function(userId) {
-        let stats = await userStats.findOne({userId: userId});
-        if (!stats) {
-            stats = new userStats({
-                userId: userId
-            });
-
-            await stats.save();
-        }
-
-        return stats;
-    },
-
-    /** async */
-    updateUserStat: async function(userId, statName) {
-        let stats = await this.getUserStats(userId);
-
-        stats[statName] = parseInt(stats[statName]) + 1
-
-        await userStats.updateOne({userId: userId}, stats);
-    },
-
     generateEmptyEmbed: function(avatarURL, title) {
         const embed = new Discord.MessageEmbed()
             .setTitle(title)
@@ -143,117 +72,6 @@ module.exports = {
             .setThumbnail(avatarURL);
 
         return embed;
-    },
-
-    /** async */
-    renderUserStats: async function(message) {
-        let user = message.author;
-        let member = message.member;
-
-        let stats = await this.getUserStats(user.id);
-        let embed = this.generateEmptyEmbed(user.avatarURL(), `${member.displayName}'s Stats`);
-
-        userStats.schema.eachPath(function(path) {
-            if (path != 'userId' && path != '_id' && path != '__v') {
-                embed.addField(path, `Performed: ${stats[path]}\nLevel: 1`, false)
-            }
-        });
-        
-        return embed;
-    },
-
-    /** async */
-    updateInventory: async function(userId, item, quantity) {
-        let inv = await this.getUserInventory(userId);
-        let jsonInv = JSON.parse(inv.inventory);
-
-        if (jsonInv[item]) {
-            quantity = quantity + parseInt(jsonInv[item]);
-        }
-
-        jsonInv[item] = quantity;
-
-        let empty = [];
-
-        for (var item in jsonInv) {
-            let count = parseInt(jsonInv[item]);
-            if (count == 0) {
-                empty.push(item);
-            }
-        }
-
-        for (var emp in empty) {
-            delete jsonInv[empty[emp]];
-        }
-
-        inv.inventory = JSON.stringify(jsonInv);
-
-        await userInv.updateOne({userId: userId}, inv);
-    },
-
-    /** async */
-    updateBalance: async function(userId, amount) {
-        let account = await this.getUserEcoAccount(userId);
-        let balance = parseInt(account.balance);
-        balance = balance + parseInt(amount);
-        account.balance = balance;
-        await userEco.updateOne({userId: userId}, account);
-    },
-
-    /** async */
-    getUserLastLogin: async function(user) {
-        let account = await this.getUserEcoAccount(user.id);
-        return account.login || 0;
-    },
-    
-    /** async */
-    getUserBalance: async function(userId) {
-        let account = await this.getUserEcoAccount(userId);
-        return parseInt(account.balance);
-    },
-
-    /** async */
-    updateShopItem: async function(itemName, amount) {
-        let item = await shopItem.findOne({name: itemName});
-        item['amount'] = parseInt(item['amount']) + amount;
-        
-        await shopItem.updateOne({name: itemName}, item);
-    },
-
-    /** async */
-    getItemList: async function() {
-        let shop = await shopItem.find({});
-        let list = [];
-
-        for (var item in shop) {
-            list.push(shop[item].name);
-        }
-
-        return list;
-    },
-
-    /** async */
-    getItem: async function(itemName) {
-        let item = await shopItem.findOne({name: itemName});
-
-        return item;
-    },
-
-    /** async */
-    getAllItemsInWorld: async function(itemName) {
-        let allInv = await userInv.find({});
-        let allCount = 0;
-
-        for (var invIndex in allInv) {
-            let inv = allInv[invIndex].inventory;
-            let jsonInv = JSON.parse(inv);
-
-            if (jsonInv[itemName]) {
-                allCount += parseInt(jsonInv[itemName]);
-            }
-        }
-
-        return allCount;
     },
 
     prependRarity: function(rarity, display) {
@@ -265,5 +83,27 @@ module.exports = {
         else if (rarity === '???') { display = `[?] ${display}` }
 
         return display;
+    },
+
+    getDisplayNameFromId: async function(guild, id) {
+        if (!displayNameCache[id]) {
+            let member = await guild.members.resolve(id);
+
+            if (!member) {
+                member = await guild.members.fetch(id);
+
+                if (!member) {
+                    displayNameCache[id] = id;
+                }
+            }
+
+            if (member) {
+                displayNameCache[id] = member.displayName;
+            }
+
+            setTimeout(function() { delete displayNameCache[id] }, 1000*60*5);
+        }
+
+        return displayNameCache[id];
     }
 }
