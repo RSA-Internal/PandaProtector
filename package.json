@@ -20,6 +20,7 @@
     "discord.js": "^12.5.1",
     "mongoose": "^5.11.17",
     "mongoose-long": "^0.3.2",
-    "wandbox-api-updated": "0.1.5"
+    "slash-create": "^2.1.2",
+    "wandbox-api-updated": "0.1.6"
   }
 }

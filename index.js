@@ -1,7 +1,15 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const mongoose = require('mongoose');
-const { prefix, token, testToken, channelShowcaseId, channelRulesId, emojiYaysId, roleMemberId, mongoUsername, mongoPassword, dbRSA, collectionRBXAccount } = require('./config.json');
+const { prefix, token, testToken, channelShowcaseId, channelRulesId, emojiYaysId, roleMemberId, mongoUsername, mongoPassword, dbRSA, publicKeyTest } = require('./config.json');
+
+const { DiscordInteractions } = require("slash-commands");
+
+const interaction = new DiscordInteractions({
+    applicationId: "782504308977303572",
+    authToken: testToken,
+    publicKey: publicKeyTest,
+})
 
 var mongoDB = `mongodb+srv://${mongoUsername}:${mongoPassword}@cluster0.oo0g2.mongodb.net/${dbRSA}?retryWrites=true&w=majority`
 mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
@@ -10,7 +18,7 @@ var db = mongoose.connection;
 
 const cooldowns = new Discord.Collection();
 
-const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], ws: { intents: ['GUILD_MEMBERS']} });
 client.commands = new Discord.Collection();
 
 const commandFolders = fs.readdirSync('./commands');
@@ -26,6 +34,32 @@ for (const folder of commandFolders) {
 
 client.once('ready', () => {
     console.log('Ready!');
+
+    console.log(client.user.id)
+    // setupSlashCommands;
+
+    client.api.applications(client.user.id).guilds('546033322401464320').commands.post({data: {
+        name: 'test',
+        description: 'test'
+    }});
+
+    client.api.applications(client.user.id).guilds('546033322401464320').commands.post({data: {
+        name: 'test2',
+        description: 'test2',
+        callback: 'f',
+    }});
+
+    client.ws.on('INTERACTION_CREATE', async interaction => {
+        console.log(interaction);
+        client.api.interactions(interaction.id, interaction.token).callback.post({data: {
+            type: 4,
+            data: {
+              content: 'hello world!'
+            }
+        }})
+
+        //new Discord.WebhookClient(client.user.id, interaction.token).send('hello world')
+    })
 });
 
 function shouldHandleReaction(messageId, checkMessageId, reactionId, checkReactionId) {
@@ -172,6 +206,20 @@ client.on('message', message => {
         message.reply('There was an error trying to execute that command!');
     }
 });
+
+async function setupSlashCommands() {
+    // Get Guild Commands
+    await interaction.getApplicationCommands('546033322401464320').then(console.log).catch(console.error);
+
+    // Create Commands
+    const command = {
+        name: "test",
+        description: "testing",
+        options: []
+    }
+
+    await interaction.createApplicationCommand('546033322401464320').then(console.log).catch(console.error);
+}
 
 var args = process.argv.slice(2);
 if (args[0]) {

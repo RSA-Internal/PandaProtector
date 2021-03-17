@@ -1,5 +1,4 @@
 const Discord = require('discord.js');
-const { emojiTixId } = require('../config.json');
 
 const chars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
 const displayNameCache = [];
@@ -18,7 +17,32 @@ function getUserFromMention(client, mention) {
     }
 }
 
+var client;
+var useToken;
+var useAppId;
+var useKey;
+var useGuild;
+var folder;
+var requestChannelId;
+var staffId;
+
 module.exports = {
+    useToken: function() { return useToken; },
+    useAppId: function() { return useAppId; },
+    useKey: function() { return useKey; },
+    useGuild: function() { return useGuild; },
+    folder: function() { return folder; },
+    useRequestChannelId: function() { return requestChannelId; },
+    staffId: function() { return staffId; },
+
+    setToken: function(newToken) { useToken = newToken; },
+    setAppId: function(newAppId) { useAppId = newAppId; },
+    setKey: function(newKey) { useKey = newKey; },
+    setGuild: function(newGuild) { useGuild = newGuild; },
+    setFolder: function(newFolder) { folder = newFolder; },
+    setRequestChannel: function(newChannelId) { requestChannelId = newChannelId; },
+    setStaffId: function(newId) { staffId = newId; },
+
     /** async */
     queryMember: async function(message, args) {
         if (args[0]) {
@@ -51,10 +75,6 @@ module.exports = {
         return message.member;
     },
 
-    getMoneyEmoji: function(message) {
-        return message.guild.emojis.resolve(emojiTixId);
-    },
-
     randomColorHex: function() {
         let hex = '';
         for (var i=0;i<6;i++) {
@@ -72,17 +92,6 @@ module.exports = {
             .setThumbnail(avatarURL);
 
         return embed;
-    },
-
-    prependRarity: function(rarity, display) {
-        if (rarity === 'Common') { display = `[C] ${display}` }
-        else if (rarity === 'Uncommon') { display = `[U] ${display}` }
-        else if (rarity === 'Rare') { display = `[R] ${display}` }
-        else if (rarity === 'Epic') { display = `[E] ${display}` }
-        else if (rarity === 'Forbidden') { display = `[F] ${display}` }
-        else if (rarity === '???') { display = `[?] ${display}` }
-
-        return display;
     },
 
     getDisplayNameFromId: async function(guild, id) {
@@ -105,5 +114,20 @@ module.exports = {
         }
 
         return displayNameCache[id];
+    },
+
+    setClient: function(newClient) {
+        client = newClient;
+    },
+
+    getClient: function() {
+        return client;
+    },
+
+    shouldBeEphemeral: function(channelId) {
+        console.log(`Checking: ${channelId}`)
+        let ret = channelId != '424636584609054721';
+        console.log(`VISIBLE: ${ret}`);
+        return ret
     }
 }
