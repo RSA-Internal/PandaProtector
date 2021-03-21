@@ -29,6 +29,7 @@ module.exports = class LuaCommand extends SlashCommand {
 
         if (src.includes('```lua')) { src = src.replace('```lua', ''); }
         if (src.includes('```')) { src = src.replace('```', ''); }
+        src = src.replace(/“/g, '"');
 
         var output = [];
         var errors = [];
