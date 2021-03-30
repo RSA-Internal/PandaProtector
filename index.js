@@ -65,48 +65,54 @@ function shouldHandleReaction(messageId, checkMessageId, reactionId, checkReacti
   return false;
 }
 
-client.on('messageReactionAdd', async (reaction, user) => {
-  try {
-      await reaction.fetch();
-  } catch (error) {
-      console.error('Something went wrong when fetching the message: ', error);
-      return;
+// client.on('messageReactionAdd', async (reaction, user) => {
+//   try {
+//       await reaction.fetch();
+//   } catch (error) {
+//       console.error('Something went wrong when fetching the message: ', error);
+//       return;
+//   }
+
+//   let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
+
+//   console.log(handleReaction);
+
+//   if (handleReaction) {
+//       let guild = reaction.message.guild;
+//       let member = guild.members.resolve(user.id);
+
+//       member.roles.add(guild.roles.resolve(roleMemberId));
+//   }
+
+//   return;
+// });
+
+// client.on('messageReactionRemove', async (reaction, user) => {
+//   try {
+//       await reaction.fetch();
+//   } catch (error) {
+//       console.error('Something went wrong when fetching the message: ', error);
+//       return;
+//   }
+
+//   let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
+
+//   console.log(handleReaction);
+
+//   if (handleReaction) {
+//       let guild = reaction.message.guild;
+//       let member = guild.members.resolve(user.id);
+
+//       member.roles.remove(guild.roles.resolve(roleMemberId));
+//   }
+
+//   return;
+// })
+
+client.on('guildMemberUpdate', member => {
+  if (member.roles.cache.array().length == 1) {
+    member.roles.add(member.guild.roles.resolve(roleMemberId));
   }
-
-  let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
-
-  console.log(handleReaction);
-
-  if (handleReaction) {
-      let guild = reaction.message.guild;
-      let member = guild.members.resolve(user.id);
-
-      member.roles.add(guild.roles.resolve(roleMemberId));
-  }
-
-  return;
-});
-
-client.on('messageReactionRemove', async (reaction, user) => {
-  try {
-      await reaction.fetch();
-  } catch (error) {
-      console.error('Something went wrong when fetching the message: ', error);
-      return;
-  }
-
-  let handleReaction = shouldHandleReaction(reaction.message.id, channelRulesId, reaction.emoji.id, emojiYaysId);
-
-  console.log(handleReaction);
-
-  if (handleReaction) {
-      let guild = reaction.message.guild;
-      let member = guild.members.resolve(user.id);
-
-      member.roles.remove(guild.roles.resolve(roleMemberId));
-  }
-
-  return;
 })
 
 client.on('message', message => {
