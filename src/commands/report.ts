@@ -46,23 +46,9 @@ const command: Command = {
 			return;
 		}
 
-		const staffMembers = message.guild?.roles
-			.resolve(state.staffRoleId)
-			?.members.filter(member => member.presence.status === "online" || member.presence.status === "idle");
-
-		if (!staffMembers) return;
-
-		const prefix =
-			staffMembers.size > 0
-				? `${staffMembers
-						.keyArray()
-						.map(id => `<@${id}>`)
-						.join(", ")}: `
-				: "";
-
 		reportChannel
 			.send(
-				`${prefix}<@${message.author.id}> is reporting ${user} with reason: ${reasonText}.\nJump Link: <${message.url}>`
+				`@here, <@${message.author.id}> is reporting ${user} with reason: ${reasonText}.\nJump Link: <${message.url}>`
 			)
 			.then(() => {
 				void message.reply(`You have reported the user.`).then(sent => void sent.delete({ timeout: 5000 }));
