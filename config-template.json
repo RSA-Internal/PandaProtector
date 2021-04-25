@@ -4,6 +4,7 @@
 	"token": "",
 	"commandPrefix": "!",
 	"guildId": "",
+	"memberRoleId": "",
 	"staffRoleId": "",
 	"showcaseChannelId": "",
 	"reportChannelId": ""

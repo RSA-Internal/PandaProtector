@@ -1,15 +1,26 @@
-// import { Client } from "discord.js";
 import { readFileSync } from "fs";
 import { getCommand } from "./commands";
+import { ephemeral } from "./ephemeral";
 import { createState, isConfig, State } from "./state";
 
-const configPath = process.argv[2] ?? "config-prod.json";
+const configPath = process.argv[2] ?? "config.json";
 const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
 
 function main(state: State, token: string) {
 	const { client } = state;
 
 	client.on("message", message => {
+		// Ensure messages in showcase contain an attachment or link.
+		// TODO: add thumbs up/thumbs down reaction?
+		if (message.channel.id === state.showcaseChannelId) {
+			if (message.attachments.size === 0 || !/https?:\/\//.test(message.content)) {
+				message.delete().catch(reason => console.error(reason));
+			}
+
+			// Do not allow commands in the showcase channel.
+			return;
+		}
+
 		// Handle commands.
 		if (message.content.startsWith(state.commandPrefix)) {
 			const content = message.content.slice(state.commandPrefix.length);
@@ -27,25 +38,21 @@ function main(state: State, token: string) {
 					if (args.length >= required) {
 						command.handler(state, message, ...command.parseArguments(argumentContent));
 					} else {
-						message
-							.reply(`Missing arguments for **${commandName}**.`)
-							.then(sent => void sent.delete({ timeout: 5000 }))
-							.catch(reason => console.error(reason));
+						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(reason =>
+							console.error(reason)
+						);
 					}
 				}
 			}
 
 			return;
 		}
+	});
 
-		// Ensure messages in showcase contain an attachment or link.
-		if (message.channel.id === state.showcaseChannelId) {
-			if (message.attachments.size === 0 || !/https?:\/\//.test(message.content)) {
-				message.delete().catch(reason => console.error(reason));
-			}
+	client.on("guildMemberUpdate", member => {
+		if (member.roles.cache.array().length == 1) {
+			member.roles.add(state.memberRoleId).catch(reason => console.error(reason));
 		}
-
-		// TODO: add thumbs up/thumbs down reaction?
 	});
 
 	client.login(token).catch(error => console.error(error));
