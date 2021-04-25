@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { getCommand, getCommands } from ".";
 import type { Command } from "../command";
+import { ephemeral } from "../ephemeral";
 
 const command: Command = {
 	name: "help",
@@ -38,6 +39,7 @@ const command: Command = {
 			const commandObject = getCommand(command);
 
 			if (!commandObject || !commandObject.hasPermission(state, message)) {
+				ephemeral(state, message.reply("The command does not exist.")).catch(reason => console.error(reason));
 				return;
 			}
 

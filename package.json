@@ -4,9 +4,10 @@
 	"description": "RSA - Utility Bot",
 	"main": "index.js",
 	"scripts": {
-		"build": "npx tsc",
 		"lint": "npx eslint . && npx prettier --check .",
-		"serve": "node dist/index.js"
+		"build": "npx tsc",
+		"start": "node dist/index.js",
+		"test": "node dist/index.js config-dev.json TOKEN_DEV"
 	},
 	"repository": {
 		"type": "git",

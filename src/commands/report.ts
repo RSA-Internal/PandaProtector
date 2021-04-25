@@ -36,7 +36,7 @@ const command: Command = {
 		}
 
 		if (reasonText.length < 15 || reason.length < 3) {
-			// Ensure the reason is at least 15 characters or 3 words long.
+			// Ensure the reason is at least 15 characters and 3 words long.
 			ephemeral(state, message.reply("Please provide a longer reason.")).catch(reason => console.error(reason));
 			return;
 		}
