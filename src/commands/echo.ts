@@ -12,9 +12,11 @@ const command: Command = {
 	hasPermission: () => true,
 	parseArguments: content => [content],
 	handler: (_, message, text) => {
-		void message.channel.send(`[<@${message.author.id}>]: ${text}`, {
-			disableMentions: "everyone",
-		});
+		message.channel
+			.send(`[<@${message.author.id}>]: ${text}`, {
+				disableMentions: "everyone",
+			})
+			.catch(reason => console.error(reason));
 	},
 };
 

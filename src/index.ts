@@ -27,9 +27,10 @@ function main(state: State, token: string) {
 					if (args.length >= required) {
 						command.handler(state, message, ...command.parseArguments(argumentContent));
 					} else {
-						void message
+						message
 							.reply(`Missing arguments for **${commandName}**.`)
-							.then(sent => void sent.delete({ timeout: 5000 }));
+							.then(sent => void sent.delete({ timeout: 5000 }))
+							.catch(reason => console.error(reason));
 					}
 				}
 			}
@@ -40,9 +41,11 @@ function main(state: State, token: string) {
 		// Ensure messages in showcase contain an attachment or link.
 		if (message.channel.id === state.showcaseChannelId) {
 			if (message.attachments.size === 0 || !/https?:\/\//.test(message.content)) {
-				void message.delete();
+				message.delete().catch(reason => console.error(reason));
 			}
 		}
+
+		// TODO: add thumbs up/thumbs down reaction?
 	});
 
 	client.login(token).catch(error => console.error(error));
@@ -50,7 +53,7 @@ function main(state: State, token: string) {
 
 if (isConfig(config)) {
 	const token = config.token;
-	// Remove the token from the State object.
+	// Remove the token from the state object.
 	(config as { token: string }).token = "";
 	main(createState(config), token);
 } else {

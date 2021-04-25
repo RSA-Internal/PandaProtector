@@ -30,15 +30,19 @@ const command: Command = {
 
 		if (!userObject || userObject.id === message.author.id) {
 			// Ensure the target is not the reporter.
-			void message.reply("Could not report this user.").then(sent => void sent.delete({ timeout: 5000 }));
+			message
+				.reply("Could not report this user.")
+				.then(sent => void sent.delete({ timeout: 5000 }))
+				.catch(reason => console.error(reason));
 			return;
 		}
 
 		if (reasonText.length < 15 || reason.length < 3) {
 			// Ensure the reason is at least 15 characters or 3 words long.
-			void message
+			message
 				.reply("Please provide a longer reason to report someone.")
-				.then(sent => void sent.delete({ timeout: 5000 }));
+				.then(sent => void sent.delete({ timeout: 5000 }))
+				.catch(reason => console.error(reason));
 			return;
 		}
 
@@ -66,9 +70,10 @@ const command: Command = {
 			.catch(reason => {
 				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
 				console.error(reason);
-				void message
+				message
 					.reply(`Could not report the user, please mention an online mod.`)
-					.then(sent => void sent.delete({ timeout: 5000 }));
+					.then(sent => void sent.delete({ timeout: 5000 }))
+					.catch(reason => console.error(reason));
 			});
 	},
 };
