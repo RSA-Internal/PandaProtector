@@ -105,6 +105,4 @@ dist
 .tern-port
 
 # Environment files
-config.json
-!config-template.json
 # package-lock.json

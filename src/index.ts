@@ -4,6 +4,7 @@ import { ephemeral } from "./ephemeral";
 import { createState, isConfig, State } from "./state";
 
 const configPath = process.argv[2] ?? "config.json";
+const tokenName = process.argv[3] ?? "TOKEN";
 const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
 
 function main(state: State, token: string) {
@@ -60,10 +61,13 @@ function main(state: State, token: string) {
 }
 
 if (isConfig(config)) {
-	const token = config.token;
-	// Remove the token from the state object.
-	(config as { token: string }).token = "";
-	main(createState(config), token);
+	const token = process.env[tokenName];
+
+	if (token) {
+		main(createState(config), token);
+	} else {
+		throw new Error(`Environment variable ${tokenName} does not exist.`);
+	}
 } else {
 	throw new Error(`Config file ${configPath} does not match the Config interface.`);
 }
