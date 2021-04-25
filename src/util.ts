@@ -1,6 +1,6 @@
 import type { Client, User } from "discord.js";
 
-export function getUserFromMention(client: Client, mention: string): User | undefined {
+export function getUserFromMention(client: Client, mention: string): User | null {
 	const id = /^<@!?(\d+)>$/.exec(mention)?.[1];
-	return id ? client.users.cache.get(id) : undefined;
+	return id ? client.users.resolve(id) : null;
 }

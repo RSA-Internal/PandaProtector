@@ -9,7 +9,7 @@ export interface State {
 	readonly guildId: string;
 	readonly staffRoleId: string;
 	readonly showcaseChannelId: string;
-	readonly requestChannelId: string;
+	readonly reportChannelId: string;
 }
 
 export type Config = Omit<State, "client">;
@@ -33,6 +33,6 @@ export function isConfig(config: unknown): config is Config {
 		typeof record["guildId"] === "string" &&
 		typeof record["staffRoleId"] === "string" &&
 		typeof record["showcaseChannelId"] === "string" &&
-		typeof record["requestChannelId"] === "string"
+		typeof record["reportChannelId"] === "string"
 	);
 }

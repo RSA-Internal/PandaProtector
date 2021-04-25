@@ -10,8 +10,6 @@ function main(state: State, token: string) {
 	const { client } = state;
 
 	client.on("message", message => {
-		console.log(message.content);
-
 		// Handle commands.
 		if (message.content.startsWith(state.commandPrefix)) {
 			const content = message.content.slice(state.commandPrefix.length);
