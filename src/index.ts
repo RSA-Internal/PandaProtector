@@ -51,6 +51,7 @@ function main(state: State, token: string) {
 
 	client.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length == 1) {
+			// Give user the member role.
 			member.roles.add(state.memberRoleId).catch(reason => console.error(reason));
 		}
 	});

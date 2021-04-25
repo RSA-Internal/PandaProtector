@@ -1,3 +1,7 @@
+/**
+ * Splits a string using whitespace as the delimiter. Quote-wrapped substrings are treated as a single argument
+ * regardless of any whitespace. Additionally, quotes and whitespace can be escaped by prefixing it with a backslash.
+ */
 export function defaultArgumentParser(content: string): string[] {
 	const phrases = new Array<string>();
 	let substring = "";
