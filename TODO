@@ -1,4 +1,4 @@
-- Implement `!compile`
+- Implement `compile`
 - Add more eslint rules
 - Use slash commands when natively supported by discord.js
 - Give member role when a user accepts the rules when natively supported by discord.js
