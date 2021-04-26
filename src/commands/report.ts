@@ -35,11 +35,13 @@ const command: Command = {
 			return;
 		}
 
-		if (reasonText.length < 15 || reason.length < 3) {
+		/* Commented out for recovery sake, in case we wish to return the requirement.	
+	 	if (reasonText.length < 15 || reason.length < 3) {
 			// Ensure the reason is at least 15 characters and 3 words long.
 			ephemeral(state, message.reply("Please provide a longer reason.")).catch(reason => console.error(reason));
 			return;
 		}
+		*/
 
 		reportChannel
 			.send(

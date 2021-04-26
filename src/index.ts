@@ -14,7 +14,7 @@ function main(state: State, token: string) {
 		// Ensure messages in showcase contain an attachment or link.
 		// TODO: add thumbs up/thumbs down reaction?
 		if (message.channel.id === state.showcaseChannelId) {
-			if (message.attachments.size === 0 || !/https?:\/\//.test(message.content)) {
+			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				message.delete().catch(reason => console.error(reason));
 			}
 
