@@ -19,7 +19,13 @@ function main(state: State, token: string) {
 	});
 
 	client.on("message", message => {
+		if (message.author.bot) {
+			// Do not process bot messages.
+			return;
+		}
+
 		if (message.channel.id === state.showcaseChannelId) {
+			// Handle showcase.
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
 				if (!message.member?.roles.resolve(state.staffRoleId)) {
@@ -34,8 +40,9 @@ function main(state: State, token: string) {
 			}
 		}
 
-		// Handle commands.
 		if (message.content.startsWith(state.commandPrefix)) {
+			// Handle commands.
+			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
 			const content = message.content.slice(state.commandPrefix.length);
 			const matches = /^(\w+)\s*(.*)/su.exec(content);
 			const commandName = matches?.[1]?.toLowerCase() ?? "";
@@ -45,7 +52,6 @@ function main(state: State, token: string) {
 				const command = getCommand(commandName);
 
 				if (command && command.hasPermission(state, message)) {
-					// Disallow command usage
 					const args = command.parseArguments(argumentContent);
 					const required = command.options.reduce((acc, option) => acc + (option.optional ? 0 : 1), 0);
 
@@ -61,6 +67,7 @@ function main(state: State, token: string) {
 		}
 	});
 
+	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	client.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length == 1) {
 			// Give user the member role.
