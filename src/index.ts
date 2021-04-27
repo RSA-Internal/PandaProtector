@@ -28,7 +28,7 @@ function main(state: State, token: string) {
 			// Handle showcase.
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
-				if (!message.member?.roles.resolve(state.staffRoleId)) {
+				if (!message.member?.roles.cache.has(state.staffRoleId)) {
 					message.delete().catch(console.error);
 					return; // Do not do any further processing.
 				}

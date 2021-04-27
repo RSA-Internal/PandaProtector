@@ -29,8 +29,8 @@ const command: Command = {
 			return;
 		}
 
-		if (!userObject || userObject.id === message.author.id) {
-			// Ensure the target exists and is not the reporter.
+		if (!userObject || userObject.id === message.author.id || userObject.bot) {
+			// Ensure the target user is reportable and not the reporter.
 			ephemeral(state, message.reply("Could not report this user.")).catch(console.error);
 			return;
 		}
