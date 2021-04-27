@@ -1,12 +1,10 @@
 import type { Command } from "../command";
-import echo from "./echo";
 import help from "./help";
 import ping from "./ping";
 import report from "./report";
 import update from "./update";
 
 const commands = {
-	echo,
 	help,
 	ping,
 	report,
