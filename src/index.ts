@@ -6,9 +6,16 @@ import { createState, isConfig, State } from "./state";
 const configPath = process.argv[2] ?? "config.json";
 const tokenName = process.argv[3] ?? "TOKEN";
 const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
+const version = JSON.parse(readFileSync("package.json", "utf-8"))["version"] as string;
 
 function main(state: State, token: string) {
 	const { client } = state;
+
+	client.on("ready", () => {
+		client.user?.setActivity(version, { type: 'PLAYING' })
+  			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
+  			.catch(console.error);
+	})
 
 	client.on("message", message => {
 		// Ensure messages in showcase contain an attachment or link.
