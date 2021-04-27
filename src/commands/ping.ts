@@ -16,7 +16,7 @@ const command: Command = {
 					}ms`
 				);
 			})
-			.catch(reason => console.error(reason));
+			.catch(console.error);
 	},
 };
 

@@ -16,7 +16,7 @@ const command: Command = {
 			.send(`[<@${message.author.id}>]: ${text}`, {
 				disableMentions: "everyone",
 			})
-			.catch(reason => console.error(reason));
+			.catch(console.error);
 	},
 };
 

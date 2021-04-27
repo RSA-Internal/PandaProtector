@@ -31,13 +31,13 @@ const command: Command = {
 
 		if (!userObject || userObject.id === message.author.id) {
 			// Ensure the target exists and is not the reporter.
-			ephemeral(state, message.reply("Could not report this user.")).catch(reason => console.error(reason));
+			ephemeral(state, message.reply("Could not report this user.")).catch(console.error);
 			return;
 		}
 
 		/* if (reasonText.length < 15 || reason.length < 3) {
 			// Ensure the reason is at least 15 characters and 3 words long.
-			ephemeral(state, message.reply("Please provide a longer reason.")).catch(reason => console.error(reason));
+			ephemeral(state, message.reply("Please provide a longer reason.")).catch(console.error);
 			return;
 		} */
 
@@ -50,10 +50,9 @@ const command: Command = {
 				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
 				console.error(reason);
 
-				ephemeral(
-					state,
-					message.reply(`Could not report the user, please mention an online mod.`)
-				).catch(reason => console.error(reason));
+				ephemeral(state, message.reply(`Could not report the user, please mention an online mod.`)).catch(
+					console.error
+				);
 			});
 	},
 };

@@ -23,14 +23,14 @@ function main(state: State, token: string) {
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
 				if (!message.member?.roles.resolve(state.staffRoleId)) {
-					message.delete().catch(reason => console.error(reason));
+					message.delete().catch(console.error);
 					return; // Do not do any further processing.
 				}
 			} else {
 				// Add up vote and down vote reaction to message.
 				// TODO: make emotes configurable in the future?
-				message.react("👍").catch(reason => console.error(reason));
-				message.react("👎").catch(reason => console.error(reason));
+				message.react("👍").catch(console.error);
+				message.react("👎").catch(console.error);
 			}
 		}
 
@@ -52,21 +52,19 @@ function main(state: State, token: string) {
 					if (args.length >= required) {
 						command.handler(state, message, ...command.parseArguments(argumentContent));
 					} else {
-						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(reason =>
-							console.error(reason)
+						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
+							console.error
 						);
 					}
 				}
 			}
-
-			return;
 		}
 	});
 
 	client.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length == 1) {
 			// Give user the member role.
-			member.roles.add(state.memberRoleId).catch(reason => console.error(reason));
+			member.roles.add(state.memberRoleId).catch(console.error);
 		}
 	});
 
