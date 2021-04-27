@@ -4,19 +4,11 @@ const command: Command = {
 	name: "update",
 	description: "Shutdowns the bot for an update.",
 	options: [],
-	hasPermission: (state, message) => {
-        const devs = [
-            "169208961533345792", 
-            "142090816150568960", 
-            "114479781797429256"
-        ];
-
-        return devs.includes(message.author.id);
-    },
+	hasPermission: (state, message) => !!message.member?.roles.resolve(state.developerRoleId),
 	parseArguments: () => [],
-	handler: (state) => {
+	handler: state => {
 		state.client.destroy();
-        process.exit();
+		process.exit();
 	},
 };
 

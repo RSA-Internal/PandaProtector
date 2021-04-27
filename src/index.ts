@@ -6,27 +6,32 @@ import { createState, isConfig, State } from "./state";
 const configPath = process.argv[2] ?? "config.json";
 const tokenName = process.argv[3] ?? "TOKEN";
 const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
-const version = JSON.parse(readFileSync("package.json", "utf-8"))["version"] as string;
+const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 function main(state: State, token: string) {
 	const { client } = state;
 
 	client.on("ready", () => {
-		client.user?.setActivity(version, { type: 'PLAYING' })
-  			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-  			.catch(console.error);
-	})
+		client.user
+			?.setActivity(version, { type: "PLAYING" })
+			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
+			.catch(console.error);
+	});
 
 	client.on("message", message => {
-		// Ensure messages in showcase contain an attachment or link.
-		// TODO: add thumbs up/thumbs down reaction?
 		if (message.channel.id === state.showcaseChannelId) {
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
-				message.delete().catch(reason => console.error(reason));
+				// Ensure messages in showcase contain an attachment or link.
+				if (!message.member?.roles.resolve(state.staffRoleId)) {
+					message.delete().catch(reason => console.error(reason));
+					return; // Do not do any further processing.
+				}
+			} else {
+				// Add up vote and down vote reaction to message.
+				// TODO: make emotes configurable in the future?
+				message.react("👍").catch(reason => console.error(reason));
+				message.react("👎").catch(reason => console.error(reason));
 			}
-
-			// Do not allow commands in the showcase channel.
-			return;
 		}
 
 		// Handle commands.
@@ -40,6 +45,7 @@ function main(state: State, token: string) {
 				const command = getCommand(commandName);
 
 				if (command && command.hasPermission(state, message)) {
+					// Disallow command usage
 					const args = command.parseArguments(argumentContent);
 					const required = command.options.reduce((acc, option) => acc + (option.optional ? 0 : 1), 0);
 
