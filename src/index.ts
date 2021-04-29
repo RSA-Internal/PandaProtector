@@ -95,12 +95,9 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	// Connect to the database.
-	void MongoClient.connect(env.dbUri, { ssl: true, useUnifiedTopology: true }).then(mongoClient => {
-		// Connect to Discord.
-		const discordClient = new Client();
-		void discordClient.login(env.token).then(() => main({ version, config, discordClient, mongoClient }));
-	});
+	const mongoClient = new MongoClient(env.dbUri, { ssl: true, useUnifiedTopology: true });
+	const discordClient = new Client();
+	void discordClient.login(env.token).then(() => main({ version, config, discordClient, mongoClient }));
 } catch (e) {
 	console.error(e);
 }
