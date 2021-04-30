@@ -6,6 +6,7 @@ import { getCommand } from "./commands";
 import { isConfig } from "./config";
 import { isDotEnv } from "./dotEnv";
 import { ephemeral } from "./ephemeral";
+import { insertCmdHistory } from "./models/cmdHistory";
 import type { State } from "./state";
 
 // USAGE: npm start [configPath] [envPath]
@@ -49,7 +50,7 @@ function main(state: State) {
 			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
 			const content = message.content.slice(config.commandPrefix.length);
 			const matches = /^(\w+)\s*(.*)/su.exec(content);
-			const commandName = matches?.[1]?.toLowerCase() ?? "";
+			const commandName = matches?.[1] ?? "";
 			const argumentContent = matches?.[2] ?? "";
 
 			if (commandName.length > 0) {
@@ -60,6 +61,13 @@ function main(state: State) {
 					const required = command.options.reduce((acc, option) => acc + (option.optional ? 0 : 1), 0);
 
 					if (args.length >= required) {
+						insertCmdHistory(state, {
+							discordId: message.author.id,
+							timestamp: Date.now(),
+							command: command.name,
+							arguments: args,
+						}).catch(console.error);
+
 						command.handler(state, message, ...command.parseArguments(argumentContent));
 					} else {
 						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
@@ -95,9 +103,10 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	const mongoClient = new MongoClient(env.dbUri, { ssl: true, useUnifiedTopology: true });
-	const discordClient = new Client();
-	void discordClient.login(env.token).then(() => main({ version, config, discordClient, mongoClient }));
+	void MongoClient.connect(env.dbUri, { ssl: true, useUnifiedTopology: true }).then(mongoClient => {
+		const discordClient = new Client();
+		void discordClient.login(env.token).then(() => main({ version, config, discordClient, mongoClient }));
+	});
 } catch (e) {
 	console.error(e);
 }
