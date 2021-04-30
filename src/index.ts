@@ -6,6 +6,7 @@ import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
+import commandLogModel from "./models/commandLog.model";
 import type { State } from "./state";
 
 // USAGE: npm start [configPath] [envPath]
@@ -37,6 +38,14 @@ function main(state: State, env: DotEnv) {
 		const command = getCommand(interaction.commandName);
 
 		if (command && command.hasPermission(state, interaction)) {
+			commandLogModel
+				.create({
+					discordId: interaction.user.id,
+					command: command.name,
+					arguments: interaction.options.map(value => String(value.value)),
+				})
+				.catch(console.error.bind(console));
+
 			command.handler(state, interaction, interaction.options);
 		}
 	});

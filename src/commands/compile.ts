@@ -29,9 +29,9 @@ const command: Command = {
 			if (!lastMessageChannelID || !lastMessageID) flagged = true;
 
 			if (lastMessageChannelID === state.config.botChannelId) {
-				const message = (
-					interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
-				).messages.resolve(lastMessageID as MessageResolvable);
+				const message = (interaction.guild?.channels.resolve(
+					lastMessageChannelID
+				) as TextChannel).messages.resolve(lastMessageID as MessageResolvable);
 
 				if (message) {
 					codeParse = message.content;
