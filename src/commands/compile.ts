@@ -1,3 +1,4 @@
+import { MessageEmbed } from "discord.js";
 import * as https from "https";
 import { fromStringV2 } from "wandbox-api-updated";
 import type { Command } from "../command";
@@ -26,7 +27,8 @@ interface Compiler {
 
 const command: Command = {
 	name: "compile",
-	description: "Execute code from discord.",
+	description:
+		'Execute code from discord. There are two uses to this command: `;compile langs [languageFilter]`, which will list all compilers and the language version for the provided language. (ex: `;compile langs C++`). The other is `compile [compiler] [src]`. (ex: `compile lua-5.4.0 print("Hello World!")`)',
 	options: [
 		{
 			name: "compiler",
@@ -38,11 +40,9 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	parseArguments: defaultArgumentParser,
+	parseArguments: defaultArgumentParser, //replace with parser to handle "" within code.
 	handler: (state, message, compiler, ...src) => {
 		if (compiler == "langs") {
-			// fetch list of langs from wandbox.org/api/list.json
-			// format and parse display-name, language, version
 			// TODO: future implementation -- switches
 			let result = "";
 
@@ -75,16 +75,38 @@ const command: Command = {
 					save: false, //reimplement at a later date, or under `scompile.ts`
 				},
 				function (err, res) {
-					console.log(res);
+					const embed = new MessageEmbed().setTitle("Compile Result").setFooter(`Compiled with: ${compiler}`);
 					if (err) {
-						message.reply(`Compilation failed.\n${err.message}`).catch(console.error);
+						embed.setColor("#BB3333");
+						embed.setDescription("Compilation failed: Errors present.");
+						embed.addField("Error", err.message, true);
 					} else {
 						if (res.compiler_error) {
-							message.reply(`Compilation failed.\n${res.compiler_message}`).catch(console.error);
+							embed.setColor("#D95B18");
+							embed.setDescription("Compilation failed: Compiler errors preset.");
+							embed.addField("Compiler Error", res.compiler_error, false);
+							if (res.compiler_message) {
+								embed.addField("Compiler Message", res.compiler_message, false);
+							}
+							if (res.compiler_output) {
+								embed.addField("Compiler Output", res.compiler_output, false);
+							}
 						} else {
-							message.reply(res.program_output).catch(console.error);
+							embed.setColor("#24BF2F");
+							embed.setDescription("Compilation finished.");
+							if (res.program_message) {
+								embed.addField("Program Message", res.program_message || "No message.", false);
+							}
+							if (res.program_output) {
+								embed.addField("Program Output", res.program_output || "No output.", false);
+							}
+							if (res.program_error) {
+								embed.addField("Program Error", res.program_error || "No error.", false);
+							}
 						}
 					}
+
+					message.reply(embed).catch(console.error);
 				},
 				undefined
 			);
