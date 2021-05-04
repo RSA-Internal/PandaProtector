@@ -31,11 +31,11 @@ const command: Command = {
 	options: [
 		{
 			name: "compiler",
-			description: "Compiler to use",
+			description: "Compiler to use.",
 		},
 		{
 			name: "src",
-			description: "Source to compile",
+			description: "Source to compile.",
 		},
 	],
 	hasPermission: () => true,
@@ -54,15 +54,19 @@ const command: Command = {
 						const list = [] as string[];
 						const langToCheck = src.toLowerCase();
 
-						const compilerDataList = JSON.parse(result) as Compiler[];
+						try {
+							const compilerDataList = JSON.parse(result) as Compiler[];
 
-						compilerDataList.forEach(compiler => {
-							if (compiler.language.toLowerCase() == langToCheck) {
-								list.push(`${compiler.language} ${compiler.version}: ${compiler.name}`);
-							}
-						});
+							compilerDataList.forEach(compiler => {
+								if (compiler.language.toLowerCase() == langToCheck) {
+									list.push(`${compiler.language} ${compiler.version}: ${compiler.name}`);
+								}
+							});
 
-						message.reply("Results\n" + list.join("\n").slice(0, 1000)).catch(console.error);
+							message.reply("Results\n" + list.join("\n").slice(0, 1000)).catch(console.error);
+						} catch (e) {
+							console.error(e);
+						}
 					});
 				})
 				.on("error", console.error);
