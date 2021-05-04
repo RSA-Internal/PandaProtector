@@ -2,7 +2,6 @@ import { MessageEmbed } from "discord.js";
 import * as https from "https";
 import { fromStringV2 } from "wandbox-api-updated";
 import type { Command } from "../command";
-import { defaultArgumentParser } from "../parsers";
 
 interface Switch {
 	default: boolean;
@@ -40,8 +39,8 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	parseArguments: defaultArgumentParser, //replace with parser to handle "" within code.
-	handler: (state, message, compiler, ...src) => {
+	parseArguments: content => /\s*(\S+)\s*([\s\S]+)/g.exec(content)?.splice(1) ?? [],
+	handler: (state, message, compiler, src) => {
 		if (compiler == "langs") {
 			// TODO: future implementation -- switches
 			let result = "";
@@ -53,7 +52,7 @@ const command: Command = {
 					});
 					res.on("close", () => {
 						const list = [] as string[];
-						const langToCheck = src.join(" ").toLowerCase();
+						const langToCheck = src.toLowerCase();
 
 						const compilerDataList = JSON.parse(result) as Compiler[];
 
@@ -68,10 +67,11 @@ const command: Command = {
 				})
 				.on("error", console.error);
 		} else {
+			console.log(src);
 			fromStringV2(
 				{
 					compiler: compiler,
-					code: src.join(" "),
+					code: src,
 					save: false, //reimplement at a later date, or under `scompile.ts`
 				},
 				function (err, res) {
