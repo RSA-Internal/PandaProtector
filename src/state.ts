@@ -6,6 +6,7 @@ export interface State {
 	readonly guildId: string;
 	readonly memberRoleId: string;
 	readonly staffRoleId: string;
+	readonly developerRoleId: string;
 	readonly showcaseChannelId: string;
 	readonly reportChannelId: string;
 }
@@ -29,6 +30,7 @@ export function isConfig(config: unknown): config is Config {
 		typeof record["guildId"] === "string" &&
 		typeof record["memberRoleId"] === "string" &&
 		typeof record["staffRoleId"] === "string" &&
+		typeof record["developerRoleId"] === "string" &&
 		typeof record["showcaseChannelId"] === "string" &&
 		typeof record["reportChannelId"] === "string"
 	);

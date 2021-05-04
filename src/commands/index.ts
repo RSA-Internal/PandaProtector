@@ -1,14 +1,16 @@
 import type { Command } from "../command";
-import echo from "./echo";
+import compile from "./compile";
 import help from "./help";
 import ping from "./ping";
 import report from "./report";
+import update from "./update";
 
 const commands = {
-	echo,
+	compile,
 	help,
 	ping,
 	report,
+	update,
 };
 
 export function getCommand(commandName: string): Command | undefined {

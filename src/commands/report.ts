@@ -1,4 +1,4 @@
-import type { TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import { ephemeral } from "../ephemeral";
 import { defaultArgumentParser } from "../parsers";
@@ -29,33 +29,54 @@ const command: Command = {
 			return;
 		}
 
-		if (!userObject || userObject.id === message.author.id) {
-			// Ensure the target exists and is not the reporter.
-			ephemeral(state, message.reply("Could not report this user.")).catch(reason => console.error(reason));
+		if (!userObject || userObject.id === message.author.id || userObject.bot) {
+			// Ensure the target user is reportable and not the reporter.
+			ephemeral(state, message.reply("Could not report this user.")).catch(console.error);
 			return;
 		}
 
-		/* Commented out for recovery sake, in case we wish to return the requirement.	
-	 	if (reasonText.length < 15 || reason.length < 3) {
+		/* if (reasonText.length < 15 || reason.length < 3) {
 			// Ensure the reason is at least 15 characters and 3 words long.
-			ephemeral(state, message.reply("Please provide a longer reason.")).catch(reason => console.error(reason));
+			ephemeral(state, message.reply("Please provide a longer reason.")).catch(console.error);
 			return;
-		}
-		*/
+		} */
 
 		reportChannel
 			.send(
-				`@here, <@${message.author.id}> is reporting ${user} with reason: ${reasonText}.\nJump Link: <${message.url}>`
+				new MessageEmbed({
+					fields: [
+						{
+							name: "Reporter",
+							value: `<@${message.author.id}>`,
+							inline: true,
+						},
+						{
+							name: "Accused",
+							value: `<@${userObject.id}>`,
+							inline: true,
+						},
+						{
+							name: "Jump Link",
+							value: `[Here](${message.url})`,
+							inline: true,
+						},
+						{
+							name: "Reason",
+							value: reasonText,
+						},
+					],
+					timestamp: message.createdTimestamp,
+					color: "#FF0000",
+				})
 			)
 			.then(() => ephemeral(state, message.reply(`You have reported the user.`)))
 			.catch(reason => {
 				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
 				console.error(reason);
 
-				ephemeral(
-					state,
-					message.reply(`Could not report the user, please mention an online mod.`)
-				).catch(reason => console.error(reason));
+				ephemeral(state, message.reply(`Could not report the user, please mention an online mod.`)).catch(
+					console.error
+				);
 			});
 	},
 };

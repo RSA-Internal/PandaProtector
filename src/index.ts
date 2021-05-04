@@ -6,24 +6,43 @@ import { createState, isConfig, State } from "./state";
 const configPath = process.argv[2] ?? "config.json";
 const tokenName = process.argv[3] ?? "TOKEN";
 const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
+const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 function main(state: State, token: string) {
 	const { client } = state;
 
-	client.on("message", message => {
-		// Ensure messages in showcase contain an attachment or link.
-		// TODO: add thumbs up/thumbs down reaction?
-		if (message.channel.id === state.showcaseChannelId) {
-			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
-				message.delete().catch(reason => console.error(reason));
-			}
+	client.on("ready", () => {
+		client.user
+			?.setActivity(version, { type: "PLAYING" })
+			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
+			.catch(console.error);
+	});
 
-			// Do not allow commands in the showcase channel.
+	client.on("message", message => {
+		if (message.author.bot) {
+			// Do not process bot messages.
 			return;
 		}
 
-		// Handle commands.
+		if (message.channel.id === state.showcaseChannelId) {
+			// Handle showcase.
+			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
+				// Ensure messages in showcase contain an attachment or link.
+				if (!message.member?.roles.cache.has(state.staffRoleId)) {
+					message.delete().catch(console.error);
+					return; // Do not do any further processing.
+				}
+			} else {
+				// Add up vote and down vote reaction to message.
+				// TODO: make emotes configurable in the future?
+				message.react("👍").catch(console.error);
+				message.react("👎").catch(console.error);
+			}
+		}
+
 		if (message.content.startsWith(state.commandPrefix)) {
+			// Handle commands.
+			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
 			const content = message.content.slice(state.commandPrefix.length);
 			const matches = /^(\w+)\s*(.*)/su.exec(content);
 			const commandName = matches?.[1]?.toLowerCase() ?? "";
@@ -39,21 +58,20 @@ function main(state: State, token: string) {
 					if (args.length >= required) {
 						command.handler(state, message, ...command.parseArguments(argumentContent));
 					} else {
-						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(reason =>
-							console.error(reason)
+						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
+							console.error
 						);
 					}
 				}
 			}
-
-			return;
 		}
 	});
 
+	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	client.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length == 1) {
 			// Give user the member role.
-			member.roles.add(state.memberRoleId).catch(reason => console.error(reason));
+			member.roles.add(state.memberRoleId).catch(console.error);
 		}
 	});
 
