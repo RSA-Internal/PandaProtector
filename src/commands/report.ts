@@ -1,4 +1,4 @@
-import type { TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import { ephemeral } from "../ephemeral";
 import { defaultArgumentParser } from "../parsers";
@@ -43,7 +43,31 @@ const command: Command = {
 
 		reportChannel
 			.send(
-				`@here, <@${message.author.id}> is reporting ${user} with reason: ${reasonText}.\nJump Link: <${message.url}>`
+				new MessageEmbed({
+					fields: [
+						{
+							name: "Reporter",
+							value: `<@${message.author.id}>`,
+							inline: true,
+						},
+						{
+							name: "Accused",
+							value: `<@${userObject.id}>`,
+							inline: true,
+						},
+						{
+							name: "Jump Link",
+							value: `[Here](${message.url})`,
+							inline: true,
+						},
+						{
+							name: "Reason",
+							value: reasonText,
+						},
+					],
+					timestamp: message.createdTimestamp,
+					color: "#FF0000",
+				})
 			)
 			.then(() => ephemeral(state, message.reply(`You have reported the user.`)))
 			.catch(reason => {
