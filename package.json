@@ -7,7 +7,7 @@
 		"lint": "npx eslint . && npx prettier --check .",
 		"build": "npx tsc",
 		"start": "node dist/index.js",
-		"test": "node dist/index.js config-dev.json TOKEN_DEV"
+		"test": "node dist/index.js config-test.json .env.test"
 	},
 	"repository": {
 		"type": "git",
@@ -22,6 +22,7 @@
 	"dependencies": {
 		"@types/node": "^14.14.41",
 		"discord.js": "^12.5.3",
+		"dotenv": "^8.2.0",
 		"typescript": "^4.2.4",
 		"wandbox-api-updated": "^0.2.3"
 	},

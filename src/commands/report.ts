@@ -21,8 +21,8 @@ const command: Command = {
 	parseArguments: defaultArgumentParser,
 	handler: (state, message, user, ...reason) => {
 		const reasonText = reason.join(" ");
-		const userObject = getUserFromMention(state.client, user);
-		const reportChannel = state.client.channels.resolve(state.reportChannelId) as TextChannel | null;
+		const userObject = getUserFromMention(state.discordClient, user);
+		const reportChannel = state.discordClient.channels.resolve(state.config.reportChannelId) as TextChannel | null;
 
 		if (!reportChannel || reportChannel.type !== "text") {
 			console.error("Report channel does not exist or is not a text channel.");
