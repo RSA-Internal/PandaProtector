@@ -1,34 +1,37 @@
+import { Client } from "discord.js";
+import { parse } from "dotenv";
 import { readFileSync } from "fs";
 import { getCommand } from "./commands";
+import { isConfig } from "./config";
+import { isDotEnv } from "./dotEnv";
 import { ephemeral } from "./ephemeral";
-import { createState, isConfig, State } from "./state";
+import type { State } from "./state";
 
+// USAGE: npm start [configPath] [envPath]
 const configPath = process.argv[2] ?? "config.json";
-const tokenName = process.argv[3] ?? "TOKEN";
-const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
-const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
+const envPath = process.argv[3] ?? ".env";
 
-function main(state: State, token: string) {
-	const { client } = state;
+function main(state: State) {
+	const { config, discordClient } = state;
 
-	client.on("ready", () => {
-		client.user
-			?.setActivity(version, { type: "PLAYING" })
+	discordClient.on("ready", () => {
+		discordClient.user
+			?.setActivity(state.version, { type: "PLAYING" })
 			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
 			.catch(console.error);
 	});
 
-	client.on("message", message => {
+	discordClient.on("message", message => {
 		if (message.author.bot) {
 			// Do not process bot messages.
 			return;
 		}
 
-		if (message.channel.id === state.showcaseChannelId) {
+		if (message.channel.id === config.showcaseChannelId) {
 			// Handle showcase.
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
-				if (!message.member?.roles.cache.has(state.staffRoleId)) {
+				if (!message.member?.roles.cache.has(config.staffRoleId)) {
 					message.delete().catch(console.error);
 					return; // Do not do any further processing.
 				}
@@ -40,10 +43,10 @@ function main(state: State, token: string) {
 			}
 		}
 
-		if (message.content.startsWith(state.commandPrefix)) {
+		if (message.content.startsWith(config.commandPrefix)) {
 			// Handle commands.
 			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
-			const content = message.content.slice(state.commandPrefix.length);
+			const content = message.content.slice(config.commandPrefix.length);
 			const matches = /^(\w+)\s*(.*)/su.exec(content);
 			const commandName = matches?.[1]?.toLowerCase() ?? "";
 			const argumentContent = matches?.[2] ?? "";
@@ -68,24 +71,30 @@ function main(state: State, token: string) {
 	});
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
-	client.on("guildMemberUpdate", member => {
+	discordClient.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length == 1) {
 			// Give user the member role.
-			member.roles.add(state.memberRoleId).catch(console.error);
+			member.roles.add(config.memberRoleId).catch(console.error);
 		}
 	});
-
-	client.login(token).catch(error => console.error(error));
 }
 
-if (isConfig(config)) {
-	const token = process.env[tokenName];
+try {
+	const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
+	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
-	if (token) {
-		main(createState(config), token);
-	} else {
-		throw new Error(`Environment variable ${tokenName} does not exist.`);
+	if (!isConfig(config)) {
+		throw new Error("Config file does not match the Config interface.");
 	}
-} else {
-	throw new Error(`Config file ${configPath} does not match the Config interface.`);
+
+	const env = parse(readFileSync(envPath, "utf-8"));
+
+	if (!isDotEnv(env)) {
+		throw new Error("Environment file does not match the DotEnv interface.");
+	}
+
+	const discordClient = new Client();
+	void discordClient.login(env.token).then(() => main({ version, config, discordClient }));
+} catch (e) {
+	console.error(e);
 }
