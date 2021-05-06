@@ -5,6 +5,7 @@ import ping from "./ping";
 import report from "./report";
 import update from "./update";
 
+/** Keep commands in lowercase. */
 const commands = {
 	compile,
 	help,
@@ -14,7 +15,7 @@ const commands = {
 };
 
 export function getCommand(commandName: string): Command | undefined {
-	return commands[commandName as never];
+	return commands[commandName.toLowerCase() as never];
 }
 
 export function getCommands(): Command[] {

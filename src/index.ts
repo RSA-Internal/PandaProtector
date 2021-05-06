@@ -1,6 +1,7 @@
 import { Client } from "discord.js";
 import { parse } from "dotenv";
 import { readFileSync } from "fs";
+import { connect } from "mongoose";
 import { getCommand } from "./commands";
 import { isConfig } from "./config";
 import { isDotEnv } from "./dotEnv";
@@ -48,7 +49,7 @@ function main(state: State) {
 			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
 			const content = message.content.slice(config.commandPrefix.length);
 			const matches = /^(\w+)\s*(.*)/su.exec(content);
-			const commandName = matches?.[1]?.toLowerCase() ?? "";
+			const commandName = matches?.[1] ?? "";
 			const argumentContent = matches?.[2] ?? "";
 
 			if (commandName.length > 0) {
@@ -94,7 +95,14 @@ try {
 	}
 
 	const discordClient = new Client();
-	void discordClient.login(env.token).then(() => main({ version, config, discordClient }));
+
+	void connect(env.dbUri, {
+		ssl: true,
+		useCreateIndex: true,
+		useFindAndModify: false,
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	}).then(() => discordClient.login(env.token).then(() => main({ version, config, discordClient })));
 } catch (e) {
 	console.error(e);
 }
