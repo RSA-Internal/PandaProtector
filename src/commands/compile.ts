@@ -64,13 +64,15 @@ const command: Command = {
 								}
 							});
 
-							message.reply("Results\n" + list.join("\n").slice(0, 1000)).catch(console.error);
+							message
+								.reply("Results\n" + list.join("\n").slice(0, 1000))
+								.catch(console.error.bind(console));
 						} catch (e) {
 							console.error(e);
 						}
 					});
 				})
-				.on("error", console.error);
+				.on("error", console.error.bind(console));
 		} else {
 			// TODO: ensure wandbox-api-updated does not throw errors (use a promise instead of a callback?).
 			try {
@@ -114,7 +116,7 @@ const command: Command = {
 							}
 						}
 
-						message.reply(embed).catch(console.error);
+						message.reply(embed).catch(console.error.bind(console));
 					},
 					undefined
 				);

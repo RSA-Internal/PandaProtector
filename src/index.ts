@@ -20,7 +20,7 @@ function main(state: State, env: DotEnv) {
 		discordClient.user
 			?.setActivity(state.version, { type: "PLAYING" })
 			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-			.catch(console.error);
+			.catch(console.error.bind(console));
 	});
 
 	discordClient.on("message", message => {
@@ -34,14 +34,14 @@ function main(state: State, env: DotEnv) {
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
 				if (!message.member?.roles.cache.has(config.staffRoleId)) {
-					message.delete().catch(console.error);
+					message.delete().catch(console.error.bind(console));
 					return; // Do not do any further processing.
 				}
 			} else {
 				// Add up vote and down vote reaction to message.
 				// TODO: make emotes configurable in the future?
-				message.react("👍").catch(console.error);
-				message.react("👎").catch(console.error);
+				message.react("👍").catch(console.error.bind(console));
+				message.react("👎").catch(console.error.bind(console));
 			}
 		}
 
@@ -76,22 +76,11 @@ function main(state: State, env: DotEnv) {
 	discordClient.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length === 1) {
 			// Give user the member role.
-			member.roles.add(config.memberRoleId).catch(console.error);
+			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
 		}
 	});
 
-	const connectToDb = () => {
-		connect(env.dbUri, {
-			reconnectInterval: 5000,
-			ssl: true,
-			useCreateIndex: true,
-			useFindAndModify: false,
-			useNewUrlParser: true,
-			useUnifiedTopology: true,
-		}).catch(reason => logMessage(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
-	};
-
-	const logMessage = async (message: string) => {
+	const logError = async (message: string) => {
 		console.error(message);
 
 		const reportChannel = discordClient.guilds.cache
@@ -103,6 +92,17 @@ function main(state: State, env: DotEnv) {
 		}
 	};
 
+	const connectToDb = () => {
+		connect(env.dbUri, {
+			reconnectInterval: 5000,
+			ssl: true,
+			useCreateIndex: true,
+			useFindAndModify: false,
+			useNewUrlParser: true,
+			useUnifiedTopology: true,
+		}).catch(reason => logError(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
+	};
+
 	// Connect to the database.
 	connectToDb();
 
@@ -110,11 +110,11 @@ function main(state: State, env: DotEnv) {
 	connection.on("disconnected", connectToDb);
 
 	connection.on("error", reason => {
-		logMessage(reason).catch(console.error);
+		logError(reason).catch(console.error.bind(console));
 	});
 
 	exitHook(() => {
-		disconnect().catch(console.error);
+		disconnect().catch(console.error.bind(console));
 	});
 }
 
@@ -138,7 +138,7 @@ try {
 	client
 		.login(env.token)
 		.then(() => main({ version, config, client }, env))
-		.catch(console.error);
+		.catch(console.error.bind(console));
 } catch (e) {
 	console.error(e);
 }
