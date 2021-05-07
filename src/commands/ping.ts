@@ -16,7 +16,7 @@ const command: Command = {
 					}ms`
 				)
 			)
-			.catch(console.error);
+			.catch(console.error.bind(console));
 	},
 };
 
