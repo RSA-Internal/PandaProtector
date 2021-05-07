@@ -41,7 +41,7 @@ const command: Command = {
 	hasPermission: () => true,
 	parseArguments: content => /\s*(\S+)\s*([\s\S]+)/g.exec(content)?.splice(1) ?? [],
 	handler: (_, message, compiler, src) => {
-		if (compiler == "langs") {
+		if (compiler === "langs") {
 			// TODO: future implementation -- switches
 			let result = "";
 
@@ -59,7 +59,7 @@ const command: Command = {
 							const compilerDataList = JSON.parse(result) as Compiler[];
 
 							compilerDataList.forEach(compiler => {
-								if (compiler.language.toLowerCase() == langToCheck) {
+								if (compiler.language.toLowerCase() === langToCheck) {
 									list.push(`${compiler.language} ${compiler.version}: ${compiler.name}`);
 								}
 							});

@@ -1,10 +1,11 @@
-import { Client } from "discord.js";
+import { Client, TextChannel } from "discord.js";
 import { parse } from "dotenv";
+import exitHook from "exit-hook";
 import { readFileSync } from "fs";
-import { connect } from "mongoose";
+import { connect, connection, disconnect } from "mongoose";
 import { getCommand } from "./commands";
 import { isConfig } from "./config";
-import { isDotEnv } from "./dotEnv";
+import { DotEnv, isDotEnv } from "./dotEnv";
 import { ephemeral } from "./ephemeral";
 import type { State } from "./state";
 
@@ -12,7 +13,7 @@ import type { State } from "./state";
 const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
-function main(state: State) {
+function main(state: State, env: DotEnv) {
 	const { config, discordClient } = state;
 
 	discordClient.on("ready", () => {
@@ -73,10 +74,47 @@ function main(state: State) {
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	discordClient.on("guildMemberUpdate", member => {
-		if (member.roles.cache.array().length == 1) {
+		if (member.roles.cache.array().length === 1) {
 			// Give user the member role.
 			member.roles.add(config.memberRoleId).catch(console.error);
 		}
+	});
+
+	const connectToDb = () => {
+		connect(env.dbUri, {
+			reconnectInterval: 5000,
+			ssl: true,
+			useCreateIndex: true,
+			useFindAndModify: false,
+			useNewUrlParser: true,
+			useUnifiedTopology: true,
+		}).catch(reason => logMessage(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
+	};
+
+	const logMessage = async (message: string) => {
+		console.error(message);
+
+		const reportChannel = discordClient.guilds.cache
+			.get(config.guildId)
+			?.channels.cache.get(config.reportChannelId);
+
+		if (reportChannel && reportChannel.type === "text") {
+			return (reportChannel as TextChannel).send(message);
+		}
+	};
+
+	// Connect to the database.
+	connectToDb();
+
+	// Attempt to reestablish connection if disconnected.
+	connection.on("disconnected", connectToDb);
+
+	connection.on("error", reason => {
+		logMessage(reason).catch(console.error);
+	});
+
+	exitHook(() => {
+		disconnect().catch(console.error);
 	});
 }
 
@@ -96,13 +134,11 @@ try {
 
 	const discordClient = new Client();
 
-	void connect(env.dbUri, {
-		ssl: true,
-		useCreateIndex: true,
-		useFindAndModify: false,
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	}).then(() => discordClient.login(env.token).then(() => main({ version, config, discordClient })));
+	// Connect to Discord.
+	discordClient
+		.login(env.token)
+		.then(() => main({ version, config, discordClient }, env))
+		.catch(console.error);
 } catch (e) {
 	console.error(e);
 }
