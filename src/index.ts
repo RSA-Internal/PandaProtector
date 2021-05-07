@@ -1,4 +1,4 @@
-import { Client, TextChannel } from "discord.js";
+import { Client } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
@@ -14,7 +14,7 @@ const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
 function main(state: State, env: DotEnv) {
-	const { config, discordClient } = state;
+	const { config, client: discordClient } = state;
 
 	discordClient.on("ready", () => {
 		discordClient.user
@@ -98,8 +98,8 @@ function main(state: State, env: DotEnv) {
 			.get(config.guildId)
 			?.channels.cache.get(config.reportChannelId);
 
-		if (reportChannel && reportChannel.type === "text") {
-			return (reportChannel as TextChannel).send(message);
+		if (reportChannel?.isText()) {
+			return reportChannel.send(message);
 		}
 	};
 
@@ -132,12 +132,12 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	const discordClient = new Client();
+	const client = new Client();
 
 	// Connect to Discord.
-	discordClient
+	client
 		.login(env.token)
-		.then(() => main({ version, config, discordClient }, env))
+		.then(() => main({ version, config, client }, env))
 		.catch(console.error);
 } catch (e) {
 	console.error(e);

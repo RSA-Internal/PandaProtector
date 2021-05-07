@@ -7,7 +7,7 @@ const command: Command = {
 	hasPermission: (state, message) => !!message.member?.roles.cache.has(state.config.developerRoleId),
 	parseArguments: () => [],
 	handler: state => {
-		state.discordClient.destroy();
+		state.client.destroy();
 		process.exit();
 	},
 };

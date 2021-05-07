@@ -4,5 +4,5 @@ import type { Config } from "./config";
 export interface State {
 	readonly version: string;
 	readonly config: Config;
-	readonly discordClient: Client;
+	readonly client: Client;
 }

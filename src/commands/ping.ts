@@ -11,9 +11,9 @@ const command: Command = {
 			.reply("Pinging...")
 			.then(sent =>
 				sent.edit(
-					`<@${message.author.id}>\nWebsocket heartbeat: ${
-						state.discordClient.ws.ping
-					}ms\nRoundtrip latency: ${sent.createdTimestamp - message.createdTimestamp}ms`
+					`<@${message.author.id}>\nWebsocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
+						sent.createdTimestamp - message.createdTimestamp
+					}ms`
 				)
 			)
 			.catch(console.error);
