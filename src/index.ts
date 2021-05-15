@@ -14,16 +14,16 @@ const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
 function main(state: State, env: DotEnv) {
-	const { config, client: discordClient } = state;
+	const { config, client } = state;
 
-	discordClient.on("ready", () => {
-		discordClient.user
+	client.on("ready", () => {
+		client.user
 			?.setActivity(state.version, { type: "PLAYING" })
 			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
 			.catch(console.error.bind(console));
 	});
 
-	discordClient.on("message", message => {
+	client.on("message", message => {
 		if (message.author.bot) {
 			// Do not process bot messages.
 			return;
@@ -73,7 +73,7 @@ function main(state: State, env: DotEnv) {
 	});
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
-	discordClient.on("guildMemberUpdate", member => {
+	client.on("guildMemberUpdate", member => {
 		if (member.roles.cache.array().length === 1) {
 			// Give user the member role.
 			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
@@ -81,11 +81,8 @@ function main(state: State, env: DotEnv) {
 	});
 
 	const logError = async (message: string) => {
+		const reportChannel = client.guilds.cache.get(config.guildId)?.channels.cache.get(config.reportChannelId);
 		console.error(message);
-
-		const reportChannel = discordClient.guilds.cache
-			.get(config.guildId)
-			?.channels.cache.get(config.reportChannelId);
 
 		if (reportChannel?.isText()) {
 			return reportChannel.send(message);
