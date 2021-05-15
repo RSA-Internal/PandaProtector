@@ -6,6 +6,7 @@ import help from "./help";
 import ping from "./ping";
 import report from "./report";
 import update from "./update";
+import uptime from "./uptime";
 
 /** Keep commands in lowercase. */
 const commands = {
@@ -16,6 +17,7 @@ const commands = {
 	ping,
 	report,
 	update,
+	uptime,
 };
 
 export function getCommand(commandName: string): Command | undefined {
