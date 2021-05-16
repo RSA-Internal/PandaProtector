@@ -86,33 +86,20 @@ const command: Command = {
 						const embed = new MessageEmbed()
 							.setTitle("Compile Result")
 							.setFooter(`Compiled with: ${compiler}`);
+
 						if (err) {
 							embed.setColor("#BB3333");
-							embed.setDescription("Compilation failed: Errors present.");
+							embed.setDescription("Compilation failed: errors present.");
 							embed.addField("Error", err.message, true);
 						} else {
 							if (res.compiler_error) {
 								embed.setColor("#D95B18");
-								embed.setDescription("Compilation failed: Compiler errors present.");
+								embed.setDescription("Compilation failed: compiler errors present.");
 								embed.addField("Compiler Error", res.compiler_error, false);
-								if (res.compiler_message) {
-									embed.addField("Compiler Message", res.compiler_message, false);
-								}
-								if (res.compiler_output) {
-									embed.addField("Compiler Output", res.compiler_output, false);
-								}
 							} else {
 								embed.setColor("#24BF2F");
 								embed.setDescription("Compilation finished.");
-								if (res.program_message) {
-									embed.addField("Program Message", res.program_message || "No message.", false);
-								}
-								if (res.program_output) {
-									embed.addField("Program Output", res.program_output || "No output.", false);
-								}
-								if (res.program_error) {
-									embed.addField("Program Error", res.program_error || "No error.", false);
-								}
+								embed.addField("Program Message", res.program_message ?? "No output.", false);
 							}
 						}
 
