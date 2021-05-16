@@ -80,7 +80,7 @@ const command: Command = {
 					{
 						compiler: compiler,
 						code: src,
-						save: false, // Implement at a later date, or under a different command.
+						save: false, // TODO: Implement at a later date, possibly under a different command.
 					},
 					(err, res) => {
 						const embed = new MessageEmbed()
@@ -93,7 +93,7 @@ const command: Command = {
 						} else {
 							if (res.compiler_error) {
 								embed.setColor("#D95B18");
-								embed.setDescription("Compilation failed: Compiler errors preset.");
+								embed.setDescription("Compilation failed: Compiler errors present.");
 								embed.addField("Compiler Error", res.compiler_error, false);
 								if (res.compiler_message) {
 									embed.addField("Compiler Message", res.compiler_message, false);
