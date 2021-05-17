@@ -41,7 +41,7 @@ const command: Command = {
 	hasPermission: () => true,
 	parseArguments: content => /\s*(\S+)\s*([\s\S]+)/g.exec(content)?.splice(1) ?? [],
 	handler: (_, message, compiler, src) => {
-		if (compiler == "langs") {
+		if (compiler === "langs") {
 			// TODO: future implementation -- switches
 			let result = "";
 
@@ -59,18 +59,20 @@ const command: Command = {
 							const compilerDataList = JSON.parse(result) as Compiler[];
 
 							compilerDataList.forEach(compiler => {
-								if (compiler.language.toLowerCase() == langToCheck) {
+								if (compiler.language.toLowerCase() === langToCheck) {
 									list.push(`${compiler.language} ${compiler.version}: ${compiler.name}`);
 								}
 							});
 
-							message.reply("Results\n" + list.join("\n").slice(0, 1000)).catch(console.error);
+							message
+								.reply("Results\n" + list.join("\n").slice(0, 1000))
+								.catch(console.error.bind(console));
 						} catch (e) {
 							console.error(e);
 						}
 					});
 				})
-				.on("error", console.error);
+				.on("error", console.error.bind(console));
 		} else {
 			// TODO: ensure wandbox-api-updated does not throw errors (use a promise instead of a callback?).
 			try {
@@ -78,43 +80,30 @@ const command: Command = {
 					{
 						compiler: compiler,
 						code: src,
-						save: false, // Implement at a later date, or under a different command.
+						save: false, // TODO: Implement at a later date, possibly under a different command.
 					},
 					(err, res) => {
 						const embed = new MessageEmbed()
 							.setTitle("Compile Result")
 							.setFooter(`Compiled with: ${compiler}`);
+
 						if (err) {
 							embed.setColor("#BB3333");
-							embed.setDescription("Compilation failed: Errors present.");
+							embed.setDescription("Compilation failed: errors present.");
 							embed.addField("Error", err.message, true);
 						} else {
 							if (res.compiler_error) {
 								embed.setColor("#D95B18");
-								embed.setDescription("Compilation failed: Compiler errors preset.");
+								embed.setDescription("Compilation failed: compiler errors present.");
 								embed.addField("Compiler Error", res.compiler_error, false);
-								if (res.compiler_message) {
-									embed.addField("Compiler Message", res.compiler_message, false);
-								}
-								if (res.compiler_output) {
-									embed.addField("Compiler Output", res.compiler_output, false);
-								}
 							} else {
 								embed.setColor("#24BF2F");
 								embed.setDescription("Compilation finished.");
-								if (res.program_message) {
-									embed.addField("Program Message", res.program_message || "No message.", false);
-								}
-								if (res.program_output) {
-									embed.addField("Program Output", res.program_output || "No output.", false);
-								}
-								if (res.program_error) {
-									embed.addField("Program Error", res.program_error || "No error.", false);
-								}
+								embed.addField("Program Message", res.program_message ?? "No output.", false);
 							}
 						}
 
-						message.reply(embed).catch(console.error);
+						message.reply(embed).catch(console.error.bind(console));
 					},
 					undefined
 				);

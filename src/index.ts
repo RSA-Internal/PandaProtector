@@ -1,10 +1,11 @@
 import { Client } from "discord.js";
 import { parse } from "dotenv";
+import exitHook from "exit-hook";
 import { readFileSync } from "fs";
-import { connect } from "mongoose";
+import { connect, connection, disconnect } from "mongoose";
 import { getCommand } from "./commands";
 import { isConfig } from "./config";
-import { isDotEnv } from "./dotEnv";
+import { DotEnv, isDotEnv } from "./dotEnv";
 import { ephemeral } from "./ephemeral";
 import type { State } from "./state";
 
@@ -12,17 +13,17 @@ import type { State } from "./state";
 const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
-function main(state: State) {
-	const { config, discordClient } = state;
+function main(state: State, env: DotEnv) {
+	const { config, client } = state;
 
-	discordClient.on("ready", () => {
-		discordClient.user
+	client.on("ready", () => {
+		client.user
 			?.setActivity(state.version, { type: "PLAYING" })
 			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-			.catch(console.error);
+			.catch(console.error.bind(console));
 	});
 
-	discordClient.on("message", message => {
+	client.on("message", message => {
 		if (message.author.bot) {
 			// Do not process bot messages.
 			return;
@@ -33,14 +34,14 @@ function main(state: State) {
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
 				if (!message.member?.roles.cache.has(config.staffRoleId)) {
-					message.delete().catch(console.error);
+					message.delete().catch(console.error.bind(console));
 					return; // Do not do any further processing.
 				}
 			} else {
 				// Add up vote and down vote reaction to message.
 				// TODO: make emotes configurable in the future?
-				message.react("👍").catch(console.error);
-				message.react("👎").catch(console.error);
+				message.react("👍").catch(console.error.bind(console));
+				message.react("👎").catch(console.error.bind(console));
 			}
 		}
 
@@ -72,11 +73,45 @@ function main(state: State) {
 	});
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
-	discordClient.on("guildMemberUpdate", member => {
-		if (member.roles.cache.array().length == 1) {
+	client.on("guildMemberUpdate", member => {
+		if (member.roles.cache.array().length === 1) {
 			// Give user the member role.
-			member.roles.add(config.memberRoleId).catch(console.error);
+			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
 		}
+	});
+
+	const logError = async (message: string) => {
+		const reportChannel = client.guilds.cache.get(config.guildId)?.channels.cache.get(config.reportChannelId);
+		console.error(message);
+
+		if (reportChannel?.isText()) {
+			return reportChannel.send(message);
+		}
+	};
+
+	const connectToDb = () => {
+		connect(env.dbUri, {
+			reconnectInterval: 5000,
+			ssl: true,
+			useCreateIndex: true,
+			useFindAndModify: false,
+			useNewUrlParser: true,
+			useUnifiedTopology: true,
+		}).catch(reason => logError(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
+	};
+
+	// Connect to the database.
+	connectToDb();
+
+	// Attempt to reestablish connection if disconnected.
+	connection.on("disconnected", connectToDb);
+
+	connection.on("error", reason => {
+		logError(reason).catch(console.error.bind(console));
+	});
+
+	exitHook(() => {
+		disconnect().catch(console.error.bind(console));
 	});
 }
 
@@ -94,15 +129,13 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	const discordClient = new Client();
+	const client = new Client();
 
-	void connect(env.dbUri, {
-		ssl: true,
-		useCreateIndex: true,
-		useFindAndModify: false,
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	}).then(() => discordClient.login(env.token).then(() => main({ version, config, discordClient })));
+	// Connect to Discord.
+	client
+		.login(env.token)
+		.then(() => main({ version, config, client }, env))
+		.catch(console.error.bind(console));
 } catch (e) {
 	console.error(e);
 }

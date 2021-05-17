@@ -33,13 +33,13 @@ const command: Command = {
 						],
 					})
 				)
-				.catch(console.error);
+				.catch(console.error.bind(console));
 		} else {
 			// Display specific command information.
 			const commandObject = getCommand(command);
 
 			if (!commandObject || !commandObject.hasPermission(state, message)) {
-				ephemeral(state, message.reply("The command does not exist.")).catch(console.error);
+				ephemeral(state, message.reply("The command does not exist.")).catch(console.error.bind(console));
 				return;
 			}
 
@@ -67,7 +67,7 @@ const command: Command = {
 						],
 					})
 				)
-				.catch(console.error);
+				.catch(console.error.bind(console));
 		}
 	},
 };
