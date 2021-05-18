@@ -9,7 +9,7 @@ const command: Command = {
 	options: [
 		{
 			name: "language",
-			description: "List compilers for provided language.",
+			description: "List of compilers for the specified language.",
 		},
 	],
 	hasPermission: () => true,
@@ -28,7 +28,9 @@ const command: Command = {
 
 				message.reply(listEmbed).catch(console.error.bind(console));
 			})
-			.catch(console.error.bind(console));
+			.catch(err => {
+				message.reply(err, { disableMentions: "all" }).catch(console.error.bind(console));
+			});
 	},
 };
 

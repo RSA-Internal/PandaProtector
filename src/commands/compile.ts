@@ -4,8 +4,7 @@ import type { Command } from "../command";
 
 const command: Command = {
 	name: "compile",
-	description:
-		'Execute code from discord. There are two uses to this command: `;compile langs [languageFilter]`, which will list all compilers and the language version for the provided language. (ex: `;compile langs C++`). The other is `compile [compiler] [src]`. (ex: `compile lua-5.4.0 print("Hello World!")`)',
+	description: "Execute code from Discord, see the *compilers* command to determine which compilers are available.",
 	options: [
 		{
 			name: "compiler",
@@ -17,9 +16,9 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	parseArguments: content => /\s*(\S+)\s*([\s\S]+)/g.exec(content)?.splice(1) ?? [],
-	handler: (_, message, compiler, src) => {
-		fromString({ compiler: compiler, code: src.length == 0 ? "" : src === "0" ? "" : src, save: false })
+	parseArguments: content => /\s*(\S+)\s*([\s\S]*)/g.exec(content)?.splice(1) ?? [],
+	handler: (_, message, compiler, code) => {
+		fromString({ compiler, code, save: false })
 			.then(result => {
 				const embed = new MessageEmbed();
 
@@ -36,7 +35,7 @@ const command: Command = {
 				message.reply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				message.reply(err).catch(console.error.bind(console));
+				message.reply(err, { disableMentions: "all" }).catch(console.error.bind(console));
 			});
 	},
 };
