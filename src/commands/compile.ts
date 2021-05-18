@@ -27,13 +27,19 @@ const command: Command = {
 					embed.setDescription("Compilation failed: errors present.");
 					embed.addField(
 						"Errors",
-						`\`\`\`\n${(result.compiler_error ?? result.program_error).slice(0, 1000)}\`\`\``,
+						`\`\`\`\n${(result.compiler_error ?? result.program_error)
+							.slice(0, 1000)
+							.replace(/```/g, "")}\`\`\``,
 						false
 					);
 				} else {
 					embed.setColor("#24BF2F");
 					embed.setDescription("Compilation finished.");
-					embed.addField("Program Message", `\`\`\`\n${result.program_message.slice(0, 1000)}\`\`\``, false);
+					embed.addField(
+						"Program Message",
+						`\`\`\`\n${result.program_message.slice(0, 1000).replace(/```/g, "")}\`\`\``,
+						false
+					);
 				}
 
 				message.reply(embed).catch(console.error.bind(console));
