@@ -1,5 +1,6 @@
 import type { Command } from "../command";
 import compile from "./compile";
+import compilers from "./compilers";
 import help from "./help";
 import ping from "./ping";
 import report from "./report";
@@ -8,6 +9,7 @@ import update from "./update";
 /** Keep commands in lowercase. */
 const commands = {
 	compile,
+	compilers,
 	help,
 	ping,
 	report,
