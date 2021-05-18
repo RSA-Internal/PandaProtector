@@ -25,7 +25,7 @@ const command: Command = {
 				if (result.compiler_error || result.program_error) {
 					embed.setColor("#D95B18");
 					embed.setDescription("Compilation failed: errors present.");
-					embed.addField("Errors", result.compiler_error ?? result.program_error, false);
+					embed.addField("Errors", (result.compiler_error ?? result.program_error).slice(0, 1000), false);
 				} else {
 					embed.setColor("#24BF2F");
 					embed.setDescription("Compilation finished.");
