@@ -22,7 +22,7 @@
 	"dependencies": {
 		"@types/mongoose": "^5.10.5",
 		"@types/node": "^15.0.2",
-		"discord.js": "^12.5.3",
+		"discord.js": "github:discordjs/discord.js",
 		"dotenv": "^9.0.0",
 		"exit-hook": "^2.2.1",
 		"mongoose": "^5.12.7",

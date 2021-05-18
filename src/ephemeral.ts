@@ -9,7 +9,10 @@ export async function ephemeral(
 ): Promise<Message> {
 	return message.then(sent => {
 		if (!shouldBeEphemeral || shouldBeEphemeral(state, sent)) {
-			return sent.delete({ timeout });
+			setTimeout(function () {
+				sent.delete().then(console.log.bind(console)).catch(console.error.bind(console));
+			}, timeout);
+			return sent;
 		} else {
 			return sent;
 		}

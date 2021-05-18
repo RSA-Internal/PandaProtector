@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client, Intents, Presence } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
@@ -17,10 +17,9 @@ function main(state: State, env: DotEnv) {
 	const { config, client } = state;
 
 	client.on("ready", () => {
-		client.user
-			?.setActivity(state.version, { type: "PLAYING" })
-			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-			.catch(console.error.bind(console));
+		const presence = client.user?.setActivity(state.version, { type: "PLAYING" }) as Presence;
+
+		console.log(`Activity set to ${presence.activities[0].name}`);
 	});
 
 	client.on("message", message => {
@@ -74,8 +73,7 @@ function main(state: State, env: DotEnv) {
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	client.on("guildMemberUpdate", member => {
-		if (member.roles.cache.array().length === 1) {
-			// Give user the member role.
+		if (!member.pending) {
 			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
 		}
 	});
@@ -128,7 +126,7 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	const client = new Client();
+	const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 	// Connect to Discord.
 	client

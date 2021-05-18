@@ -11,7 +11,7 @@ const command: Command = {
 			.reply("Pinging...")
 			.then(sent =>
 				sent.edit(
-					`<@${message.author.id}>\nWebsocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
+					`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
 						sent.createdTimestamp - message.createdTimestamp
 					}ms`
 				)
