@@ -26,6 +26,9 @@ const command: Command = {
 					listEmbed.addField(`${language} ${compiler.version}`, `Compiler: ${compiler.name}`, true);
 				});
 
+				// Discord Embeds do not allow for more than 25 fields.
+				listEmbed.fields.splice(25);
+
 				message.reply(listEmbed).catch(console.error.bind(console));
 			})
 			.catch(err => {
