@@ -5,11 +5,11 @@ import { defaultArgumentParser } from "../parsers";
 
 const command: Command = {
 	name: "compilers",
-	description: "testing",
+	description: "Gets a list of supported compilers for the specified language.",
 	options: [
 		{
 			name: "language",
-			description: "List compilers for provided language",
+			description: "List compilers for provided language.",
 		},
 	],
 	hasPermission: () => true,
@@ -26,7 +26,7 @@ const command: Command = {
 					listEmbed.addField(`${language} ${compiler.version}`, `Compiler: ${compiler.name}`, true);
 				});
 
-				message.reply(listEmbed).then(console.log.bind(console)).catch(console.error.bind(console));
+				message.reply(listEmbed).catch(console.error.bind(console));
 			})
 			.catch(console.error.bind(console));
 	},
