@@ -23,20 +23,20 @@ const command: Command = {
 			.then(result => {
 				const embed = new MessageEmbed();
 
-				if (result.compiler_error) {
+				if (result.compiler_error || result.program_error) {
 					embed.setColor("#D95B18");
-					embed.setDescription("Compilation failed: compiler errors present.");
-					embed.addField("Compiler Error", result.compiler_error, false);
+					embed.setDescription("Compilation failed: errors present.");
+					embed.addField("Errors", result.compiler_error ?? result.program_error, false);
 				} else {
 					embed.setColor("#24BF2F");
 					embed.setDescription("Compilation finished.");
 					embed.addField("Program Message", result.program_message, false);
 				}
 
-				message.reply(embed).then(console.log.bind(console)).catch(console.error.bind(console));
+				message.reply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				void message.reply(err);
+				message.reply(err).catch(console.error.bind(console));
 			});
 	},
 };
