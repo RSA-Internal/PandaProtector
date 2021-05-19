@@ -1,11 +1,11 @@
 export interface Config {
-	readonly commandPrefix: string;
-	readonly guildId: string;
-	readonly memberRoleId: string;
-	readonly staffRoleId: string;
-	readonly developerRoleId: string;
-	readonly showcaseChannelId: string;
-	readonly reportChannelId: string;
+	commandPrefix: string;
+	guildId: string;
+	memberRoleId: string;
+	staffRoleId: string;
+	developerRoleId: string;
+	showcaseChannelId: string;
+	reportChannelId: string;
 }
 
 export function isConfig(config: unknown): config is Config {
