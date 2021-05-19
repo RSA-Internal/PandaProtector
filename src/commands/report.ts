@@ -1,4 +1,4 @@
-import { MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed } from "discord.js";
 import type { Command } from "../command";
 import { ephemeral } from "../ephemeral";
 import { defaultArgumentParser } from "../parsers";
@@ -22,24 +22,19 @@ const command: Command = {
 	handler: (state, message, user, ...reason) => {
 		const reasonText = reason.join(" ");
 		const userObject = getUserFromMention(state.client, user);
-		const reportChannel = state.client.channels.resolve(state.reportChannelId) as TextChannel | null;
+		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
-		if (!reportChannel || reportChannel.type !== "text") {
+		if (!reportChannel?.isText()) {
+			// Ensure the report channel is a text channel.
 			console.error("Report channel does not exist or is not a text channel.");
 			return;
 		}
 
-		if (!userObject || userObject.id === message.author.id || userObject.bot) {
+		if (!userObject || userObject.bot || userObject.id === message.author.id) {
 			// Ensure the target user is reportable and not the reporter.
-			ephemeral(state, message.reply("Could not report this user.")).catch(console.error);
+			ephemeral(state, message.reply("Could not report this user.")).catch(console.error.bind(console));
 			return;
 		}
-
-		/* if (reasonText.length < 15 || reason.length < 3) {
-			// Ensure the reason is at least 15 characters and 3 words long.
-			ephemeral(state, message.reply("Please provide a longer reason.")).catch(console.error);
-			return;
-		} */
 
 		reportChannel
 			.send(

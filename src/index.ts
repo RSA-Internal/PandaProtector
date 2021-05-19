@@ -1,21 +1,26 @@
+import { Client } from "discord.js";
+import { parse } from "dotenv";
+import exitHook from "exit-hook";
 import { readFileSync } from "fs";
+import { connect, connection, disconnect } from "mongoose";
 import { getCommand } from "./commands";
+import { isConfig } from "./config";
+import { DotEnv, isDotEnv } from "./dotEnv";
 import { ephemeral } from "./ephemeral";
-import { createState, isConfig, State } from "./state";
+import type { State } from "./state";
 
+// USAGE: npm start [configPath] [envPath]
 const configPath = process.argv[2] ?? "config.json";
-const tokenName = process.argv[3] ?? "TOKEN";
-const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
-const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
+const envPath = process.argv[3] ?? ".env";
 
-function main(state: State, token: string) {
-	const { client } = state;
+function main(state: State, env: DotEnv) {
+	const { config, client } = state;
 
 	client.on("ready", () => {
 		client.user
-			?.setActivity(version, { type: "PLAYING" })
+			?.setActivity(state.version, { type: "PLAYING" })
 			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-			.catch(console.error);
+			.catch(console.error.bind(console));
 	});
 
 	client.on("message", message => {
@@ -24,28 +29,28 @@ function main(state: State, token: string) {
 			return;
 		}
 
-		if (message.channel.id === state.showcaseChannelId) {
+		if (message.channel.id === config.showcaseChannelId) {
 			// Handle showcase.
 			if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 				// Ensure messages in showcase contain an attachment or link.
-				if (!message.member?.roles.cache.has(state.staffRoleId)) {
-					message.delete().catch(console.error);
+				if (!message.member?.roles.cache.has(config.staffRoleId)) {
+					message.delete().catch(console.error.bind(console));
 					return; // Do not do any further processing.
 				}
 			} else {
 				// Add up vote and down vote reaction to message.
 				// TODO: make emotes configurable in the future?
-				message.react("👍").catch(console.error);
-				message.react("👎").catch(console.error);
+				message.react("👍").catch(console.error.bind(console));
+				message.react("👎").catch(console.error.bind(console));
 			}
 		}
 
-		if (message.content.startsWith(state.commandPrefix)) {
+		if (message.content.startsWith(config.commandPrefix)) {
 			// Handle commands.
 			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
-			const content = message.content.slice(state.commandPrefix.length);
+			const content = message.content.slice(config.commandPrefix.length);
 			const matches = /^(\w+)\s*(.*)/su.exec(content);
-			const commandName = matches?.[1]?.toLowerCase() ?? "";
+			const commandName = matches?.[1] ?? "";
 			const argumentContent = matches?.[2] ?? "";
 
 			if (commandName.length > 0) {
@@ -69,23 +74,68 @@ function main(state: State, token: string) {
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	client.on("guildMemberUpdate", member => {
-		if (member.roles.cache.array().length == 1) {
+		if (member.roles.cache.array().length === 1) {
 			// Give user the member role.
-			member.roles.add(state.memberRoleId).catch(console.error);
+			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
 		}
 	});
 
-	client.login(token).catch(error => console.error(error));
+	const logError = async (message: string) => {
+		const reportChannel = client.guilds.cache.get(config.guildId)?.channels.cache.get(config.reportChannelId);
+		console.error(message);
+
+		if (reportChannel?.isText()) {
+			return reportChannel.send(message);
+		}
+	};
+
+	const connectToDb = () => {
+		connect(env.dbUri, {
+			reconnectInterval: 5000,
+			ssl: true,
+			useCreateIndex: true,
+			useFindAndModify: false,
+			useNewUrlParser: true,
+			useUnifiedTopology: true,
+		}).catch(reason => logError(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
+	};
+
+	// Connect to the database.
+	connectToDb();
+
+	// Attempt to reestablish connection if disconnected.
+	connection.on("disconnected", connectToDb);
+
+	connection.on("error", reason => {
+		logError(reason).catch(console.error.bind(console));
+	});
+
+	exitHook(() => {
+		disconnect().catch(console.error.bind(console));
+	});
 }
 
-if (isConfig(config)) {
-	const token = process.env[tokenName];
+try {
+	const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
+	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
-	if (token) {
-		main(createState(config), token);
-	} else {
-		throw new Error(`Environment variable ${tokenName} does not exist.`);
+	if (!isConfig(config)) {
+		throw new Error("Config file does not match the Config interface.");
 	}
-} else {
-	throw new Error(`Config file ${configPath} does not match the Config interface.`);
+
+	const env = parse(readFileSync(envPath, "utf-8"));
+
+	if (!isDotEnv(env)) {
+		throw new Error("Environment file does not match the DotEnv interface.");
+	}
+
+	const client = new Client();
+
+	// Connect to Discord.
+	client
+		.login(env.token)
+		.then(() => main({ version, config, client }, env))
+		.catch(console.error.bind(console));
+} catch (e) {
+	console.error(e);
 }

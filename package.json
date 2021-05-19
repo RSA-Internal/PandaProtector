@@ -1,13 +1,13 @@
 {
 	"name": "pandaprotector",
-	"version": "2.3.0",
+	"version": "2.7.0",
 	"description": "RSA - Utility Bot",
 	"main": "index.js",
 	"scripts": {
 		"lint": "npx eslint . && npx prettier --check .",
 		"build": "npx tsc",
 		"start": "node dist/index.js",
-		"test": "node dist/index.js config-dev.json TOKEN_DEV"
+		"test": "node dist/index.js config-test.json .env.test"
 	},
 	"repository": {
 		"type": "git",
@@ -20,10 +20,14 @@
 	},
 	"homepage": "https://github.com/RSA-Bots/PandaProtector#readme",
 	"dependencies": {
-		"@types/node": "^14.14.41",
+		"@types/mongoose": "^5.10.5",
+		"@types/node": "^15.0.2",
 		"discord.js": "^12.5.3",
+		"dotenv": "^9.0.0",
+		"exit-hook": "^2.2.1",
+		"mongoose": "^5.12.7",
 		"typescript": "^4.2.4",
-		"wandbox-api-updated": "^0.2.3"
+		"wandbox-api-updated": "^1.0.4"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.22.0",
