@@ -1,25 +1,36 @@
 import { MessageEmbed } from "discord.js";
 import { getCommand, getCommands } from ".";
 import type { Command } from "../command";
-import { ephemeral } from "../ephemeral";
+
+/**
+ *   interface ApplicationCommandOptionData {
+    type: ApplicationCommandOptionType | ApplicationCommandOptionTypes;
+    name: string;
+    description: string;
+    required?: boolean;
+    choices?: ApplicationCommandOptionChoice[];
+    options?: ApplicationCommandOption[];
+  }
+ */
 
 const command: Command = {
 	name: "help",
 	description: "Gets command help.",
 	options: [
 		{
+			type: "STRING",
 			name: "command",
 			description: "The command name to get help with.",
-			optional: true,
+			required: false,
 		},
 	],
 	hasPermission: () => true,
 	parseArguments: content => [content],
-	handler: (state, message, command) => {
+	handler: (state, interaction, command) => {
 		if (!command) {
 			// Display all commands.
-			const commands = getCommands().filter(command => command.hasPermission(state, message));
-			message
+			const commands = getCommands().filter(command => command.hasPermission(state, interaction));
+			interaction
 				.reply(
 					new MessageEmbed({
 						fields: [
@@ -38,19 +49,20 @@ const command: Command = {
 			// Display specific command information.
 			const commandObject = getCommand(command);
 
-			if (!commandObject || !commandObject.hasPermission(state, message)) {
-				ephemeral(state, message.reply("The command does not exist.")).catch(console.error.bind(console));
+			if (!commandObject || !commandObject.hasPermission(state, interaction)) {
+				//ephemeral(state, interaction.reply("The command does not exist.")).catch(console.error.bind(console));
+				interaction.reply("The command does not exist.").catch(console.error.bind(console));
 				return;
 			}
 
-			message
+			interaction
 				.reply(
 					new MessageEmbed({
 						fields: [
 							{
 								name: "Command",
 								value: `${commandObject.name} ${commandObject.options
-									.map(option => (option.optional ? `*[${option.name}]*` : `*${option.name}*`))
+									.map(option => (option.required ? `*[${option.name}]*` : `*${option.name}*`))
 									.join(" ")}`,
 							},
 							{

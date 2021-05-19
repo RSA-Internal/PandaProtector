@@ -1,17 +1,38 @@
-import { Client, Intents, Presence } from "discord.js";
+import { ApplicationCommandData, Client, Intents, Message, Presence } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
-import { getCommand } from "./commands";
-import { isConfig } from "./config";
+import { getCommand, getCommands } from "./commands";
+import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
-import { ephemeral } from "./ephemeral";
 import type { State } from "./state";
 
 // USAGE: npm start [configPath] [envPath]
 const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
+
+function deploySlashCommands(client: Client, config: Config, message?: Message) {
+	const data = [] as ApplicationCommandData[];
+
+	getCommands().forEach(command => {
+		data.push({
+			name: command.name,
+			description: command.description,
+			options: command.options,
+		} as ApplicationCommandData);
+	});
+
+	data.forEach(commandData => {
+		(async () => {
+			await client.guilds.cache.get(config.guildId)?.commands.create(commandData);
+		})().catch(console.error.bind(console));
+	});
+
+	if (message) {
+		message.reply("Successfully loaded slash-commands.").catch(console.error.bind(console));
+	}
+}
 
 function main(state: State, env: DotEnv) {
 	const { config, client } = state;
@@ -20,6 +41,18 @@ function main(state: State, env: DotEnv) {
 		const presence = client.user?.setActivity(state.version, { type: "PLAYING" }) as Presence;
 
 		console.log(`Activity set to ${presence.activities[0].name}`);
+	});
+
+	//Deploy slash-commands
+	deploySlashCommands(client, config);
+
+	client.on("interaction", interaction => {
+		if (!interaction.isCommand()) return;
+		const command = getCommand(interaction.commandName);
+
+		if (command && command.hasPermission(state, interaction)) {
+			command.handler(state, interaction);
+		}
 	});
 
 	client.on("message", message => {
@@ -44,31 +77,45 @@ function main(state: State, env: DotEnv) {
 			}
 		}
 
-		if (message.content.startsWith(config.commandPrefix)) {
-			// Handle commands.
-			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
-			const content = message.content.slice(config.commandPrefix.length);
-			const matches = /^(\w+)\s*(.*)/su.exec(content);
-			const commandName = matches?.[1] ?? "";
-			const argumentContent = matches?.[2] ?? "";
+		//Handle owner only async commands
+		(async () => {
+			if (!client.application?.owner) await client.application?.fetch();
 
-			if (commandName.length > 0) {
-				const command = getCommand(commandName);
-
-				if (command && command.hasPermission(state, message)) {
-					const args = command.parseArguments(argumentContent);
-					const required = command.options.reduce((acc, option) => acc + (option.optional ? 0 : 1), 0);
-
-					if (args.length >= required) {
-						command.handler(state, message, ...command.parseArguments(argumentContent));
-					} else {
-						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
-							console.error
-						);
-					}
+			if (message.author.id === client.application?.owner?.id) {
+				if (message.content.toLowerCase() === "!deploy") {
+					deploySlashCommands(client, config, message);
+				} else if (message.content.toLowerCase() === "!unload") {
+					await client.guilds.cache.get(config.guildId)?.commands.set([]);
+					void message.reply("Successfully unloaded slash-commands.");
 				}
 			}
-		}
+		})().catch(console.error.bind(console));
+
+		// if (message.content.startsWith(config.commandPrefix)) {
+		// 	// Handle commands.
+		// 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
+		// 	const content = message.content.slice(config.commandPrefix.length);
+		// 	const matches = /^(\w+)\s*(.*)/su.exec(content);
+		// 	const commandName = matches?.[1] ?? "";
+		// 	const argumentContent = matches?.[2] ?? "";
+
+		// 	if (commandName.length > 0) {
+		// 		const command = getCommand(commandName);
+
+		// 		if (command && command.hasPermission(state, message)) {
+		// 			const args = command.parseArguments(argumentContent);
+		// 			const required = command.options.reduce((acc, option) => acc + (!option.required ? 0 : 1), 0);
+
+		// 			if (args.length >= required) {
+		// 				command.handler(state, message, ...command.parseArguments(argumentContent));
+		// 			} else {
+		// 				ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
+		// 					console.error
+		// 				);
+		// 			}
+		// 		}
+		// 	}
+		// }
 	});
 
 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
@@ -108,6 +155,9 @@ function main(state: State, env: DotEnv) {
 	});
 
 	exitHook(() => {
+		(async () => {
+			await client.guilds.cache.get(config.guildId)?.commands.set([]);
+		})().catch(console.error.bind(console));
 		disconnect().catch(console.error.bind(console));
 	});
 }

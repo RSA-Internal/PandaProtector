@@ -7,10 +7,12 @@ const command: Command = {
 	description: "Execute code from Discord, see the *compilers* command to determine which compilers are available.",
 	options: [
 		{
+			type: "STRING",
 			name: "compiler",
 			description: "Compiler to use.",
 		},
 		{
+			type: "STRING",
 			name: "src",
 			description: "Source to compile.",
 		},

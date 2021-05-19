@@ -1,4 +1,7 @@
+import { promisify } from "util";
 import type { Command } from "../command";
+
+const wait = promisify(setTimeout);
 
 const command: Command = {
 	name: "ping",
@@ -6,17 +9,14 @@ const command: Command = {
 	options: [],
 	hasPermission: () => true,
 	parseArguments: () => [],
-	handler: (state, message) => {
-		message
-			.reply("Pinging...")
-			.then(sent =>
-				sent.edit(
-					`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
-						sent.createdTimestamp - message.createdTimestamp
-					}ms`
-				)
-			)
-			.catch(console.error.bind(console));
+	handler: async (state, interaction) => {
+		await interaction.reply("Pinging...");
+		await wait(2000);
+		await interaction.editReply(
+			`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
+				Date.now() - interaction.createdTimestamp
+			}ms`
+		);
 	},
 };
 

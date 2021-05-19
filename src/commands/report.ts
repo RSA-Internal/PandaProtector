@@ -1,6 +1,5 @@
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
-import { ephemeral } from "../ephemeral";
 import { defaultArgumentParser } from "../parsers";
 import { getUserFromMention } from "../util";
 
@@ -9,17 +8,19 @@ const command: Command = {
 	description: "Report a user to staff.",
 	options: [
 		{
+			type: "USER",
 			name: "user",
 			description: "The user to report.",
 		},
 		{
+			type: "STRING",
 			name: "reason",
 			description: "The reason for the report.",
 		},
 	],
 	hasPermission: () => true,
 	parseArguments: defaultArgumentParser,
-	handler: (state, message, user, ...reason) => {
+	handler: (state, interaction, user, ...reason) => {
 		const reasonText = reason.join(" ");
 		const userObject = getUserFromMention(state.client, user);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
@@ -30,9 +31,10 @@ const command: Command = {
 			return;
 		}
 
-		if (!userObject || userObject.bot || userObject.id === message.author.id) {
+		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
-			ephemeral(state, message.reply("Could not report this user.")).catch(console.error.bind(console));
+			//ephemeral(state, interaction.reply("Could not report this user.")).catch(console.error.bind(console));
+			interaction.reply("Could not report this user.").catch(console.error.bind(console));
 			return;
 		}
 
@@ -74,10 +76,15 @@ const command: Command = {
 				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
 				console.error(reason);
 
-				ephemeral(state, message.reply(`Could not report the user, please mention an online mod.`)).catch(
-					console.error
-				);
-			});
+						interaction
+							.reply(`Could not report the user, please mention an online mod.`)
+							.catch(console.error.bind(console));
+						// ephemeral(state, interaction.reply(`Could not report the user, please mention an online mod.`)).catch(
+						// 	console.error
+						// );
+					});
+			})
+			.catch(console.error.bind(console));
 	},
 };
 
