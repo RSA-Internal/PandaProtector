@@ -5,4 +5,5 @@ export interface State {
 	readonly version: string;
 	readonly config: Config;
 	readonly client: Client;
+	readonly configPath: string;
 }
