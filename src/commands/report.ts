@@ -64,7 +64,12 @@ const command: Command = {
 					color: "#FF0000",
 				})
 			)
-			.then(() => ephemeral(state, message.reply(`You have reported the user.`)))
+			.then(reportMessage => {
+				ephemeral(state, message.reply(`You have reported the user.`)).catch(console.error.bind(console));
+				reportMessage.react("👀").catch(console.error.bind(console));
+				reportMessage.react("✅").catch(console.error.bind(console));
+				reportMessage.react("❌").catch(console.error.bind(console));
+			})
 			.catch(reason => {
 				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
 				console.error(reason);
