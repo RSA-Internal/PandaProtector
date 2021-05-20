@@ -1,6 +1,7 @@
 import type { Command } from "../command";
 import compile from "./compile";
 import compilers from "./compilers";
+import config from "./config";
 import help from "./help";
 import ping from "./ping";
 import report from "./report";
@@ -10,6 +11,7 @@ import update from "./update";
 const commands = {
 	compile,
 	compilers,
+	config,
 	help,
 	ping,
 	report,

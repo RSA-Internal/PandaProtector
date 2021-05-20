@@ -91,7 +91,6 @@ function main(state: State, env: DotEnv) {
 
 	const connectToDb = () => {
 		connect(env.dbUri, {
-			reconnectInterval: 5000,
 			ssl: true,
 			useCreateIndex: true,
 			useFindAndModify: false,
@@ -134,7 +133,7 @@ try {
 	// Connect to Discord.
 	client
 		.login(env.token)
-		.then(() => main({ version, config, client }, env))
+		.then(() => main({ version, config, client, configPath }, env))
 		.catch(console.error.bind(console));
 } catch (e) {
 	console.error(e);
