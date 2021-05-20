@@ -66,9 +66,9 @@ const command: Command = {
 			)
 			.then(() => ephemeral(state, message.reply(`You have reported the user.`)))
 			.then(reportMessage => {
-				reportMessage.react("👀")
-				reportMessage.react("✅")
-				reportMessage.react("❌")
+				reportMessage.react("👀").catch(console.error.bind(console))
+				reportMessage.react("✅").catch(console.error.bind(console))
+				reportMessage.react("❌").catch(console.error.bind(console))
 			})
 			.catch(reason => {
 				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
