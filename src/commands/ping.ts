@@ -1,7 +1,4 @@
-import { promisify } from "util";
 import type { Command } from "../command";
-
-const wait = promisify(setTimeout);
 
 const command: Command = {
 	name: "ping",
