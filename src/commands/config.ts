@@ -25,7 +25,7 @@ const command: Command = {
 		const { config } = state;
 
 		if (name) {
-			// Get or update config name.
+			// Get or update config.
 			if (name in config) {
 				if (value) {
 					// Update config value.
