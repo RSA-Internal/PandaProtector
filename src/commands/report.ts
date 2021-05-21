@@ -1,7 +1,6 @@
 import { MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import { defaultArgumentParser } from "../parsers";
-import { getUserFromMention } from "../util";
 
 const command: Command = {
 	name: "report",
@@ -11,18 +10,21 @@ const command: Command = {
 			type: "USER",
 			name: "user",
 			description: "The user to report.",
+			required: true,
 		},
 		{
 			type: "STRING",
 			name: "reason",
 			description: "The reason for the report.",
+			required: true,
 		},
 	],
 	hasPermission: () => true,
 	parseArguments: defaultArgumentParser,
-	handler: (state, interaction, user, ...reason) => {
-		const reasonText = reason.join(" ");
-		const userObject = getUserFromMention(state.client, user);
+	handler: (state, interaction, args) => {
+		const reasonText = args[1].value as string;
+		//args[0] -- USER option, comes in as string of user id.
+		const userObject = state.client.users.cache.get(args[0].value as string);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
 		if (!reportChannel?.isText()) {
@@ -34,7 +36,7 @@ const command: Command = {
 		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
 			//ephemeral(state, interaction.reply("Could not report this user.")).catch(console.error.bind(console));
-			interaction.reply("Could not report this user.").catch(console.error.bind(console));
+			interaction.reply("Could not report this user.", { ephemeral: true }).catch(console.error.bind(console));
 			return;
 		}
 
@@ -77,11 +79,8 @@ const command: Command = {
 				console.error(reason);
 
 						interaction
-							.reply(`Could not report the user, please mention an online mod.`)
+							.reply(`Could not report the user, please mention an online mod.`, { ephemeral: true })
 							.catch(console.error.bind(console));
-						// ephemeral(state, interaction.reply(`Could not report the user, please mention an online mod.`)).catch(
-						// 	console.error
-						// );
 					});
 			})
 			.catch(console.error.bind(console));

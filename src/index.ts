@@ -51,7 +51,7 @@ function main(state: State, env: DotEnv) {
 		const command = getCommand(interaction.commandName);
 
 		if (command && command.hasPermission(state, interaction)) {
-			command.handler(state, interaction);
+			command.handler(state, interaction, interaction.options);
 		}
 	});
 
@@ -90,35 +90,8 @@ function main(state: State, env: DotEnv) {
 				}
 			}
 		})().catch(console.error.bind(console));
-
-		// if (message.content.startsWith(config.commandPrefix)) {
-		// 	// Handle commands.
-		// 	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
-		// 	const content = message.content.slice(config.commandPrefix.length);
-		// 	const matches = /^(\w+)\s*(.*)/su.exec(content);
-		// 	const commandName = matches?.[1] ?? "";
-		// 	const argumentContent = matches?.[2] ?? "";
-
-		// 	if (commandName.length > 0) {
-		// 		const command = getCommand(commandName);
-
-		// 		if (command && command.hasPermission(state, message)) {
-		// 			const args = command.parseArguments(argumentContent);
-		// 			const required = command.options.reduce((acc, option) => acc + (!option.required ? 0 : 1), 0);
-
-		// 			if (args.length >= required) {
-		// 				command.handler(state, message, ...command.parseArguments(argumentContent));
-		// 			} else {
-		// 				ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
-		// 					console.error
-		// 				);
-		// 			}
-		// 		}
-		// 	}
-		// }
 	});
 
-	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	client.on("guildMemberUpdate", member => {
 		if (!member.pending) {
 			member.roles.add(config.memberRoleId).catch(console.error.bind(console));

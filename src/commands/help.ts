@@ -26,7 +26,8 @@ const command: Command = {
 	],
 	hasPermission: () => true,
 	parseArguments: content => [content],
-	handler: (state, interaction, command) => {
+	handler: (state, interaction, args) => {
+		const command = args[0].value as string;
 		if (!command) {
 			// Display all commands.
 			const commands = getCommands().filter(command => command.hasPermission(state, interaction));

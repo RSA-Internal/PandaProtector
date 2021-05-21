@@ -10,17 +10,19 @@ const command: Command = {
 			type: "STRING",
 			name: "compiler",
 			description: "Compiler to use.",
+			required: true,
 		},
 		{
 			type: "STRING",
 			name: "src",
 			description: "Source to compile.",
+			required: true,
 		},
 	],
 	hasPermission: () => true,
 	parseArguments: content => /\s*(\S+)\s*([\s\S]*)/g.exec(content)?.splice(1) ?? [],
-	handler: (_, interaction, compiler, code) => {
-		fromString({ compiler, code, save: false })
+	handler: (_, interaction, args) => {
+		fromString({ compiler: args[0].value as string, code: args[1].value as string, save: false })
 			.then(result => {
 				const embed = new MessageEmbed();
 

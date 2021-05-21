@@ -15,7 +15,8 @@ const command: Command = {
 	],
 	hasPermission: () => true,
 	parseArguments: defaultArgumentParser,
-	handler: (_, interaction, language) => {
+	handler: (_, interaction, args) => {
+		const language = args[0].value as string;
 		getCompilers(language)
 			.then(list => {
 				const listEmbed = new MessageEmbed({
