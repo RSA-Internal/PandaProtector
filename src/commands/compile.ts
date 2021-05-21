@@ -19,7 +19,7 @@ const command: Command = {
 	],
 	hasPermission: () => true,
 	parseArguments: content => /\s*(\S+)\s*([\s\S]*)/g.exec(content)?.splice(1) ?? [],
-	handler: (_, message, compiler, code) => {
+	handler: (_, interaction, compiler, code) => {
 		fromString({ compiler, code, save: false })
 			.then(result => {
 				const embed = new MessageEmbed();
@@ -44,10 +44,11 @@ const command: Command = {
 					);
 				}
 
-				message.reply(embed).catch(console.error.bind(console));
+				interaction.reply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				message.reply(err, { disableMentions: "all" }).catch(console.error.bind(console));
+				// Replace { disabledMentions: "all" }
+				interaction.reply(err, { allowedMentions: { parse: [] } }).catch(console.error.bind(console));
 			});
 	},
 };

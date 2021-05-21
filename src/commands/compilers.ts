@@ -8,17 +8,18 @@ const command: Command = {
 	description: "Gets a list of supported compilers for the specified language.",
 	options: [
 		{
+			type: "STRING",
 			name: "language",
 			description: "List of compilers for the specified language.",
 		},
 	],
 	hasPermission: () => true,
 	parseArguments: defaultArgumentParser,
-	handler: (_, message, language) => {
+	handler: (_, interaction, language) => {
 		getCompilers(language)
 			.then(list => {
 				const listEmbed = new MessageEmbed({
-					timestamp: message.createdTimestamp,
+					timestamp: interaction.createdTimestamp,
 					color: "#FF000A",
 				});
 
@@ -29,10 +30,11 @@ const command: Command = {
 				// Discord Embeds do not allow for more than 25 fields.
 				listEmbed.fields.splice(25);
 
-				message.reply(listEmbed).catch(console.error.bind(console));
+				interaction.reply(listEmbed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				message.reply(err, { disableMentions: "all" }).catch(console.error.bind(console));
+				// Replace { disabledMentions: "all" }
+				interaction.reply(err, { allowedMentions: { parse: [] } }).catch(console.error.bind(console));
 			});
 	},
 };
