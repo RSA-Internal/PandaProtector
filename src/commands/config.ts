@@ -10,21 +10,19 @@ const command: Command = {
 			type: "STRING",
 			name: "name",
 			description: "The config name (case-sensitive).",
-			required: true,
 		},
 		{
 			type: "STRING",
 			name: "value",
 			description: "The new value for the config.",
-			required: true,
 		},
 	],
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
 	shouldBeEphemeral: () => true,
 	handler: (state, interaction, args) => {
-		const name = args[0].value as string;
-		const value = args[1].value as string;
+		const name = args[0]?.value as string | undefined;
+		const value = args[1]?.value as string | undefined;
 		const { config } = state;
 
 		if (name) {

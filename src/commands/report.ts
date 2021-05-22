@@ -22,7 +22,6 @@ const command: Command = {
 	shouldBeEphemeral: () => true,
 	handler: (state, interaction, args) => {
 		const reasonText = args[1].value as string;
-		//args[0] -- USER option, comes in as string of user id.
 		const userObject = state.client.users.cache.get(args[0].value as string);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 

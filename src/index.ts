@@ -1,4 +1,4 @@
-import { ApplicationCommandData, Client, Intents, Message } from "discord.js";
+import { Client, Intents, Message } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
@@ -13,21 +13,16 @@ const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
 function deploySlashCommands(client: Client, config: Config, message?: Message) {
-	const data: ApplicationCommandData[] = [];
-
 	getCommands().forEach(command => {
-		data.push({
-			name: command.name,
-			description: command.description,
-			options: command.options,
-		} as ApplicationCommandData);
+		client.guilds.cache
+			.get(config.guildId)
+			?.commands.create({
+				name: command.name,
+				description: command.description,
+				options: command.options,
+			})
+			.catch(console.error.bind(console));
 	});
-
-	Promise.all(data.map(commandData => client.guilds.cache.get(config.guildId)?.commands.create(commandData)))
-		.then(() => {
-			message?.reply("Successfully loaded slash-commands.").catch(console.error.bind(console));
-		})
-		.catch(console.error.bind(console));
 }
 
 function main(state: State, env: DotEnv) {
@@ -104,26 +99,20 @@ function main(state: State, env: DotEnv) {
 		}
 	};
 
-	const connectToDb = () => {
-		connect(env.dbUri, {
-			ssl: true,
-			useCreateIndex: true,
-			useFindAndModify: false,
-			useNewUrlParser: true,
-			useUnifiedTopology: true,
-		}).catch(reason => logError(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
-	};
-
 	// Connect to the database.
-	connectToDb();
-
-	// Attempt to reestablish connection if disconnected.
-	connection.on("disconnected", connectToDb);
+	connect(env.dbUri, {
+		ssl: true,
+		useCreateIndex: true,
+		useFindAndModify: false,
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	}).catch(reason => logError(`Could not connect to the database: ${String(reason)}`));
 
 	connection.on("error", reason => {
-		logError(reason).catch(console.error.bind(console));
+		logError(String(reason)).catch(console.error.bind(console));
 	});
 
+	// Cleanup resources on exit.
 	exitHook(() => {
 		client.guilds.cache.get(config.guildId)?.commands.set([]).catch(console.error.bind(console));
 		disconnect().catch(console.error.bind(console));

@@ -10,6 +10,7 @@ const command: Command = {
 			type: "STRING",
 			name: "language",
 			description: "List of compilers for the specified language.",
+			required: true,
 		},
 	],
 	hasPermission: () => true,
@@ -28,14 +29,13 @@ const command: Command = {
 					listEmbed.addField(`${language} ${compiler.version}`, `Compiler: ${compiler.name}`, true);
 				});
 
-				// Discord Embeds do not allow for more than 25 fields.
+				// Discord embeds do not allow for more than 25 fields.
 				listEmbed.fields.splice(25);
 
 				interaction.reply(listEmbed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				// Replace { disabledMentions: "all" }
-				interaction.reply(err, { allowedMentions: { parse: [] } }).catch(console.error.bind(console));
+				interaction.reply(err, { allowedMentions: {} }).catch(console.error.bind(console));
 			});
 	},
 };
