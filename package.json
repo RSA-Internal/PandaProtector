@@ -7,7 +7,7 @@
 		"lint": "npx eslint . && npx prettier --check .",
 		"build": "npx tsc",
 		"start": "node dist/index.js",
-		"test": "node dist/index.js config-test.json .env.test",
+		"test": "npm run build && node dist/index.js config-test.json .env.test",
 		"check": "npm run build && npm run lint"
 	},
 	"repository": {

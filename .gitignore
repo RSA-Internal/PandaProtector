@@ -106,4 +106,5 @@ dist
 
 # Environment files
 config.json
+config-test.json
 package-lock.json
