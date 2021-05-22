@@ -40,43 +40,48 @@ const command: Command = {
 			return;
 		}
 
-		reportChannel
-			.send(
-				new MessageEmbed({
-					fields: [
-						{
-							name: "Reporter",
-							value: `<@${message.author.id}>`,
-							inline: true,
-						},
-						{
-							name: "Accused",
-							value: `<@${userObject.id}>`,
-							inline: true,
-						},
-						{
-							name: "Jump Link",
-							value: `[Here](${message.url})`,
-							inline: true,
-						},
-						{
-							name: "Reason",
-							value: reasonText,
-						},
-					],
-					timestamp: message.createdTimestamp,
-					color: "#FF0000",
-				})
-			)
-			.then(reportMessage => {
-				ephemeral(state, message.reply(`You have reported the user.`)).catch(console.error.bind(console));
-				reportMessage.react("👀").catch(console.error.bind(console));
-				reportMessage.react("✅").catch(console.error.bind(console));
-				reportMessage.react("❌").catch(console.error.bind(console));
-			})
-			.catch(reason => {
-				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
-				console.error(reason);
+		(interaction.channel as TextChannel)
+			.send("Report created.")
+			.then(message => {
+				reportChannel
+					.send(
+						new MessageEmbed({
+							fields: [
+								{
+									name: "Reporter",
+									value: `<@${interaction.user.id}>`,
+									inline: true,
+								},
+								{
+									name: "Accused",
+									value: `<@${userObject.id}>`,
+									inline: true,
+								},
+								{
+									name: "Jump Link",
+									value: `[Here](${message.url})`,
+									inline: true,
+								},
+								{
+									name: "Reason",
+									value: reasonText,
+								},
+							],
+							timestamp: interaction.createdTimestamp,
+							color: "#FF0000",
+						})
+					)
+					.then(reportMessage => {
+						interaction
+							.reply(`You have reported the user.`, { ephemeral: true })
+							.catch(console.error.bind(console));
+						reportMessage.react("👀").catch(console.error.bind(console));
+						reportMessage.react("✅").catch(console.error.bind(console));
+						reportMessage.react("❌").catch(console.error.bind(console));
+					})
+					.catch(reason => {
+						console.error(`Reporting ${userObject.username} with reason ${reasonText} failed.`);
+						console.error(reason);
 
 						interaction
 							.reply(`Could not report the user, please mention an online mod.`, { ephemeral: true })
