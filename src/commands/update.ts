@@ -7,9 +7,8 @@ const command: Command = {
 	options: [],
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
-	shouldBeEphemeral: (state, interaction) => {
-		return (interaction.channel as TextChannel).parent?.id != state.config.staffCategoryId;
-	},
+	shouldBeEphemeral: (state, interaction) =>
+		(interaction.channel as TextChannel).parent?.id !== state.config.staffCategoryId,
 	handler: state => {
 		state.client.destroy();
 		process.exit();

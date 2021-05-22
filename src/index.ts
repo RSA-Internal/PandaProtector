@@ -1,4 +1,4 @@
-import { ApplicationCommandData, Client, Intents, Message, Presence } from "discord.js";
+import { ApplicationCommandData, Client, Intents, Message } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
@@ -13,7 +13,7 @@ const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
 function deploySlashCommands(client: Client, config: Config, message?: Message) {
-	const data = [] as ApplicationCommandData[];
+	const data: ApplicationCommandData[] = [];
 
 	getCommands().forEach(command => {
 		data.push({
@@ -23,28 +23,20 @@ function deploySlashCommands(client: Client, config: Config, message?: Message) 
 		} as ApplicationCommandData);
 	});
 
-	data.forEach(commandData => {
-		(async () => {
-			await client.guilds.cache.get(config.guildId)?.commands.create(commandData);
-		})().catch(console.error.bind(console));
-	});
-
-	if (message) {
-		message.reply("Successfully loaded slash-commands.").catch(console.error.bind(console));
-	}
+	Promise.all(data.map(commandData => client.guilds.cache.get(config.guildId)?.commands.create(commandData)))
+		.then(() => {
+			message?.reply("Successfully loaded slash-commands.").catch(console.error.bind(console));
+		})
+		.catch(console.error.bind(console));
 }
 
 function main(state: State, env: DotEnv) {
 	const { config, client } = state;
 
 	client.on("ready", () => {
-		const presence = client.user?.setActivity(state.version, { type: "PLAYING" }) as Presence;
-
-		console.log(`Activity set to ${presence.activities[0].name}`);
+		client.user?.setActivity(state.version, { type: "PLAYING" });
+		deploySlashCommands(client, config);
 	});
-
-	//Deploy slash-commands
-	deploySlashCommands(client, config);
 
 	client.on("interaction", interaction => {
 		if (!interaction.isCommand()) return;
@@ -133,9 +125,7 @@ function main(state: State, env: DotEnv) {
 	});
 
 	exitHook(() => {
-		(async () => {
-			await client.guilds.cache.get(config.guildId)?.commands.set([]);
-		})().catch(console.error.bind(console));
+		client.guilds.cache.get(config.guildId)?.commands.set([]).catch(console.error.bind(console));
 		disconnect().catch(console.error.bind(console));
 	});
 }

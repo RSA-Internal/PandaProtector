@@ -13,9 +13,7 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => {
-		return interaction.channelID != state.config.botChannelId;
-	},
+	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction, args) => {
 		const commandName = args[0]?.value as string;
 		if (!commandName) {
@@ -41,7 +39,6 @@ const command: Command = {
 			const commandObject = getCommand(commandName);
 
 			if (!commandObject || !commandObject.hasPermission(state, interaction)) {
-				//ephemeral(state, interaction.reply("The command does not exist.")).catch(console.error.bind(console));
 				interaction
 					.reply("The command does not exist.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
 					.catch(console.error.bind(console));

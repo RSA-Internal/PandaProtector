@@ -1,4 +1,4 @@
-import { MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed } from "discord.js";
 import type { Command } from "../command";
 
 const command: Command = {
@@ -34,14 +34,18 @@ const command: Command = {
 
 		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
-			//ephemeral(state, interaction.reply("Could not report this user.")).catch(console.error.bind(console));
 			interaction
 				.reply("Could not report this user.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
 				.catch(console.error.bind(console));
 			return;
 		}
 
-		(interaction.channel as TextChannel)
+		if (!interaction.channel?.isText()) {
+			// Ensure the interaction channel is a text channel.
+			return;
+		}
+
+		interaction.channel
 			.send("Report created.")
 			.then(message => {
 				reportChannel

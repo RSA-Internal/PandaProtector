@@ -20,11 +20,8 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => {
-		return interaction.channelID != state.config.botChannelId;
-	},
-	handler: (_, interaction, args) => {
-		console.log(args);
+	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
+	handler: (state, interaction, args) => {
 		const code =
 			/((```\S*)|`)?([\s\S]*?)`*$/g
 				.exec(args[1]?.value as string)
@@ -63,7 +60,9 @@ const command: Command = {
 			})
 			.catch(err => {
 				// Replace { disabledMentions: "all" }
-				interaction.reply(err, { allowedMentions: { parse: [] } }).catch(console.error.bind(console));
+				interaction
+					.reply(err, { allowedMentions: {}, ephemeral: command.shouldBeEphemeral(state, interaction) })
+					.catch(console.error.bind(console));
 			});
 	},
 };

@@ -13,11 +13,10 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => {
-		return interaction.channelID != state.config.botChannelId;
-	},
+	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (_, interaction, args) => {
 		const language = args[0].value as string;
+
 		getCompilers(language)
 			.then(list => {
 				const listEmbed = new MessageEmbed({
