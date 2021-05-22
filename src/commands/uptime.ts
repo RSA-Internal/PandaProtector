@@ -8,8 +8,12 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => {
 		return interaction.channelID != state.config.botChannelId;
 	},
-	handler: (_, message) => {
-		message.reply(`Uptime: ${Math.floor(process.uptime())} seconds.`).catch(console.error.bind(console));
+	handler: (state, interaction) => {
+		interaction
+			.reply(`Uptime: ${Math.floor(process.uptime())} seconds.`, {
+				ephemeral: command.shouldBeEphemeral(state, interaction),
+			})
+			.catch(console.error.bind(console));
 	},
 };
 

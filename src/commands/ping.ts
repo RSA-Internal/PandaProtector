@@ -9,7 +9,7 @@ const command: Command = {
 		return interaction.channelID != state.config.botChannelId;
 	},
 	handler: async (state, interaction) => {
-		await interaction.reply("Pinging...");
+		await interaction.reply("Pinging...", { ephemeral: command.shouldBeEphemeral(state, interaction) });
 		await interaction.editReply(
 			`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
 				interaction.createdTimestamp - Date.now()

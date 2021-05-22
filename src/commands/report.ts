@@ -35,7 +35,9 @@ const command: Command = {
 		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
 			//ephemeral(state, interaction.reply("Could not report this user.")).catch(console.error.bind(console));
-			interaction.reply("Could not report this user.", { ephemeral: true }).catch(console.error.bind(console));
+			interaction
+				.reply("Could not report this user.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+				.catch(console.error.bind(console));
 			return;
 		}
 
@@ -72,7 +74,9 @@ const command: Command = {
 					)
 					.then(reportMessage => {
 						interaction
-							.reply(`You have reported the user.`, { ephemeral: true })
+							.reply(`You have reported the user.`, {
+								ephemeral: command.shouldBeEphemeral(state, interaction),
+							})
 							.catch(console.error.bind(console));
 						reportMessage.react("👀").catch(console.error.bind(console));
 						reportMessage.react("✅").catch(console.error.bind(console));
@@ -83,7 +87,9 @@ const command: Command = {
 						console.error(reason);
 
 						interaction
-							.reply(`Could not report the user, please mention an online mod.`, { ephemeral: true })
+							.reply(`Could not report the user, please mention an online mod.`, {
+								ephemeral: command.shouldBeEphemeral(state, interaction),
+							})
 							.catch(console.error.bind(console));
 					});
 			})

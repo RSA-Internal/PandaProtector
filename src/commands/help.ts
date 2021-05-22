@@ -10,7 +10,6 @@ const command: Command = {
 			type: "STRING",
 			name: "command",
 			description: "The command name to get help with.",
-			required: false,
 		},
 	],
 	hasPermission: () => true,
@@ -18,10 +17,10 @@ const command: Command = {
 		return interaction.channelID != state.config.botChannelId;
 	},
 	handler: (state, interaction, args) => {
-		const command = args[0]?.value as string;
-		if (!command) {
+		const commandName = args[0]?.value as string;
+		if (!commandName) {
 			// Display all commands.
-			const commands = getCommands().filter(command => command.hasPermission(state, interaction));
+			const commands = getCommands().filter(commandName => commandName.hasPermission(state, interaction));
 			interaction
 				.reply(
 					new MessageEmbed({
@@ -39,11 +38,13 @@ const command: Command = {
 				.catch(console.error.bind(console));
 		} else {
 			// Display specific command information.
-			const commandObject = getCommand(command);
+			const commandObject = getCommand(commandName);
 
 			if (!commandObject || !commandObject.hasPermission(state, interaction)) {
 				//ephemeral(state, interaction.reply("The command does not exist.")).catch(console.error.bind(console));
-				interaction.reply("The command does not exist.").catch(console.error.bind(console));
+				interaction
+					.reply("The command does not exist.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+					.catch(console.error.bind(console));
 				return;
 			}
 

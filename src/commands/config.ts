@@ -10,13 +10,13 @@ const command: Command = {
 			type: "STRING",
 			name: "name",
 			description: "The config name (case-sensitive).",
-			required: false,
+			required: true,
 		},
 		{
 			type: "STRING",
 			name: "value",
 			description: "The new value for the config.",
-			required: false,
+			required: true,
 		},
 	],
 	hasPermission: (state, interaction) =>
