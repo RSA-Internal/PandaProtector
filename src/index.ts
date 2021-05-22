@@ -87,6 +87,11 @@ function main(state: State, env: DotEnv) {
 				} else if (message.content.toLowerCase() === "!unload") {
 					await client.guilds.cache.get(config.guildId)?.commands.set([]);
 					void message.reply("Successfully unloaded slash-commands.");
+				} else if (message.content.toLowerCase() === "!unload-global") {
+					await client.application?.commands.set([]);
+					void message.reply(
+						"Global slash-commands successfully unloaded. Please give approx 1 hour for changes to take effect."
+					);
 				}
 			}
 		})().catch(console.error.bind(console));
