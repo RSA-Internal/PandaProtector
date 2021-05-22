@@ -8,7 +8,6 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => {
 		return interaction.channelID != state.config.botChannelId;
 	},
-	parseArguments: () => [],
 	handler: async (state, interaction) => {
 		await interaction.reply("Pinging...");
 		await interaction.editReply(

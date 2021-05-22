@@ -1,7 +1,6 @@
 import { GuildMember, MessageEmbed } from "discord.js";
 import { writeFile } from "fs";
 import type { Command } from "../command";
-import { defaultArgumentParser } from "../parsers";
 
 const command: Command = {
 	name: "config",
@@ -23,7 +22,6 @@ const command: Command = {
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
 	shouldBeEphemeral: () => true,
-	parseArguments: defaultArgumentParser,
 	handler: (state, interaction, args) => {
 		const name = args[0].value as string;
 		const value = args[1].value as string;

@@ -1,6 +1,5 @@
 import { MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
-import { defaultArgumentParser } from "../parsers";
 
 const command: Command = {
 	name: "report",
@@ -21,7 +20,6 @@ const command: Command = {
 	],
 	hasPermission: () => true,
 	shouldBeEphemeral: () => true,
-	parseArguments: defaultArgumentParser,
 	handler: (state, interaction, args) => {
 		const reasonText = args[1].value as string;
 		//args[0] -- USER option, comes in as string of user id.

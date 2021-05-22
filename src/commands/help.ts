@@ -17,7 +17,6 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => {
 		return interaction.channelID != state.config.botChannelId;
 	},
-	parseArguments: content => [content],
 	handler: (state, interaction, args) => {
 		const command = args[0]?.value as string;
 		if (!command) {

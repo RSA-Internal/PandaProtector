@@ -10,7 +10,6 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => {
 		return (interaction.channel as TextChannel).parent?.id != state.config.staffCategoryId;
 	},
-	parseArguments: () => [],
 	handler: state => {
 		state.client.destroy();
 		process.exit();

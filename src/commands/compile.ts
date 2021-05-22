@@ -23,7 +23,6 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => {
 		return interaction.channelID != state.config.botChannelId;
 	},
-	parseArguments: content => /\s*(\S+)\s*([\s\S]*)/g.exec(content)?.splice(1) ?? [],
 	handler: (_, interaction, args) => {
 		console.log(args);
 		const code =
