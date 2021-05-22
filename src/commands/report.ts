@@ -20,6 +20,7 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
+	shouldBeEphemeral: () => true,
 	parseArguments: defaultArgumentParser,
 	handler: (state, interaction, args) => {
 		const reasonText = args[1].value as string;

@@ -14,6 +14,9 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
+	shouldBeEphemeral: (state, interaction) => {
+		return interaction.channelID != state.config.botChannelId;
+	},
 	parseArguments: defaultArgumentParser,
 	handler: (_, interaction, args) => {
 		const language = args[0].value as string;

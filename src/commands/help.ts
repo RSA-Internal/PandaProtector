@@ -2,17 +2,6 @@ import { MessageEmbed } from "discord.js";
 import { getCommand, getCommands } from ".";
 import type { Command } from "../command";
 
-/**
- *   interface ApplicationCommandOptionData {
-    type: ApplicationCommandOptionType | ApplicationCommandOptionTypes;
-    name: string;
-    description: string;
-    required?: boolean;
-    choices?: ApplicationCommandOptionChoice[];
-    options?: ApplicationCommandOption[];
-  }
- */
-
 const command: Command = {
 	name: "help",
 	description: "Gets command help.",
@@ -25,9 +14,12 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
+	shouldBeEphemeral: (state, interaction) => {
+		return interaction.channelID != state.config.botChannelId;
+	},
 	parseArguments: content => [content],
 	handler: (state, interaction, args) => {
-		const command = args[0].value as string;
+		const command = args[0]?.value as string;
 		if (!command) {
 			// Display all commands.
 			const commands = getCommands().filter(command => command.hasPermission(state, interaction));

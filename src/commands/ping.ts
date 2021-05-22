@@ -5,6 +5,9 @@ const command: Command = {
 	description: "Show bot latency information.",
 	options: [],
 	hasPermission: () => true,
+	shouldBeEphemeral: (state, interaction) => {
+		return interaction.channelID != state.config.botChannelId;
+	},
 	parseArguments: () => [],
 	handler: async (state, interaction) => {
 		await interaction.reply("Pinging...");

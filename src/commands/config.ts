@@ -22,6 +22,7 @@ const command: Command = {
 	],
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
+	shouldBeEphemeral: () => true,
 	parseArguments: defaultArgumentParser,
 	handler: (state, interaction, args) => {
 		const name = args[0].value as string;
@@ -38,14 +39,16 @@ const command: Command = {
 					writeFile(state.configPath, JSON.stringify(config), err => {
 						if (!err) {
 							interaction
-								.reply(`Updated config ${name}.`, { ephemeral: true })
+								.reply(`Updated config ${name}.`, {
+									ephemeral: command.shouldBeEphemeral(state, interaction),
+								})
 								.catch(console.error.bind(console));
 						} else {
 							console.error(err);
 
 							interaction
 								.reply(`Updated config ${name}, but could not save to file: ${err.message}.`, {
-									ephemeral: true,
+									ephemeral: command.shouldBeEphemeral(state, interaction),
 								})
 								.catch(console.error.bind(console));
 						}
@@ -57,7 +60,9 @@ const command: Command = {
 						.catch(console.error.bind(console));
 				}
 			} else {
-				interaction.reply("Unknown config.", { ephemeral: true }).catch(console.error.bind(console));
+				interaction
+					.reply("Unknown config.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+					.catch(console.error.bind(console));
 			}
 		} else {
 			// List config entries.

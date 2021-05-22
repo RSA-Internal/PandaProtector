@@ -20,9 +20,23 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
+	shouldBeEphemeral: (state, interaction) => {
+		return interaction.channelID != state.config.botChannelId;
+	},
 	parseArguments: content => /\s*(\S+)\s*([\s\S]*)/g.exec(content)?.splice(1) ?? [],
 	handler: (_, interaction, args) => {
-		fromString({ compiler: args[0].value as string, code: args[1].value as string, save: false })
+		console.log(args);
+		const code =
+			/((```\S*)|`)?([\s\S]*?)`*$/g
+				.exec(args[1]?.value as string)
+				?.splice(3)
+				.join(" ") ?? "";
+
+		fromString({
+			compiler: args[0].value as string,
+			code: code,
+			save: false,
+		})
 			.then(result => {
 				const embed = new MessageEmbed();
 
