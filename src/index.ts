@@ -1,4 +1,4 @@
-import { Client, Intents, Message } from "discord.js";
+import { Client, Intents } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
@@ -12,17 +12,16 @@ import type { State } from "./state";
 const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
-function deploySlashCommands(client: Client, config: Config, message?: Message) {
-	getCommands().forEach(command => {
-		client.guilds.cache
-			.get(config.guildId)
-			?.commands.create({
+function deploySlashCommands(client: Client, config: Config) {
+	return Promise.all(
+		getCommands().map(command =>
+			client.guilds.cache.get(config.guildId)?.commands.create({
 				name: command.name,
 				description: command.description,
 				options: command.options,
 			})
-			.catch(console.error.bind(console));
-	});
+		)
+	);
 }
 
 function main(state: State, env: DotEnv) {
@@ -30,7 +29,7 @@ function main(state: State, env: DotEnv) {
 
 	client.on("ready", () => {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
-		deploySlashCommands(client, config);
+		deploySlashCommands(client, config).catch(console.error.bind(console));
 	});
 
 	client.on("interaction", interaction => {
@@ -64,24 +63,29 @@ function main(state: State, env: DotEnv) {
 			}
 		}
 
-		//Handle owner only async commands
-		(async () => {
-			if (!client.application?.owner) await client.application?.fetch();
-
-			if (message.author.id === client.application?.owner?.id) {
-				if (message.content.toLowerCase() === "!deploy") {
-					deploySlashCommands(client, config, message);
-				} else if (message.content.toLowerCase() === "!unload") {
-					await client.guilds.cache.get(config.guildId)?.commands.set([]);
-					void message.reply("Successfully unloaded slash-commands.");
-				} else if (message.content.toLowerCase() === "!unload-global") {
-					await client.application?.commands.set([]);
-					void message.reply(
-						"Global slash-commands successfully unloaded. Please give approx 1 hour for changes to take effect."
-					);
-				}
+		// Handle meta commands.
+		if (message.member?.roles.cache.has(state.config.developerRoleId)) {
+			if (message.content.toLowerCase() === "!deploy") {
+				deploySlashCommands(client, config)
+					.then(() => message.reply("Successfully loaded slash-commands."))
+					.catch(console.error.bind(console));
+			} else if (message.content.toLowerCase() === "!unload") {
+				client.guilds.cache
+					.get(config.guildId)
+					?.commands.set([])
+					.then(() => message.reply("Successfully unloaded slash-commands."))
+					.catch(console.error.bind(console));
+			} else if (message.content.toLowerCase() === "!unload-global") {
+				client.application?.commands
+					.set([])
+					.then(() =>
+						message.reply(
+							"Global slash-commands successfully unloaded. Please give approx 1 hour for changes to take effect."
+						)
+					)
+					.catch(console.error.bind(console));
 			}
-		})().catch(console.error.bind(console));
+		}
 	});
 
 	client.on("guildMemberUpdate", member => {
