@@ -1,5 +1,5 @@
 import type { Command } from "../command";
-import cmdhistory from "./cmdHistory";
+import cmdhistory from "./cmdhistory";
 import compile from "./compile";
 import compilers from "./compilers";
 import config from "./config";

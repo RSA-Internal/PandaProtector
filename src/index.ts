@@ -14,9 +14,15 @@ const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
 function deploySlashCommands(client: Client, config: Config) {
+	const commands = client.guilds.cache.get(config.guildId)?.commands;
+
+	if (!commands) {
+		return Promise.reject("Could not deploy slash-commands.");
+	}
+
 	return Promise.all(
 		getCommands().map(command =>
-			client.guilds.cache.get(config.guildId)?.commands.create({
+			commands.create({
 				name: command.name,
 				description: command.description,
 				options: command.options,

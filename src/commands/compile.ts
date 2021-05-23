@@ -29,9 +29,9 @@ const command: Command = {
 
 			if (lastMessageChannelID && lastMessageID) {
 				if (lastMessageChannelID === state.config.botChannelId) {
-					const message = (interaction.guild?.channels.resolve(
-						lastMessageChannelID
-					) as TextChannel).messages.resolve(lastMessageID);
+					const message = (
+						interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
+					).messages.resolve(lastMessageID);
 
 					if (message) {
 						codeParse = message.content;

@@ -4,7 +4,7 @@ import CommandLog from "../models/commandLog.model";
 import { clamp } from "../util";
 
 const command: Command = {
-	name: "cmdHistory",
+	name: "cmdhistory",
 	description: "Gets the command history of a user.",
 	options: [
 		{
