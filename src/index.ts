@@ -1,26 +1,44 @@
-import { Client } from "discord.js";
+import { Client, Intents } from "discord.js";
 import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
-import { getCommand } from "./commands";
-import { isConfig } from "./config";
+import { getCommand, getCommands } from "./commands";
+import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
-import { ephemeral } from "./ephemeral";
 import type { State } from "./state";
 
 // USAGE: npm start [configPath] [envPath]
 const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
+function deploySlashCommands(client: Client, config: Config) {
+	return Promise.all(
+		getCommands().map(command =>
+			client.guilds.cache.get(config.guildId)?.commands.create({
+				name: command.name,
+				description: command.description,
+				options: command.options,
+			})
+		)
+	);
+}
+
 function main(state: State, env: DotEnv) {
 	const { config, client } = state;
 
 	client.on("ready", () => {
-		client.user
-			?.setActivity(state.version, { type: "PLAYING" })
-			.then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-			.catch(console.error.bind(console));
+		client.user?.setActivity(state.version, { type: "PLAYING" });
+		deploySlashCommands(client, config).catch(console.error.bind(console));
+	});
+
+	client.on("interaction", interaction => {
+		if (!interaction.isCommand()) return;
+		const command = getCommand(interaction.commandName);
+
+		if (command && command.hasPermission(state, interaction)) {
+			command.handler(state, interaction, interaction.options);
+		}
 	});
 
 	client.on("message", message => {
@@ -45,37 +63,33 @@ function main(state: State, env: DotEnv) {
 			}
 		}
 
-		if (message.content.startsWith(config.commandPrefix)) {
-			// Handle commands.
-			// TODO: https://github.com/RSA-Bots/PandaProtector/issues/3
-			const content = message.content.slice(config.commandPrefix.length);
-			const matches = /^(\w+)\s*(.*)/su.exec(content);
-			const commandName = matches?.[1] ?? "";
-			const argumentContent = matches?.[2] ?? "";
-
-			if (commandName.length > 0) {
-				const command = getCommand(commandName);
-
-				if (command && command.hasPermission(state, message)) {
-					const args = command.parseArguments(argumentContent);
-					const required = command.options.reduce((acc, option) => acc + (option.optional ? 0 : 1), 0);
-
-					if (args.length >= required) {
-						command.handler(state, message, ...command.parseArguments(argumentContent));
-					} else {
-						ephemeral(state, message.reply(`Missing arguments for **${commandName}**.`)).catch(
-							console.error
-						);
-					}
-				}
+		// Handle meta commands.
+		if (message.member?.roles.cache.has(state.config.developerRoleId)) {
+			if (message.content.toLowerCase() === "!deploy") {
+				deploySlashCommands(client, config)
+					.then(() => message.reply("Successfully loaded slash-commands."))
+					.catch(console.error.bind(console));
+			} else if (message.content.toLowerCase() === "!unload") {
+				client.guilds.cache
+					.get(config.guildId)
+					?.commands.set([])
+					.then(() => message.reply("Successfully unloaded slash-commands."))
+					.catch(console.error.bind(console));
+			} else if (message.content.toLowerCase() === "!unload-global") {
+				client.application?.commands
+					.set([])
+					.then(() =>
+						message.reply(
+							"Global slash-commands successfully unloaded. Please give approx 1 hour for changes to take effect."
+						)
+					)
+					.catch(console.error.bind(console));
 			}
 		}
 	});
 
-	// TODO: https://github.com/RSA-Bots/PandaProtector/issues/4
 	client.on("guildMemberUpdate", member => {
-		if (member.roles.cache.array().length === 1) {
-			// Give user the member role.
+		if (!member.pending) {
 			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
 		}
 	});
@@ -89,27 +103,22 @@ function main(state: State, env: DotEnv) {
 		}
 	};
 
-	const connectToDb = () => {
-		connect(env.dbUri, {
-			ssl: true,
-			useCreateIndex: true,
-			useFindAndModify: false,
-			useNewUrlParser: true,
-			useUnifiedTopology: true,
-		}).catch(reason => logError(`Could not connect to the database: ${String.prototype.toString.call(reason)}`));
-	};
-
 	// Connect to the database.
-	connectToDb();
-
-	// Attempt to reestablish connection if disconnected.
-	connection.on("disconnected", connectToDb);
+	connect(env.dbUri, {
+		ssl: true,
+		useCreateIndex: true,
+		useFindAndModify: false,
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	}).catch(reason => logError(`Could not connect to the database: ${String(reason)}`));
 
 	connection.on("error", reason => {
-		logError(reason).catch(console.error.bind(console));
+		logError(String(reason)).catch(console.error.bind(console));
 	});
 
+	// Cleanup resources on exit.
 	exitHook(() => {
+		client.guilds.cache.get(config.guildId)?.commands.set([]).catch(console.error.bind(console));
 		disconnect().catch(console.error.bind(console));
 	});
 }
@@ -128,7 +137,7 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	const client = new Client();
+	const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 	// Connect to Discord.
 	client

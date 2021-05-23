@@ -5,18 +5,14 @@ const command: Command = {
 	description: "Show bot latency information.",
 	options: [],
 	hasPermission: () => true,
-	parseArguments: () => [],
-	handler: (state, message) => {
-		message
-			.reply("Pinging...")
-			.then(sent =>
-				sent.edit(
-					`<@${message.author.id}>\nWebsocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
-						sent.createdTimestamp - message.createdTimestamp
-					}ms`
-				)
-			)
-			.catch(console.error.bind(console));
+	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
+	handler: async (state, interaction) => {
+		await interaction.reply("Pinging...", { ephemeral: command.shouldBeEphemeral(state, interaction) });
+		await interaction.editReply(
+			`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
+				interaction.createdTimestamp - Date.now()
+			}ms`
+		);
 	},
 };
 

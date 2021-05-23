@@ -1,27 +1,28 @@
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed } from "discord.js";
 import { writeFile } from "fs";
 import type { Command } from "../command";
-import { ephemeral } from "../ephemeral";
-import { defaultArgumentParser } from "../parsers";
 
 const command: Command = {
 	name: "config",
 	description: "Gets and updates config values, do not specify a name to list all config entries.",
 	options: [
 		{
+			type: "STRING",
 			name: "name",
 			description: "The config name (case-sensitive).",
-			optional: true,
 		},
 		{
+			type: "STRING",
 			name: "value",
 			description: "The new value for the config.",
-			optional: true,
 		},
 	],
-	hasPermission: (state, message) => !!message.member?.roles.cache.has(state.config.developerRoleId),
-	parseArguments: defaultArgumentParser,
-	handler: (state, message, name, value) => {
+	hasPermission: (state, interaction) =>
+		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
+	shouldBeEphemeral: () => true,
+	handler: (state, interaction, args) => {
+		const name = args[0]?.value as string | undefined;
+		const value = args[1]?.value as string | undefined;
 		const { config } = state;
 
 		if (name) {
@@ -33,30 +34,35 @@ const command: Command = {
 
 					writeFile(state.configPath, JSON.stringify(config), err => {
 						if (!err) {
-							ephemeral(state, message.reply(`Updated config ${name}.`)).catch(
-								console.error.bind(console)
-							);
+							interaction
+								.reply(`Updated config ${name}.`, {
+									ephemeral: command.shouldBeEphemeral(state, interaction),
+								})
+								.catch(console.error.bind(console));
 						} else {
 							console.error(err);
 
-							ephemeral(
-								state,
-								message.reply(`Updated config ${name}, but could not save to file: ${err.message}.`)
-							).catch(console.error.bind(console));
+							interaction
+								.reply(`Updated config ${name}, but could not save to file: ${err.message}.`, {
+									ephemeral: command.shouldBeEphemeral(state, interaction),
+								})
+								.catch(console.error.bind(console));
 						}
 					});
 				} else {
 					// Get config value.
-					ephemeral(state, message.reply(`${name}: ${config[name as keyof typeof config]}`)).catch(
-						console.error.bind(console)
-					);
+					interaction
+						.reply(`${name}: ${config[name as keyof typeof config]}`, { ephemeral: true })
+						.catch(console.error.bind(console));
 				}
 			} else {
-				ephemeral(state, message.reply("Unknown config.")).catch(console.error.bind(console));
+				interaction
+					.reply("Unknown config.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+					.catch(console.error.bind(console));
 			}
 		} else {
 			// List config entries.
-			message
+			interaction
 				.reply(
 					new MessageEmbed({
 						title: "Config",
