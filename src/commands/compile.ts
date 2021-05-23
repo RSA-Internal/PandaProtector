@@ -50,12 +50,15 @@ const command: Command = {
 				.catch(console.error.bind(console));
 
 		const code = /((```\S*)|`)?([\s\S]*?)`*$/g.exec(codeParse)?.splice(3).join(" ") ?? "";
-
-		fromString({
-			compiler: args[0].value as string,
-			code: code,
-			save: false,
-		})
+		interaction
+			.defer(command.shouldBeEphemeral(state, interaction))
+			.then(() =>
+				fromString({
+					compiler: args[0].value as string,
+					code: code,
+					save: false,
+				})
+			)
 			.then(result => {
 				const embed = new MessageEmbed();
 
@@ -79,7 +82,7 @@ const command: Command = {
 					);
 				}
 
-				interaction.reply({ embeds: [embed], ephemeral: true }).catch(console.error.bind(console));
+				interaction.editReply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
 				// Replace { disabledMentions: "all" }
