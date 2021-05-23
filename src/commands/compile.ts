@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, MessageResolvable, TextChannel } from "discord.js";
 import { fromString } from "wandbox-api-updated";
 import type { Command } from "../command";
 
@@ -15,18 +15,41 @@ const command: Command = {
 		{
 			type: "STRING",
 			name: "src",
-			description: "Source to compile.",
-			required: true,
+			description: "Source to compile. Can also use the last message sent by you.",
 		},
 	],
-	hasPermission: () => true,
+	hasPermission: (state, interaction) => interaction.channelID === state.config.botChannelId,
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction, args) => {
-		const code =
-			/((```\S*)|`)?([\s\S]*?)`*$/g
-				.exec(args[1]?.value as string)
-				?.splice(3)
-				.join(" ") ?? "";
+		let codeParse = "";
+		let flagged = false;
+
+		if (!args[1]) {
+			const { lastMessageID, lastMessageChannelID } = interaction.member as GuildMember;
+			if (!lastMessageChannelID || !lastMessageID) flagged = true;
+
+			if (lastMessageChannelID === state.config.botChannelId) {
+				const message = (
+					interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
+				).messages.resolve(lastMessageID as MessageResolvable);
+
+				if (message) {
+					codeParse = message.content;
+					message.delete().catch(console.error.bind(console));
+				} else flagged = true;
+			}
+		} else {
+			codeParse = args[1].value as string;
+		}
+
+		if (flagged)
+			interaction
+				.reply("Failed to parse previous message, did you send one?", {
+					ephemeral: command.shouldBeEphemeral(state, interaction),
+				})
+				.catch(console.error.bind(console));
+
+		const code = /((```\S*)|`)?([\s\S]*?)`*$/g.exec(codeParse)?.splice(3).join(" ") ?? "";
 
 		fromString({
 			compiler: args[0].value as string,
@@ -56,7 +79,7 @@ const command: Command = {
 					);
 				}
 
-				interaction.reply(embed).catch(console.error.bind(console));
+				interaction.reply({ embeds: [embed], ephemeral: true }).catch(console.error.bind(console));
 			})
 			.catch(err => {
 				// Replace { disabledMentions: "all" }
