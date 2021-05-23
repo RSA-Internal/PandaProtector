@@ -89,7 +89,7 @@ function main(state: State, env: DotEnv) {
 	});
 
 	client.on("guildMemberUpdate", member => {
-		if (!member.pending) {
+		if (member.pending) {
 			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
 		}
 	});
@@ -137,7 +137,9 @@ try {
 		throw new Error("Environment file does not match the DotEnv interface.");
 	}
 
-	const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+	const client = new Client({
+		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS],
+	});
 
 	// Connect to Discord.
 	client
