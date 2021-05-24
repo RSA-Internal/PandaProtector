@@ -37,7 +37,7 @@ function main(state: State, env: DotEnv) {
 		const command = getCommand(interaction.commandName);
 
 		if (command && command.hasPermission(state, interaction)) {
-			command.handler(state, interaction, interaction.options);
+			command.handler(state, interaction, interaction.options, env);
 		}
 	});
 
