@@ -2,8 +2,9 @@ import { GuildMember, MessageEmbed } from "discord.js";
 import fetch from "node-fetch";
 import type { Command } from "../command";
 import type { Config } from "../config";
-import type { DotEnv } from "../dotEnv";
 import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../structures/github";
+
+let oauth: string;
 
 const command: Command = {
 	name: "github",
@@ -30,7 +31,8 @@ const command: Command = {
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
-	handler: (state, interaction, args, env) => {
+	setOauthToken: oauthToken => (oauth = oauthToken),
+	handler: (state, interaction, args) => {
 		interaction.defer(command.shouldBeEphemeral(state, interaction)).catch(console.error.bind(console));
 
 		const repo = args[2] ? (args[2].value as string) : state.config.ghRepoPath;
@@ -42,7 +44,7 @@ const command: Command = {
 		switch (objectType) {
 			case "branch":
 			case "branches": {
-				oauthFetch(`https://api.github.com/repos/${repo}/branches/${query}`, env)
+				oauthFetch(`https://api.github.com/repos/${repo}/branches/${query}`)
 					.then(json => {
 						const jsonData = json as Branch;
 
@@ -74,7 +76,7 @@ const command: Command = {
 				break;
 			}
 			case "commit": {
-				oauthFetch(`https://api.github.com/repos/${repo}/commits/${query}`, env)
+				oauthFetch(`https://api.github.com/repos/${repo}/commits/${query}`)
 					.then(json => {
 						const jsonData = json as Commit;
 						embedReply.setTitle(`commit: ${jsonData.sha}`);
@@ -135,7 +137,7 @@ const command: Command = {
 				break;
 			}
 			case "issue": {
-				oauthFetch(`https://api.github.com/repos/${repo}/issues/${query}`, env)
+				oauthFetch(`https://api.github.com/repos/${repo}/issues/${query}`)
 					.then(json => {
 						const modifiedEmbed = handleIssueOrPr(state.config, json as Issue, embedReply);
 
@@ -154,7 +156,7 @@ const command: Command = {
 			case "pullrequest":
 			case "pull request":
 			case "pr": {
-				oauthFetch(`https://api.github.com/repos/${repo}/pulls/${query}`, env)
+				oauthFetch(`https://api.github.com/repos/${repo}/pulls/${query}`)
 					.then(json => {
 						const jsonData = json as PullRequest;
 						const modifiedEmbed = handleIssueOrPr(state.config, jsonData, embedReply);
@@ -180,7 +182,7 @@ const command: Command = {
 			}
 			case "repo":
 			case "repository":
-				oauthFetch(`https://api.github.com/repos/${query}`, env)
+				oauthFetch(`https://api.github.com/repos/${query}`)
 					.then(json => {
 						const jsonData = json as Repository;
 						const embedReply = new MessageEmbed();
@@ -264,12 +266,12 @@ function generateGitHubUserLink(user: GithubUser): string {
 	return `[${user.login}](${user.html_url})`;
 }
 
-function oauthFetch(url: string, env?: DotEnv): Promise<unknown> {
+function oauthFetch(url: string): Promise<unknown> {
 	return new Promise((resolve, reject) => {
+		const header = oauth ? { Authorization: `token ${oauth}` } : { Authorization: "" };
+
 		fetch(url, {
-			headers: {
-				Authorization: `token ${env?.ghOauth ? env.ghOauth : ""}`,
-			},
+			headers: header,
 		})
 			.then(res => res.json())
 			.then(json => {
@@ -278,7 +280,7 @@ function oauthFetch(url: string, env?: DotEnv): Promise<unknown> {
 				if (res.message) {
 					if (res.message.includes("rate limit")) {
 						reject(
-							env?.ghOauth
+							oauth
 								? "Ratelimit reached!"
 								: "[No Oauth] Ratelimit reached! If you are seeing this error, ask the bot host to set the `ghOauth` field within the `.env` file."
 						);

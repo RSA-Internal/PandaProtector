@@ -4,6 +4,7 @@ import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
+import github from "./commands/github";
 import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
 import type { State } from "./state";
@@ -37,7 +38,7 @@ function main(state: State, env: DotEnv) {
 		const command = getCommand(interaction.commandName);
 
 		if (command && command.hasPermission(state, interaction)) {
-			command.handler(state, interaction, interaction.options, env);
+			command.handler(state, interaction, interaction.options);
 		}
 	});
 
@@ -140,6 +141,12 @@ try {
 	const client = new Client({
 		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS],
 	});
+
+	if (env.ghOauth) {
+		if (github.setOauthToken) {
+			github.setOauthToken(env.ghOauth);
+		}
+	}
 
 	// Connect to Discord.
 	client

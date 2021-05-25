@@ -1,5 +1,4 @@
 import type { ApplicationCommandOptionData, CommandInteraction, CommandInteractionOption } from "discord.js";
-import type { DotEnv } from "./dotEnv";
 import type { State } from "./state";
 
 export interface Command {
@@ -8,10 +7,6 @@ export interface Command {
 	readonly options: ApplicationCommandOptionData[];
 	readonly hasPermission: (state: State, interaction: CommandInteraction) => boolean;
 	readonly shouldBeEphemeral: (state: State, interaction: CommandInteraction) => boolean;
-	readonly handler: (
-		state: State,
-		interaction: CommandInteraction,
-		args: CommandInteractionOption[],
-		env?: DotEnv
-	) => void;
+	readonly handler: (state: State, interaction: CommandInteraction, args: CommandInteractionOption[]) => void;
+	readonly setOauthToken?: (oauthToken: string) => void;
 }
