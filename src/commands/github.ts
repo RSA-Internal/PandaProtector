@@ -52,10 +52,10 @@ const command: Command = {
 						embedReply.setThumbnail(jsonData.commit.author.avatar_url);
 						embedReply.setURL(jsonData._links.html);
 
-						embedReply.addField("Branch Name", `[${jsonData.name}](${jsonData._links.self})`, true);
+						embedReply.addField("Branch Name", `[${jsonData.name}](${jsonData._links.html})`, true);
 						embedReply.addField(
 							"Latest Commit",
-							`[${jsonData.commit.sha.slice(0, 7)}](${jsonData.commit.url})`,
+							`[${jsonData.commit.sha.slice(0, 7)}](${jsonData.commit.html_url})`,
 							true
 						);
 						embedReply.addField(
