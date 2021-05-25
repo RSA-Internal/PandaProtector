@@ -176,7 +176,7 @@ const command: Command = {
 
 						embedReply.addField(
 							"Description",
-							jsonData.description ? jsonData.description : "No description set."
+							jsonData.description ?? "No description set."
 						);
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));
