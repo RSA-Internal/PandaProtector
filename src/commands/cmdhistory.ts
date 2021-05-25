@@ -44,8 +44,7 @@ const command: Command = {
 						sort: { timestamp: -1 },
 					}).exec()
 				)
-				.then(logs => {
-					console.log(logs);
+				.then(logs =>
 					interaction.editReply(
 						new MessageEmbed({
 							fields: [
@@ -73,8 +72,8 @@ const command: Command = {
 								},
 							],
 						})
-					);
-				})
+					)
+				)
 				.catch(console.error.bind(console));
 		} else {
 			interaction.reply("Unknown user.").catch(console.error.bind(console));
