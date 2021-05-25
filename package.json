@@ -1,6 +1,6 @@
 {
 	"name": "pandaprotector",
-	"version": "2.7.0",
+	"version": "3.0.0",
 	"description": "RSA - Utility Bot",
 	"main": "index.js",
 	"scripts": {
@@ -12,7 +12,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@gitlab.com/RSA-Bots/PandaProtector.git"
+		"url": "git@github.com:RSA-Bots/PandaProtector.git"
 	},
 	"author": "TinyPandas",
 	"license": "ISC",
