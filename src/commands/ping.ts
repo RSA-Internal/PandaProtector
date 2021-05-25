@@ -13,7 +13,7 @@ const command: Command = {
 		interaction
 			.editReply(
 				`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
-					interaction.createdTimestamp - Date.now()
+					Date.now() - interaction.createdTimestamp
 				}ms`
 			)
 			.catch(console.error.bind(console));
