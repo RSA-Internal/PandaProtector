@@ -173,11 +173,7 @@ const command: Command = {
 						embedReply.addField("Is a fork", jsonData.fork, true);
 						embedReply.addField("Open Issues", jsonData.open_issues_count, true);
 						embedReply.addField("Watchers", jsonData.watchers_count, true);
-
-						embedReply.addField(
-							"Description",
-							jsonData.description ?? "No description set."
-						);
+						embedReply.addField("Description", jsonData.description ?? "No description set.");
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));
 					})
