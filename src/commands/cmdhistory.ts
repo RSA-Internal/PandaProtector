@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import CommandLog from "../models/commandLog.model";
 import { clamp } from "../util";
@@ -26,7 +26,8 @@ const command: Command = {
 	],
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.staffRoleId),
-	shouldBeEphemeral: () => false,
+	shouldBeEphemeral: (state, interaction) =>
+		(interaction.channel as TextChannel).parent?.id !== state.config.staffCategoryId,
 	handler: (state, interaction, args) => {
 		const userObject = state.client.users.cache.get(args[0].value as string);
 		const page = args[1]?.value as number | undefined;
@@ -77,7 +78,9 @@ const command: Command = {
 				)
 				.catch(console.error.bind(console));
 		} else {
-			interaction.reply("Unknown user.").catch(console.error.bind(console));
+			interaction
+				.reply("Unknown user.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+				.catch(console.error.bind(console));
 		}
 	},
 };
