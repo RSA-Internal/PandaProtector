@@ -3,6 +3,7 @@ import cmdhistory from "./cmdhistory";
 import compile from "./compile";
 import compilers from "./compilers";
 import config from "./config";
+import github from "./github";
 import help from "./help";
 import ping from "./ping";
 import report from "./report";
@@ -15,6 +16,7 @@ const commands = {
 	compile,
 	compilers,
 	config,
+	github,
 	help,
 	ping,
 	report,

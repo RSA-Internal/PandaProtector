@@ -7,6 +7,7 @@ export interface Config {
 	reportChannelId: string;
 	botChannelId: string;
 	staffCategoryId: string;
+	ghRepoPath: string;
 }
 
 export function isConfig(config: unknown): config is Config {
@@ -22,6 +23,7 @@ export function isConfig(config: unknown): config is Config {
 		typeof record["showcaseChannelId"] === "string" &&
 		typeof record["reportChannelId"] === "string" &&
 		typeof record["botChannelId"] === "string" &&
-		typeof record["staffCategoryId"] === "string"
+		typeof record["staffCategoryId"] === "string" &&
+		typeof record["ghRepoPath"] === "string"
 	);
 }

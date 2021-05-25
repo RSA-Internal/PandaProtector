@@ -6,5 +6,6 @@
 	"showcaseChannelId": "",
 	"reportChannelId": "",
 	"botChannelId": "",
-	"staffCategoryId": ""
+	"staffCategoryId": "",
+	"ghRepoPath": ""
 }

@@ -8,6 +8,7 @@ import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
 import commandLogModel from "./models/commandLog.model";
 import type { State } from "./state";
+import { setOauth } from "./store/githubOauth";
 
 // USAGE: npm start [configPath] [envPath]
 const configPath = process.argv[2] ?? "config.json";
@@ -155,6 +156,10 @@ try {
 	const client = new Client({
 		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS],
 	});
+
+	if (env.ghOauth) {
+		setOauth(env.ghOauth);
+	}
 
 	// Connect to Discord.
 	client
