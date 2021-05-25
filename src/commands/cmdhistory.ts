@@ -41,6 +41,7 @@ const command: Command = {
 				.then(() =>
 					CommandLog.find({ discordId: userObject.id }, "command arguments", {
 						limit: countNumber,
+						skip: (pageNumber - 1) * countNumber,
 						sort: { timestamp: -1 },
 					}).exec()
 				)
