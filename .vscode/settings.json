@@ -5,6 +5,10 @@
 	},
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
-	"eslint.run": "onSave",
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"eslint.run": "onType",
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"eslint.options": {
+		"configFile": ".eslintrc.dev.json",
+		"useEslintrc": false
+	}
 }

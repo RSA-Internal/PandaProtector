@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { writeFile } from "fs";
 import type { Command } from "../command";
 
@@ -19,7 +19,8 @@ const command: Command = {
 	],
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
-	shouldBeEphemeral: () => true,
+	shouldBeEphemeral: (state, interaction) =>
+		(interaction.channel as TextChannel).parent?.id !== state.config.staffCategoryId,
 	handler: (state, interaction, args) => {
 		const name = args[0]?.value as string | undefined;
 		const value = args[1]?.value as string | undefined;

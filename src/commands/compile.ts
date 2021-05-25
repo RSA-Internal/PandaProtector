@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed, MessageResolvable, TextChannel } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { fromString } from "wandbox-api-updated";
 import type { Command } from "../command";
 
@@ -22,32 +22,39 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction, args) => {
 		let codeParse = "";
-		let flagged = false;
+		let missingSource = false;
 
 		if (!args[1]) {
 			const { lastMessageID, lastMessageChannelID } = interaction.member as GuildMember;
-			if (!lastMessageChannelID || !lastMessageID) flagged = true;
 
-			if (lastMessageChannelID === state.config.botChannelId) {
-				const message = (
-					interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
-				).messages.resolve(lastMessageID as MessageResolvable);
+			if (lastMessageChannelID && lastMessageID) {
+				if (lastMessageChannelID === state.config.botChannelId) {
+					const message = (
+						interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
+					).messages.resolve(lastMessageID);
 
-				if (message) {
-					codeParse = message.content;
-					message.delete().catch(console.error.bind(console));
-				} else flagged = true;
+					if (message) {
+						codeParse = message.content;
+						message.delete().catch(console.error.bind(console));
+					} else {
+						missingSource = true;
+					}
+				}
+			} else {
+				missingSource = true;
 			}
 		} else {
 			codeParse = args[1].value as string;
 		}
 
-		if (flagged)
+		if (missingSource) {
 			interaction
 				.reply("Failed to parse previous message, did you send one?", {
 					ephemeral: command.shouldBeEphemeral(state, interaction),
 				})
 				.catch(console.error.bind(console));
+			return;
+		}
 
 		const code = /((```\S*)|`)?([\s\S]*?)`*$/g.exec(codeParse)?.splice(3).join(" ") ?? "";
 		interaction
@@ -85,7 +92,6 @@ const command: Command = {
 				interaction.editReply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				// Replace { disabledMentions: "all" }
 				interaction
 					.reply(err, { allowedMentions: {}, ephemeral: command.shouldBeEphemeral(state, interaction) })
 					.catch(console.error.bind(console));

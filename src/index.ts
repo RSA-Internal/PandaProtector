@@ -6,6 +6,7 @@ import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
+import commandLogModel from "./models/commandLog.model";
 import type { State } from "./state";
 
 // USAGE: npm start [configPath] [envPath]
@@ -13,9 +14,15 @@ const configPath = process.argv[2] ?? "config.json";
 const envPath = process.argv[3] ?? ".env";
 
 function deploySlashCommands(client: Client, config: Config) {
+	const commands = client.guilds.cache.get(config.guildId)?.commands;
+
+	if (!commands) {
+		return Promise.reject("Could not deploy slash-commands.");
+	}
+
 	return Promise.all(
 		getCommands().map(command =>
-			client.guilds.cache.get(config.guildId)?.commands.create({
+			commands.create({
 				name: command.name,
 				description: command.description,
 				options: command.options,
@@ -37,6 +44,14 @@ function main(state: State, env: DotEnv) {
 		const command = getCommand(interaction.commandName);
 
 		if (command && command.hasPermission(state, interaction)) {
+			commandLogModel
+				.create({
+					discordId: interaction.user.id,
+					command: command.name,
+					arguments: interaction.options.map(value => String(value.value)),
+				})
+				.catch(console.error.bind(console));
+
 			command.handler(state, interaction, interaction.options);
 		}
 	});

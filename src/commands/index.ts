@@ -1,4 +1,5 @@
 import type { Command } from "../command";
+import cmdhistory from "./cmdhistory";
 import compile from "./compile";
 import compilers from "./compilers";
 import config from "./config";
@@ -10,6 +11,7 @@ import uptime from "./uptime";
 
 /** Keep commands in lowercase. */
 const commands = {
+	cmdhistory,
 	compile,
 	compilers,
 	config,
