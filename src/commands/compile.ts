@@ -92,9 +92,7 @@ const command: Command = {
 				interaction.editReply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				interaction
-					.reply(err, { allowedMentions: {}, ephemeral: command.shouldBeEphemeral(state, interaction) })
-					.catch(console.error.bind(console));
+				interaction.editReply(err, { allowedMentions: {} }).catch(console.error.bind(console));
 			});
 	},
 };
