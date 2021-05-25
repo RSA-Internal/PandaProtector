@@ -18,7 +18,7 @@ const command: Command = {
 			description: "Source to compile. Can also use the last message sent by you.",
 		},
 	],
-	hasPermission: (state, interaction) => interaction.channelID === state.config.botChannelId,
+	hasPermission: () => true,
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction, args) => {
 		let codeParse = "";
@@ -28,17 +28,17 @@ const command: Command = {
 			const { lastMessageID, lastMessageChannelID } = interaction.member as GuildMember;
 
 			if (lastMessageChannelID && lastMessageID) {
-				if (lastMessageChannelID === state.config.botChannelId) {
-					const message = (
-						interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
-					).messages.resolve(lastMessageID);
+				const message = (
+					interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
+				).messages.resolve(lastMessageID);
 
-					if (message) {
-						codeParse = message.content;
+				if (message) {
+					codeParse = message.content;
+					if (lastMessageChannelID !== state.config.botChannelId) {
 						message.delete().catch(console.error.bind(console));
-					} else {
-						missingSource = true;
 					}
+				} else {
+					missingSource = true;
 				}
 			} else {
 				missingSource = true;
@@ -92,9 +92,7 @@ const command: Command = {
 				interaction.editReply(embed).catch(console.error.bind(console));
 			})
 			.catch(err => {
-				interaction
-					.reply(err, { allowedMentions: {}, ephemeral: command.shouldBeEphemeral(state, interaction) })
-					.catch(console.error.bind(console));
+				interaction.editReply(err, { allowedMentions: {} }).catch(console.error.bind(console));
 			});
 	},
 };
