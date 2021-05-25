@@ -29,8 +29,8 @@ const command: Command = {
 	shouldBeEphemeral: () => false,
 	handler: (state, interaction, args) => {
 		const userObject = state.client.users.cache.get(args[0].value as string);
-		const page = args[1].value as number | undefined;
-		const count = args[2].value as number | undefined;
+		const page = args[1]?.value as number | undefined;
+		const count = args[2]?.value as number | undefined;
 
 		if (userObject) {
 			const pageNumber = clamp(page ?? 1, 1, Number.MAX_SAFE_INTEGER);
@@ -39,16 +39,13 @@ const command: Command = {
 			interaction
 				.defer(command.shouldBeEphemeral(state, interaction))
 				.then(() =>
-					CommandLog.find(
-						{ discordId: userObject.id },
-						{
-							limit: countNumber,
-							skip: (pageNumber - 1) * countNumber,
-							sort: { timestamp: -1 },
-						}
-					)
+					CommandLog.find({ discordId: userObject.id }, "command arguments", {
+						limit: countNumber,
+						sort: { timestamp: -1 },
+					}).exec()
 				)
-				.then(logs =>
+				.then(logs => {
+					console.log(logs);
 					interaction.editReply(
 						new MessageEmbed({
 							fields: [
@@ -76,8 +73,8 @@ const command: Command = {
 								},
 							],
 						})
-					)
-				)
+					);
+				})
 				.catch(console.error.bind(console));
 		} else {
 			interaction.reply("Unknown user.").catch(console.error.bind(console));
