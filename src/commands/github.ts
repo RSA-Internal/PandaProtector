@@ -27,10 +27,10 @@ const command: Command = {
 			description: "A custom repository to fetch data from",
 		},
 	],
-	hasPermission: (state, interaction) =>
-		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId) ||
-		interaction.channelID === state.config.botChannelId,
-	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
+	hasPermission: () => true,
+	shouldBeEphemeral: (state, interaction) =>
+		interaction.channelID !== state.config.botChannelId &&
+		!(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
 	handler: (state, interaction, args) => {
 		interaction.defer(command.shouldBeEphemeral(state, interaction)).catch(console.error.bind(console));
 
