@@ -1,27 +1,28 @@
 import { MessageEmbed } from "discord.js";
 import type { Command } from "../command";
-import { ephemeral } from "../ephemeral";
-import { defaultArgumentParser } from "../parsers";
-import { getUserFromMention } from "../util";
 
 const command: Command = {
 	name: "report",
 	description: "Report a user to staff.",
 	options: [
 		{
+			type: "USER",
 			name: "user",
 			description: "The user to report.",
+			required: true,
 		},
 		{
+			type: "STRING",
 			name: "reason",
 			description: "The reason for the report.",
+			required: true,
 		},
 	],
 	hasPermission: () => true,
-	parseArguments: defaultArgumentParser,
-	handler: (state, message, user, ...reason) => {
-		const reasonText = reason.join(" ");
-		const userObject = getUserFromMention(state.client, user);
+	shouldBeEphemeral: () => true,
+	handler: (state, interaction, args) => {
+		const reasonText = args[1].value as string;
+		const userObject = state.client.users.cache.get(args[0].value as string);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
 		if (!reportChannel?.isText()) {
@@ -30,49 +31,72 @@ const command: Command = {
 			return;
 		}
 
-		if (!userObject || userObject.bot || userObject.id === message.author.id) {
+		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
-			ephemeral(state, message.reply("Could not report this user.")).catch(console.error.bind(console));
+			interaction
+				.reply("Could not report this user.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+				.catch(console.error.bind(console));
 			return;
 		}
 
-		reportChannel
-			.send(
-				new MessageEmbed({
-					fields: [
-						{
-							name: "Reporter",
-							value: `<@${message.author.id}>`,
-							inline: true,
-						},
-						{
-							name: "Accused",
-							value: `<@${userObject.id}>`,
-							inline: true,
-						},
-						{
-							name: "Jump Link",
-							value: `[Here](${message.url})`,
-							inline: true,
-						},
-						{
-							name: "Reason",
-							value: reasonText,
-						},
-					],
-					timestamp: message.createdTimestamp,
-					color: "#FF0000",
-				})
-			)
-			.then(() => ephemeral(state, message.reply(`You have reported the user.`)))
-			.catch(reason => {
-				console.error(`Reporting ${user} with reason ${reasonText} failed.`);
-				console.error(reason);
+		if (!interaction.channel?.isText()) {
+			// Ensure the interaction channel is a text channel.
+			return;
+		}
 
-				ephemeral(state, message.reply(`Could not report the user, please mention an online mod.`)).catch(
-					console.error
-				);
-			});
+		interaction.channel
+			.send("Report created.")
+			.then(message => {
+				reportChannel
+					.send(
+						new MessageEmbed({
+							fields: [
+								{
+									name: "Reporter",
+									value: `<@${interaction.user.id}>`,
+									inline: true,
+								},
+								{
+									name: "Accused",
+									value: `<@${userObject.id}>`,
+									inline: true,
+								},
+								{
+									name: "Jump Link",
+									value: `[Here](${message.url})`,
+									inline: true,
+								},
+								{
+									name: "Reason",
+									value: reasonText,
+								},
+							],
+							timestamp: interaction.createdTimestamp,
+							color: "#FF0000",
+						})
+					)
+					.then(reportMessage => {
+						interaction
+							.reply(`You have reported the user.`, {
+								ephemeral: command.shouldBeEphemeral(state, interaction),
+							})
+							.catch(console.error.bind(console));
+						reportMessage.react("👀").catch(console.error.bind(console));
+						reportMessage.react("✅").catch(console.error.bind(console));
+						reportMessage.react("❌").catch(console.error.bind(console));
+					})
+					.catch(reason => {
+						console.error(`Reporting ${userObject.username} with reason ${reasonText} failed.`);
+						console.error(reason);
+
+						interaction
+							.reply(`Could not report the user, please mention an online mod.`, {
+								ephemeral: command.shouldBeEphemeral(state, interaction),
+							})
+							.catch(console.error.bind(console));
+					});
+			})
+			.catch(console.error.bind(console));
 	},
 };
 

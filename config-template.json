@@ -1,9 +1,11 @@
 {
-	"commandPrefix": "!",
 	"guildId": "",
 	"memberRoleId": "",
 	"staffRoleId": "",
 	"developerRoleId": "",
 	"showcaseChannelId": "",
-	"reportChannelId": ""
+	"reportChannelId": "",
+	"botChannelId": "",
+	"staffCategoryId": "",
+	"ghRepoPath": ""
 }

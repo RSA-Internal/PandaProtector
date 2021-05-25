@@ -1,17 +1,11 @@
-import type { Message } from "discord.js";
+import type { ApplicationCommandOptionData, CommandInteraction, CommandInteractionOption } from "discord.js";
 import type { State } from "./state";
 
 export interface Command {
 	readonly name: string;
 	readonly description: string;
-	readonly options: readonly CommandOption[];
-	readonly hasPermission: (state: State, message: Message) => boolean;
-	readonly parseArguments: (content: string) => string[];
-	readonly handler: (state: State, message: Message, ...args: string[]) => void;
-}
-
-interface CommandOption {
-	readonly name: string;
-	readonly description: string;
-	readonly optional?: true;
+	readonly options: ApplicationCommandOptionData[];
+	readonly hasPermission: (state: State, interaction: CommandInteraction) => boolean;
+	readonly shouldBeEphemeral: (state: State, interaction: CommandInteraction) => boolean;
+	readonly handler: (state: State, interaction: CommandInteraction, args: CommandInteractionOption[]) => void;
 }

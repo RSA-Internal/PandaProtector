@@ -1,11 +1,13 @@
 export interface Config {
-	commandPrefix: string;
 	guildId: string;
 	memberRoleId: string;
 	staffRoleId: string;
 	developerRoleId: string;
 	showcaseChannelId: string;
 	reportChannelId: string;
+	botChannelId: string;
+	staffCategoryId: string;
+	ghRepoPath: string;
 }
 
 export function isConfig(config: unknown): config is Config {
@@ -14,12 +16,14 @@ export function isConfig(config: unknown): config is Config {
 	return (
 		typeof config === "object" &&
 		config !== null &&
-		typeof record["commandPrefix"] === "string" &&
 		typeof record["guildId"] === "string" &&
 		typeof record["memberRoleId"] === "string" &&
 		typeof record["staffRoleId"] === "string" &&
 		typeof record["developerRoleId"] === "string" &&
 		typeof record["showcaseChannelId"] === "string" &&
-		typeof record["reportChannelId"] === "string"
+		typeof record["reportChannelId"] === "string" &&
+		typeof record["botChannelId"] === "string" &&
+		typeof record["staffCategoryId"] === "string" &&
+		typeof record["ghRepoPath"] === "string"
 	);
 }

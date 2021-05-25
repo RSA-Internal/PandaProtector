@@ -1,17 +1,18 @@
 {
 	"name": "pandaprotector",
-	"version": "2.7.0",
+	"version": "3.0.0",
 	"description": "RSA - Utility Bot",
 	"main": "index.js",
 	"scripts": {
 		"lint": "npx eslint . && npx prettier --check .",
 		"build": "npx tsc",
 		"start": "node dist/index.js",
-		"test": "node dist/index.js config-test.json .env.test"
+		"test": "npm run build && node dist/index.js config-test.json .env.test",
+		"check": "npm run build && npm run lint"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@gitlab.com/RSA-Bots/PandaProtector.git"
+		"url": "git@github.com:RSA-Bots/PandaProtector.git"
 	},
 	"author": "TinyPandas",
 	"license": "ISC",
@@ -22,17 +23,20 @@
 	"dependencies": {
 		"@types/mongoose": "^5.10.5",
 		"@types/node": "^15.0.2",
-		"discord.js": "^12.5.3",
-		"dotenv": "^9.0.0",
+		"@types/node-fetch": "^2.5.10",
+		"discord-api-types": "^0.18.1",
+		"discord.js": "github:discordjs/discord.js",
+		"dotenv": "^10.0.0",
 		"exit-hook": "^2.2.1",
 		"mongoose": "^5.12.7",
+		"node-fetch": "^2.6.1",
 		"typescript": "^4.2.4",
 		"wandbox-api-updated": "^1.0.4"
 	},
 	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "^4.22.0",
+		"@typescript-eslint/eslint-plugin": "^4.24.0",
 		"@typescript-eslint/parser": "^4.22.0",
-		"eslint": "^7.25.0",
+		"eslint": "^7.26.0",
 		"eslint-config-prettier": "^8.2.0",
 		"eslint-plugin-prettier": "^3.4.0",
 		"prettier": "^2.2.1"
