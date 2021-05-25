@@ -1,4 +1,4 @@
-let oauth: string;
+let oauth: string | undefined;
 
 export function setOauth(token: string): void {
 	oauth = token;

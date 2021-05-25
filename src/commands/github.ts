@@ -28,7 +28,8 @@ const command: Command = {
 		},
 	],
 	hasPermission: (state, interaction) =>
-		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
+		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId) ||
+		interaction.channelID === state.config.botChannelId,
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction, args) => {
 		interaction.defer(command.shouldBeEphemeral(state, interaction)).catch(console.error.bind(console));
@@ -41,7 +42,7 @@ const command: Command = {
 
 		switch (objectType) {
 			case "branch":
-			case "branches": {
+			case "branches":
 				oauthFetch(`https://api.github.com/repos/${repo}/branches/${query}`)
 					.then(json => {
 						const jsonData = json as Branch;
@@ -67,8 +68,7 @@ const command: Command = {
 					.catch(res => handleError(interaction, res as string));
 
 				break;
-			}
-			case "commit": {
+			case "commit":
 				oauthFetch(`https://api.github.com/repos/${repo}/commits/${query}`)
 					.then(json => {
 						const jsonData = json as Commit;
@@ -123,8 +123,7 @@ const command: Command = {
 					.catch(res => handleError(interaction, res as string));
 
 				break;
-			}
-			case "issue": {
+			case "issue":
 				oauthFetch(`https://api.github.com/repos/${repo}/issues/${query}`)
 					.then(json => {
 						const modifiedEmbed = handleIssueOrPr(state.config, json as Issue, embedReply);
@@ -134,11 +133,10 @@ const command: Command = {
 					.catch(res => handleError(interaction, res as string));
 
 				break;
-			}
 			case "pull-request":
 			case "pullrequest":
 			case "pull request":
-			case "pr": {
+			case "pr":
 				oauthFetch(`https://api.github.com/repos/${repo}/pulls/${query}`)
 					.then(json => {
 						const jsonData = json as PullRequest;
@@ -157,7 +155,6 @@ const command: Command = {
 					.catch(res => handleError(interaction, res as string));
 
 				break;
-			}
 			case "repo":
 			case "repository":
 				oauthFetch(`https://api.github.com/repos/${query}`)
@@ -185,7 +182,6 @@ const command: Command = {
 						interaction.editReply(embedReply).catch(console.error.bind(console));
 					})
 					.catch(res => handleError(interaction, res as string));
-
 				break;
 			default:
 				interaction
@@ -266,5 +262,5 @@ function oauthFetch(url: string): Promise<unknown> {
 }
 
 function handleError(interaction: CommandInteraction, res: string): void {
-	interaction.editReply(`Failed to handle request: ${res}`).catch(console.error.bind(console));
+	interaction.editReply(`Failed to handle request: ${res}.`).catch(console.error.bind(console));
 }
