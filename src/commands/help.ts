@@ -20,19 +20,22 @@ const command: Command = {
 			// Display all commands.
 			const commands = getCommands().filter(commandName => commandName.hasPermission(state, interaction));
 			interaction
-				.reply(
-					new MessageEmbed({
-						fields: [
-							{
-								name: "Commands",
-								value:
-									`${commands
-										.map(command => `*${command.name}* - ${command.description}`)
-										.join("\n")}` || "None",
-							},
-						],
-					})
-				)
+				.reply({
+					embeds: [
+						new MessageEmbed({
+							fields: [
+								{
+									name: "Commands",
+									value:
+										`${commands
+											.map(command => `*${command.name}* - ${command.description}`)
+											.join("\n")}` || "None",
+								},
+							],
+						}),
+					],
+					ephemeral: command.shouldBeEphemeral(state, interaction),
+				})
 				.catch(console.error.bind(console));
 		} else {
 			// Display specific command information.
@@ -46,29 +49,32 @@ const command: Command = {
 			}
 
 			interaction
-				.reply(
-					new MessageEmbed({
-						fields: [
-							{
-								name: "Command",
-								value: `${commandObject.name} ${commandObject.options
-									.map(option => (option.required ? `*${option.name}*` : `*[${option.name}]*`))
-									.join(" ")}`,
-							},
-							{
-								name: "Description",
-								value: commandObject.description,
-							},
-							{
-								name: "Arguments",
-								value:
-									`${commandObject.options
-										.map(option => `*${option.name}* - ${option.description}`)
-										.join("\n")}` || "None",
-							},
-						],
-					})
-				)
+				.reply({
+					embeds: [
+						new MessageEmbed({
+							fields: [
+								{
+									name: "Command",
+									value: `${commandObject.name} ${commandObject.options
+										.map(option => (option.required ? `*${option.name}*` : `*[${option.name}]*`))
+										.join(" ")}`,
+								},
+								{
+									name: "Description",
+									value: commandObject.description,
+								},
+								{
+									name: "Arguments",
+									value:
+										`${commandObject.options
+											.map(option => `*${option.name}* - ${option.description}`)
+											.join("\n")}` || "None",
+								},
+							],
+						}),
+					],
+					ephemeral: command.shouldBeEphemeral(state, interaction),
+				})
 				.catch(console.error.bind(console));
 		}
 	},
