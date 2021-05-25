@@ -1,10 +1,9 @@
-import { GuildMember, MessageEmbed } from "discord.js";
+import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
 import fetch from "node-fetch";
 import type { Command } from "../command";
 import type { Config } from "../config";
+import { getOauth } from "../store/githubOauth";
 import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../structures/github";
-
-let oauth: string;
 
 const command: Command = {
 	name: "github",
@@ -31,11 +30,10 @@ const command: Command = {
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
-	setOauthToken: oauthToken => (oauth = oauthToken),
 	handler: (state, interaction, args) => {
 		interaction.defer(command.shouldBeEphemeral(state, interaction)).catch(console.error.bind(console));
 
-		const repo = args[2] ? (args[2].value as string) : state.config.ghRepoPath;
+		const repo = (args[2]?.value as string | undefined) ?? state.config.ghRepoPath;
 		const objectType = (args[0].value as string).toLowerCase();
 		const query = args[1].value as string;
 
@@ -66,12 +64,7 @@ const command: Command = {
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));
 					})
-					.catch(res => {
-						interaction
-							.editReply(`Failed to handle request. (${res as string})`)
-							.catch(console.error.bind(console));
-						return;
-					});
+					.catch(res => handleError(interaction, res as string));
 
 				break;
 			}
@@ -127,12 +120,7 @@ const command: Command = {
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));
 					})
-					.catch(res => {
-						interaction
-							.editReply(`Failed to handle request. (${res as string})`)
-							.catch(console.error.bind(console));
-						return;
-					});
+					.catch(res => handleError(interaction, res as string));
 
 				break;
 			}
@@ -143,12 +131,7 @@ const command: Command = {
 
 						interaction.editReply(modifiedEmbed).catch(console.error.bind(console));
 					})
-					.catch(res => {
-						interaction
-							.editReply(`Failed to handle request. (${res as string})`)
-							.catch(console.error.bind(console));
-						return;
-					});
+					.catch(res => handleError(interaction, res as string));
 
 				break;
 			}
@@ -171,12 +154,7 @@ const command: Command = {
 
 						interaction.editReply(modifiedEmbed).catch(console.error.bind(console));
 					})
-					.catch(res => {
-						interaction
-							.editReply(`Failed to handle request. (${res as string})`)
-							.catch(console.error.bind(console));
-						return;
-					});
+					.catch(res => handleError(interaction, res as string));
 
 				break;
 			}
@@ -206,12 +184,7 @@ const command: Command = {
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));
 					})
-					.catch(res => {
-						interaction
-							.editReply(`Failed to handle request. (${res as string})`)
-							.catch(console.error.bind(console));
-						return;
-					});
+					.catch(res => handleError(interaction, res as string));
 
 				break;
 			default:
@@ -230,9 +203,7 @@ export default command;
 function handleIssueOrPr(config: Config, jsonData: Issue | PullRequest, embedReply: MessageEmbed): MessageEmbed {
 	embedReply.setTitle(`[${jsonData.state}] #${jsonData.number} ${jsonData.title}`);
 	if (jsonData.labels.length > 0) {
-		const labelList = [] as string[];
-
-		jsonData.labels.map(label => labelList.push(label.name));
+		const labelList = jsonData.labels.map(label => label.name);
 
 		embedReply.setDescription(labelList.join(", "));
 	}
@@ -242,9 +213,7 @@ function handleIssueOrPr(config: Config, jsonData: Issue | PullRequest, embedRep
 	embedReply.addField("Author", generateGitHubUserLink(jsonData.user), true);
 	embedReply.addField("Association", jsonData.author_association, true);
 	if (jsonData.assignees?.length > 0) {
-		const assignees = [] as string[];
-
-		jsonData.assignees.map(assignee => assignees.push(generateGitHubUserLink(assignee)));
+		const assignees = jsonData.assignees.map(assignee => generateGitHubUserLink(assignee));
 
 		embedReply.addField("Assignees", assignees.join("\n"), true);
 	}
@@ -268,7 +237,8 @@ function generateGitHubUserLink(user: GithubUser): string {
 
 function oauthFetch(url: string): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		const header = oauth ? { Authorization: `token ${oauth}` } : { Authorization: "" };
+		const oauth = getOauth();
+		const header = { Authorization: oauth ? `token ${oauth}` : "" };
 
 		fetch(url, {
 			headers: header,
@@ -293,4 +263,8 @@ function oauthFetch(url: string): Promise<unknown> {
 			})
 			.catch(console.error.bind(console));
 	});
+}
+
+function handleError(interaction: CommandInteraction, res: string): void {
+	interaction.editReply(`Failed to handle request: ${res}`).catch(console.error.bind(console));
 }

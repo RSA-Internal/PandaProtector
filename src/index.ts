@@ -4,10 +4,10 @@ import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
-import github from "./commands/github";
 import { Config, isConfig } from "./config";
 import { DotEnv, isDotEnv } from "./dotEnv";
 import type { State } from "./state";
+import { setOauth } from "./store/githubOauth";
 
 // USAGE: npm start [configPath] [envPath]
 const configPath = process.argv[2] ?? "config.json";
@@ -143,9 +143,7 @@ try {
 	});
 
 	if (env.ghOauth) {
-		if (github.setOauthToken) {
-			github.setOauthToken(env.ghOauth);
-		}
+		setOauth(env.ghOauth);
 	}
 
 	// Connect to Discord.

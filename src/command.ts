@@ -8,5 +8,4 @@ export interface Command {
 	readonly hasPermission: (state: State, interaction: CommandInteraction) => boolean;
 	readonly shouldBeEphemeral: (state: State, interaction: CommandInteraction) => boolean;
 	readonly handler: (state: State, interaction: CommandInteraction, args: CommandInteractionOption[]) => void;
-	readonly setOauthToken?: (oauthToken: string) => void;
 }
