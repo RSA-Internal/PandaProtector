@@ -52,7 +52,7 @@ const command: Command = {
 							{
 								name: "Command",
 								value: `${commandObject.name} ${commandObject.options
-									.map(option => (option.required ? `*[${option.name}]*` : `*${option.name}*`))
+									.map(option => (option.required ? `*${option.name}*` : `*[${option.name}]*`))
 									.join(" ")}`,
 							},
 							{

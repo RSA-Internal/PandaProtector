@@ -93,7 +93,7 @@ const command: Command = {
 						jsonData.files.forEach(file => {
 							const fileNameLength = file.filename.length;
 							if (fileNameLength > longestLength) longestLength = fileNameLength;
-							if (file.additions >= 10 && longestChange == 1) longestChange = 2;
+							if (file.additions >= 10 && longestChange === 1) longestChange = 2;
 						});
 
 						if (fileLength > 0) {

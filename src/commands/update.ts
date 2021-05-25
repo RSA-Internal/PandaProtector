@@ -1,4 +1,4 @@
-import type { GuildMember, TextChannel } from "discord.js";
+import type { GuildMember } from "discord.js";
 import type { Command } from "../command";
 
 const command: Command = {
@@ -7,8 +7,7 @@ const command: Command = {
 	options: [],
 	hasPermission: (state, interaction) =>
 		(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
-	shouldBeEphemeral: (state, interaction) =>
-		(interaction.channel as TextChannel).parent?.id !== state.config.staffCategoryId,
+	shouldBeEphemeral: () => false,
 	handler: state => {
 		state.client.destroy();
 		process.exit();
