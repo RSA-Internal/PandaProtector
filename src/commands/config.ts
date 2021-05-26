@@ -11,6 +11,52 @@ const command: Command = {
 			type: "STRING",
 			name: "name",
 			description: "The config name (case-sensitive).",
+			choices: [
+				{
+					name: "Guild Id",
+					value: "guildId",
+				},
+				{
+					name: "Member Role Id",
+					value: "memberRoleId",
+				},
+				{
+					name: "Staff Role Id",
+					value: "staffRoleId",
+				},
+				{
+					name: "Developer Role Id",
+					value: "developerRoleId",
+				},
+				{
+					name: "Showcase Channel Id",
+					value: "showcaseChannelId",
+				},
+				{
+					name: "Report Channel Id",
+					value: "reportChannelId",
+				},
+				{
+					name: "Bot Channel Id",
+					value: "botChannelId",
+				},
+				{
+					name: "Staff Category Id",
+					value: "staffCategoryId",
+				},
+				{
+					name: "Github Repository Path",
+					value: "ghRepoPath",
+				},
+				{
+					name: "Debug Mode",
+					value: "debugMode",
+				},
+				{
+					name: "Debug Channel Id",
+					value: "debugChannelId",
+				},
+			],
 		},
 		{
 			type: "STRING",

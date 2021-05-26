@@ -14,6 +14,28 @@ const command: Command = {
 			name: "name",
 			description: "The type of item to fetch (branch, commit, issue, pullrequest)",
 			required: true,
+			choices: [
+				{
+					name: "Branch",
+					value: "branch",
+				},
+				{
+					name: "Commit",
+					value: "commit",
+				},
+				{
+					name: "Issue",
+					value: "issue",
+				},
+				{
+					name: "Pull Request",
+					value: "pull",
+				},
+				{
+					name: "Respository",
+					value: "repo",
+				},
+			],
 		},
 		{
 			type: "STRING",
