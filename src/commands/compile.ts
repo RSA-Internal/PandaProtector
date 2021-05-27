@@ -58,7 +58,7 @@ const command: Command = {
 
 		const code = /((```\S*)|`)?([\s\S]*?)`*$/g.exec(codeParse)?.splice(3).join(" ") ?? "";
 		interaction
-			.defer(command.shouldBeEphemeral(state, interaction))
+			.defer({ ephemeral: command.shouldBeEphemeral(state, interaction) })
 			.then(() =>
 				fromString({
 					compiler: args[0].value as string,

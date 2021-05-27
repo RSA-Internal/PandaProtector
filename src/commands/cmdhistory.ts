@@ -1,7 +1,6 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import CommandLog from "../models/commandLog.model";
-import { clamp } from "../util";
 
 const command: Command = {
 	name: "cmdhistory",
@@ -34,11 +33,11 @@ const command: Command = {
 		const count = args[2]?.value as number | undefined;
 
 		if (userObject) {
-			const pageNumber = clamp(page ?? 1, 1, Number.MAX_SAFE_INTEGER);
-			const countNumber = clamp(count ?? 25, 1, 50);
+			const pageNumber = Math.min(Math.max(page ?? 1, 1), Number.MAX_SAFE_INTEGER);
+			const countNumber = Math.min(Math.max(count ?? 1, 1), 50);
 
 			interaction
-				.defer(command.shouldBeEphemeral(state, interaction))
+				.defer({ ephemeral: command.shouldBeEphemeral(state, interaction) })
 				.then(() =>
 					CommandLog.find({ discordId: userObject.id }, "command arguments", {
 						limit: countNumber,
