@@ -29,5 +29,6 @@ export function getCommand(commandName: string): Command | undefined {
 }
 
 export function getCommands(): Command[] {
+	// TODO: return a readonly Command[] and cache it?
 	return Object.values(commands);
 }

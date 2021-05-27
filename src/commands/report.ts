@@ -45,7 +45,7 @@ const command: Command = {
 		}
 
 		interaction.channel
-			.send("Report created.")
+			.send("Reporting...")
 			.then(message => {
 				reportChannel
 					.send(
@@ -76,6 +76,7 @@ const command: Command = {
 						})
 					)
 					.then(reportMessage => {
+						message.edit("Reported.").catch(console.error.bind(console));
 						interaction
 							.reply(`You have reported the user.`, {
 								ephemeral: command.shouldBeEphemeral(state, interaction),
@@ -86,9 +87,11 @@ const command: Command = {
 						reportMessage.react("❌").catch(console.error.bind(console));
 					})
 					.catch(reason => {
-						console.error(`Reporting ${userObject.username} with reason ${reasonText} failed.`);
+						console.error(`Reporting ${userObject.username} with reason ${reasonText} failed (embed).`);
 						console.error(reason);
 
+						// If the embed fails to send, remove the jump link message.
+						message.delete().catch(console.error.bind(console));
 						interaction
 							.reply(`Could not report the user, please mention an online mod.`, {
 								ephemeral: command.shouldBeEphemeral(state, interaction),
@@ -96,7 +99,16 @@ const command: Command = {
 							.catch(console.error.bind(console));
 					});
 			})
-			.catch(console.error.bind(console));
+			.catch(reason => {
+				console.error(`Reporting ${userObject.username} with reason ${reasonText} failed (initial message).`);
+				console.error(reason);
+
+				interaction
+					.reply(`Could not report the user, please mention an online mod.`, {
+						ephemeral: command.shouldBeEphemeral(state, interaction),
+					})
+					.catch(console.error.bind(console));
+			});
 	},
 };
 
