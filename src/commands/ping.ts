@@ -7,14 +7,14 @@ const command: Command = {
 	hasPermission: () => true,
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction) => {
+		const start = Date.now();
+
 		interaction
 			.reply("Pinging...", { ephemeral: command.shouldBeEphemeral(state, interaction) })
-			.catch(console.error.bind(console));
-		interaction
-			.editReply(
-				`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${
-					Date.now() - interaction.createdTimestamp
-				}ms`
+			.then(() =>
+				interaction.editReply(
+					`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${Date.now() - start}ms`
+				)
 			)
 			.catch(console.error.bind(console));
 	},
