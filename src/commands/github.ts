@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import type { Command } from "../command";
 import type { Config } from "../config";
 import { getOauth } from "../store/githubOauth";
-import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../structures/github";
+import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../types/github";
 
 const command: Command = {
 	name: "github",
@@ -32,12 +32,13 @@ const command: Command = {
 		interaction.channelID !== state.config.botChannelId &&
 		!(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
 	handler: (state, interaction, args) => {
-		interaction.defer(command.shouldBeEphemeral(state, interaction)).catch(console.error.bind(console));
+		interaction
+			.defer({ ephemeral: command.shouldBeEphemeral(state, interaction) })
+			.catch(console.error.bind(console));
 
 		const repo = (args[2]?.value as string | undefined) ?? state.config.ghRepoPath;
 		const objectType = (args[0].value as string).toLowerCase();
 		const query = args[1].value as string;
-
 		const embedReply = new MessageEmbed();
 
 		switch (objectType) {
@@ -50,7 +51,6 @@ const command: Command = {
 						embedReply.setTitle(`${jsonData.name} in ${repo}`);
 						embedReply.setThumbnail(jsonData.commit.author.avatar_url);
 						embedReply.setURL(jsonData._links.html);
-
 						embedReply.addField("Branch Name", `[${jsonData.name}](${jsonData._links.html})`, true);
 						embedReply.addField(
 							"Latest Commit",
@@ -72,50 +72,47 @@ const command: Command = {
 				oauthFetch(`https://api.github.com/repos/${repo}/commits/${query}`)
 					.then(json => {
 						const jsonData = json as Commit;
+
 						embedReply.setTitle(`commit: ${jsonData.sha}`);
 						embedReply.setURL(jsonData.html_url);
 						embedReply.setThumbnail(jsonData.author.avatar_url);
-
 						embedReply.addField("Author", generateGitHubUserLink(jsonData.author), true);
 						embedReply.addField(
 							"Stats",
 							`Total: ${jsonData.stats.total}\nAdditions: ${jsonData.stats.additions}\nDeletions: ${jsonData.stats.deletions}`,
 							true
 						);
-
 						embedReply.addField("Signed", jsonData.commit.verification.verified, true);
 						embedReply.addField("Message", jsonData.commit.message, false);
 
-						const fileLength = jsonData.files.length;
-						let longestLength = 0;
-						let longestChange = 1;
+						const fileCount = jsonData.files.length;
+						let filePadding = 0;
+						let diffPadding = 0;
 
 						jsonData.files.forEach(file => {
-							const fileNameLength = file.filename.length;
-							if (fileNameLength > longestLength) longestLength = fileNameLength;
-							if (file.additions >= 10 && longestChange === 1) longestChange = 2;
+							filePadding = Math.max(filePadding, file.filename.length);
+							diffPadding = Math.max(diffPadding, Math.floor(Math.log10(file.additions || 1)));
 						});
 
-						if (fileLength > 0) {
-							let count = 0;
-							let toAdd = "```";
+						if (fileCount > 0) {
+							const count = 0;
+							const lines: string[] = [];
 
-							jsonData.files.forEach(file => {
-								if (count <= 5) {
-									count += 1;
-									const spacing = longestLength - file.filename.length;
-									const pipe = longestChange - (file.additions >= 10 ? 1 : 0);
-									toAdd = `${toAdd}\n[${file.status.slice(0, 1).toUpperCase()}]${
-										file.filename
-									}: ${" ".repeat(spacing)} +${file.additions}${" ".repeat(pipe)}| -${
-										file.deletions
-									}`;
-								}
-							});
+							for (let count = 0; count < Math.min(5, fileCount); count++) {
+								const file = jsonData.files[count];
 
-							if (fileLength - count > 0) toAdd = `${toAdd}\n...and ${fileLength - count} more.`;
+								lines.push(
+									`[${file.status.slice(0, 1).toUpperCase()}] ${file.filename}: ${" ".repeat(
+										filePadding - file.filename.length
+									)} +${file.additions}${" ".repeat(
+										diffPadding - Math.floor(Math.log10(file.additions || 1))
+									)} | -${file.deletions}`
+								);
+							}
 
-							embedReply.addField("Files", `${toAdd}\n\`\`\``, false);
+							if (fileCount > count) lines.push(`...and ${fileCount - count} more.`);
+
+							embedReply.addField("Files", `\`\`\`${lines.join("\n")}\n\`\`\``, false);
 						}
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));
@@ -127,7 +124,6 @@ const command: Command = {
 				oauthFetch(`https://api.github.com/repos/${repo}/issues/${query}`)
 					.then(json => {
 						const modifiedEmbed = handleIssueOrPr(state.config, json as Issue, embedReply);
-
 						interaction.editReply(modifiedEmbed).catch(console.error.bind(console));
 					})
 					.catch(res => handleError(interaction, res as string));
@@ -141,8 +137,8 @@ const command: Command = {
 					.then(json => {
 						const jsonData = json as PullRequest;
 						const modifiedEmbed = handleIssueOrPr(state.config, jsonData, embedReply);
-
 						modifiedEmbed.addField("Merged", jsonData.merged, true);
+
 						if (!jsonData.merged) {
 							modifiedEmbed.addField("Mergeable", jsonData.mergeable, true);
 						} else {
@@ -166,7 +162,6 @@ const command: Command = {
 						embedReply.setDescription(jsonData.full_name);
 						embedReply.setURL(jsonData.html_url);
 						embedReply.setThumbnail(jsonData.owner.avatar_url);
-
 						embedReply.addField("Owner", generateGitHubUserLink(jsonData.owner), true);
 						embedReply.addField("Language", jsonData.language, true);
 						embedReply.addField("Creation Date", jsonData.created_at, true);
@@ -193,20 +188,19 @@ const command: Command = {
 export default command;
 
 function handleIssueOrPr(config: Config, jsonData: Issue | PullRequest, embedReply: MessageEmbed): MessageEmbed {
-	embedReply.setTitle(`[${jsonData.state}] #${jsonData.number} ${jsonData.title}`);
 	if (jsonData.labels.length > 0) {
 		const labelList = jsonData.labels.map(label => label.name);
-
 		embedReply.setDescription(labelList.join(", "));
 	}
+
+	embedReply.setTitle(`[${jsonData.state}] #${jsonData.number} ${jsonData.title}`);
 	embedReply.setThumbnail(jsonData.user.avatar_url);
 	embedReply.setURL(jsonData.html_url);
-
 	embedReply.addField("Author", generateGitHubUserLink(jsonData.user), true);
 	embedReply.addField("Association", jsonData.author_association, true);
-	if (jsonData.assignees?.length > 0) {
-		const assignees = jsonData.assignees.map(assignee => generateGitHubUserLink(assignee));
 
+	if (jsonData.assignees?.length > 0) {
+		const assignees = jsonData.assignees.map(generateGitHubUserLink);
 		embedReply.addField("Assignees", assignees.join("\n"), true);
 	}
 
@@ -243,8 +237,8 @@ function oauthFetch(url: string): Promise<unknown> {
 					if (res.message.includes("rate limit")) {
 						reject(
 							oauth
-								? "Ratelimit reached!"
-								: "[No Oauth] Ratelimit reached! If you are seeing this error, ask the bot host to set the `ghOauth` field within the `.env` file."
+								? "Rate limit reached!"
+								: "[No Oauth] Rate limit reached! If you are seeing this error, ask the bot host to set the `ghOauth` field within the `.env` file."
 						);
 					} else {
 						reject(res.message);
