@@ -14,20 +14,26 @@ const configPath = process.argv[2] ?? "config.json";
 const secretsPath = process.argv[3] ?? "secrets.json";
 
 function deploySlashCommands(client: Client, config: Config) {
+	log("Deploying slash commands", logLevels.info);
 	const commands = client.guilds.cache.get(config.guildId)?.commands;
 
 	if (!commands) {
+		log('Could not deploy slash-commands. Can retry with "!deploy".', logLevels.warn);
 		return Promise.reject("Could not deploy slash-commands.");
 	}
 
 	return Promise.all(
-		getCommands().map(command =>
-			commands.create({
-				name: command.name,
-				description: command.description,
-				options: command.options,
-			})
-		)
+		getCommands().map(command => {
+			commands
+				.create({
+					name: command.name,
+					description: command.description,
+					options: command.options,
+				})
+				.then(slash => {
+					log(`Loaded ${slash.name} with id: ${slash.id}.`, logLevels.debug);
+				});
+		})
 	);
 }
 
@@ -36,6 +42,8 @@ function main(state: State, secrets: Secrets) {
 
 	client.on("ready", () => {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
+		log("Client logged in.", logLevels.info);
+		log(`Client Version: ${state.version}`, logLevels.debug);
 		deploySlashCommands(client, config).catch(console.error.bind(console));
 	});
 
@@ -144,6 +152,9 @@ try {
 	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 	if (!isConfig(config)) {
+		log("Config file does not match the Config interface.", logLevels.warn);
+
+		//potentially replace missing fields with defaults instead of erroring out?
 		throw new Error("Config file does not match the Config interface.");
 	}
 

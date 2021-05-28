@@ -107,3 +107,4 @@ dist
 config.json
 secrets.json
 package-lock.json
+.env
