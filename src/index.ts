@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
+import { log, logLevels } from "./logger";
 import commandLogModel from "./models/commandLog.model";
 import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
