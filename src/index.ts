@@ -32,7 +32,8 @@ function deploySlashCommands(client: Client, config: Config) {
 				})
 				.then(slash => {
 					log(`Loaded ${slash.name} with id: ${slash.id}.`, logLevels.debug);
-				});
+				})
+				.catch(err => log(err, logLevels.error));
 		})
 	);
 }

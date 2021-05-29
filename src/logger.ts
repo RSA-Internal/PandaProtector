@@ -33,15 +33,6 @@ export function log(
 	interaction?: CommandInteraction,
 	display?: boolean
 ): void {
-	if (debugMode === 1) {
-		console.debug(
-			`[DEBUG]: Log called with: [\n\tmessage: "${message}", \n\tlogLevel: ${logLevel.level}, \n\tstate: ${
-				state ? state : "No state passed"
-			}, \n\tinteraction: ${interaction ? interaction : "No interaction passed"}, \n\tdisplay: ${
-				display ? display : false
-			}\n]\n`
-		);
-	}
 	if (logLevel === logLevels.debug && debugMode !== 1 && !display) {
 		return;
 	}
