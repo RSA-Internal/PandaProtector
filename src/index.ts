@@ -1,18 +1,17 @@
 import { Client, Intents } from "discord.js";
-import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
-import { DotEnv, isDotEnv } from "./dotEnv";
 import commandLogModel from "./models/commandLog.model";
+import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
 import { setOauth } from "./store/githubOauth";
 
-// USAGE: npm start [configPath] [envPath]
+// USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
-const envPath = process.argv[3] ?? ".env";
+const secretsPath = process.argv[3] ?? "secrets.json";
 
 function deploySlashCommands(client: Client, config: Config) {
 	const commands = client.guilds.cache.get(config.guildId)?.commands;
@@ -32,7 +31,7 @@ function deploySlashCommands(client: Client, config: Config) {
 	);
 }
 
-function main(state: State, env: DotEnv) {
+function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
 
 	client.on("ready", () => {
@@ -120,7 +119,7 @@ function main(state: State, env: DotEnv) {
 	};
 
 	// Connect to the database.
-	connect(env.dbUri, {
+	connect(secrets.dbUri, {
 		ssl: true,
 		useCreateIndex: true,
 		useFindAndModify: false,
@@ -141,30 +140,29 @@ function main(state: State, env: DotEnv) {
 
 try {
 	const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
+	const secrets = JSON.parse(readFileSync(secretsPath, "utf-8")) as unknown;
 	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 	if (!isConfig(config)) {
 		throw new Error("Config file does not match the Config interface.");
 	}
 
-	const env = parse(readFileSync(envPath, "utf-8"));
-
-	if (!isDotEnv(env)) {
-		throw new Error("Environment file does not match the DotEnv interface.");
+	if (!isSecrets(secrets)) {
+		throw new Error("Secrets file does not match the Secrets interface.");
 	}
 
 	const client = new Client({
 		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS],
 	});
 
-	if (env.ghOauth) {
-		setOauth(env.ghOauth);
+	if (secrets.ghOauth !== "") {
+		setOauth(secrets.ghOauth);
 	}
 
 	// Connect to Discord.
 	client
-		.login(env.token)
-		.then(() => main({ version, config, client, configPath }, env))
+		.login(secrets.token)
+		.then(() => main({ version, config, client, configPath }, secrets))
 		.catch(console.error.bind(console));
 } catch (e) {
 	console.error(e);

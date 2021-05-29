@@ -1,15 +1,15 @@
-export interface DotEnv {
+export interface Secrets {
 	readonly token: string;
 	readonly dbUri: string;
 	readonly ghOauth: string;
 }
 
-export function isDotEnv(env: unknown): env is DotEnv {
-	const record = env as { [index: string]: unknown };
+export function isSecrets(secrets: unknown): secrets is Secrets {
+	const record = secrets as { [index: string]: unknown };
 
 	return (
-		typeof env === "object" &&
-		env !== null &&
+		typeof secrets === "object" &&
+		secrets !== null &&
 		typeof record["token"] === "string" &&
 		typeof record["dbUri"] === "string" &&
 		typeof record["ghOauth"] === "string"
