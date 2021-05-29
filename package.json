@@ -25,7 +25,6 @@
 		"@types/node-fetch": "^2.5.10",
 		"discord-api-types": "^0.18.1",
 		"discord.js": "github:discordjs/discord.js",
-		"dotenv": "^10.0.0",
 		"exit-hook": "^2.2.1",
 		"mongoose": "^5.12.11",
 		"node-fetch": "^2.6.1",

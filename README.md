@@ -3,6 +3,6 @@
 
 # Instructions
 1. `npm run build` to build the bot.
-2. `npm start [configFile] [envFile]` to start the bot with the specified config.
+2. `npm start [configFile] [secretsFile]` to start the bot with the specified config.
 	- If the config file is not specified, `config.json` will be used.
-	- If the environment file is not specified, `.env` will be used.
+	- If the secrets file is not specified, `secrets.json` will be used.

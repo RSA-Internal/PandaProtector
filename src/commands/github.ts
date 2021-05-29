@@ -238,7 +238,7 @@ function oauthFetch(url: string): Promise<unknown> {
 						reject(
 							oauth
 								? "Rate limit reached!"
-								: "[No Oauth] Rate limit reached! If you are seeing this error, ask the bot host to set the `ghOauth` field within the `.env` file."
+								: "[No Oauth] Rate limit reached! If you are seeing this error, ask the bot host to set the `ghOauth` field within the secrets file."
 						);
 					} else {
 						reject(res.message);
