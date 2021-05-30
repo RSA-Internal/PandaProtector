@@ -1,6 +1,7 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { writeFile } from "fs";
 import type { Command } from "../command";
+import { log, logLevels, updateVerbosity } from "../logger";
 
 const command: Command = {
 	name: "config",
@@ -30,6 +31,14 @@ const command: Command = {
 			// Get or update config.
 			if (name in config) {
 				if (value) {
+					if (name === "debugMode") {
+						if (!updateVerbosity(value)) {
+							interaction
+								.reply(`Could not update debugMode in config due to an unsupported verbosity level.`)
+								.catch(err => log(err, logLevels.error));
+							return false;
+						}
+					}
 					// Update config value.
 					config[name as keyof typeof config] = value;
 
@@ -39,27 +48,27 @@ const command: Command = {
 								.reply(`Updated config ${name}.`, {
 									ephemeral: command.shouldBeEphemeral(state, interaction),
 								})
-								.catch(console.error.bind(console));
+								.catch(err => log(err, logLevels.error));
 						} else {
-							console.error(err);
+							log(err.message, logLevels.error);
 
 							interaction
 								.reply(`Updated config ${name}, but could not save to file: ${err.message}.`, {
 									ephemeral: command.shouldBeEphemeral(state, interaction),
 								})
-								.catch(console.error.bind(console));
+								.catch(err => log(err, logLevels.error));
 						}
 					});
 				} else {
 					// Get config value.
 					interaction
 						.reply(`${name}: ${config[name as keyof typeof config]}`, { ephemeral: true })
-						.catch(console.error.bind(console));
+						.catch(err => log(err, logLevels.error));
 				}
 			} else {
 				interaction
 					.reply("Unknown config.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
-					.catch(console.error.bind(console));
+					.catch(err => log(err, logLevels.error));
 			}
 		} else {
 			// List config entries.
@@ -74,7 +83,7 @@ const command: Command = {
 						})),
 					})
 				)
-				.catch(console.error.bind(console));
+				.catch(err => log(err, logLevels.error));
 		}
 	},
 };

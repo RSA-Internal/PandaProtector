@@ -1,16 +1,30 @@
-import type { CommandInteraction, TextChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import type { State } from "./state";
 
-let debugMode = 0;
+let state: State;
+let verbosityLevel = "none";
+const verbosityLevels = ["none", "info", "warn", "error", "debug", "all"];
 
-export function initLogger(initDebugMode: string): void {
-	let parsedDebugMode = parseInt(initDebugMode);
-	if (isNaN(parsedDebugMode)) {
-		parsedDebugMode = 0;
-		log(`Invalid debug mode provided: ${initDebugMode}.`, logLevels.warn);
+export function updateVerbosity(newVerbosity: string): boolean {
+	if (verbosityLevels.includes(newVerbosity.toLowerCase())) {
+		verbosityLevel = newVerbosity.toLowerCase();
+		return true;
+	} else {
+		log(`Attempted to assign an invalid verbosity level: ${newVerbosity}`, logLevels.warn);
+		return false;
 	}
-	debugMode = parsedDebugMode;
-	log(`DebugMode: ${debugMode}`, logLevels.debug);
+}
+
+export function initLogger(initState: State, initVerbosityLevel: string): void {
+	state = initState;
+	if (verbosityLevels.includes(initVerbosityLevel.toLowerCase())) {
+		verbosityLevel = initVerbosityLevel.toLowerCase();
+	} else {
+		log(`Invalid debugMode loaded from config: ${initVerbosityLevel}`, logLevels.warn);
+		verbosityLevel = "info";
+	}
+
+	log(`Verbosity Level: ${verbosityLevel}`, logLevels.debug);
 	log("Logger initialized.", logLevels.info);
 }
 
@@ -26,23 +40,16 @@ export const logLevels = {
 	debug: { level: "DEBUG", binding: console.debug.bind(console) },
 };
 
-export function log(
-	message: string,
-	logLevel: LogLevel,
-	state?: State,
-	interaction?: CommandInteraction,
-	display?: boolean
-): void {
-	if (logLevel === logLevels.debug && debugMode !== 1 && !display) {
-		return;
-	}
+export function log(message: string, logLevel: LogLevel): void {
 	logLevel.binding(`[${logLevel.level}]: ${message}`);
 
-	if (interaction && (debugMode === 1 || display)) {
-		const debugChannel = (state ? state.config.debugChannelId : interaction.channelID) as string;
+	const shouldLog = verbosityLevels.indexOf(logLevel.level.toLowerCase()) <= verbosityLevels.indexOf(verbosityLevel);
 
-		(interaction.guild?.channels.resolve(debugChannel) as TextChannel)
-			.send(`[${logLevel.level}]: ${message}`)
-			.catch(err => log(err, logLevels.error));
+	if (state && shouldLog) {
+		const logChannel = state.client.channels.resolve(state.config.debugChannelId) as TextChannel;
+
+		if (logChannel) {
+			logChannel.send(`[${logLevel.level}]: ${message}`).catch(err => log(err, logLevels.error));
+		}
 	}
 }

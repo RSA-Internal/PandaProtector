@@ -4,7 +4,7 @@ import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
-import { log, logLevels } from "./logger";
+import { initLogger, log, logLevels } from "./logger";
 import commandLogModel from "./models/commandLog.model";
 import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
@@ -41,6 +41,7 @@ function deploySlashCommands(client: Client, config: Config) {
 
 function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
+	initLogger(state, config.debugMode);
 
 	client.on("ready", () => {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
@@ -119,15 +120,6 @@ function main(state: State, secrets: Secrets) {
 		}
 	});
 
-	const logError = async (message: string) => {
-		const reportChannel = client.guilds.cache.get(config.guildId)?.channels.cache.get(config.reportChannelId);
-		console.error(message);
-
-		if (reportChannel?.isText()) {
-			return reportChannel.send(message);
-		}
-	};
-
 	// Connect to the database.
 	connect(secrets.dbUri, {
 		ssl: true,
@@ -135,10 +127,10 @@ function main(state: State, secrets: Secrets) {
 		useFindAndModify: false,
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
-	}).catch(reason => logError(`Could not connect to the database: ${String(reason)}`));
+	}).catch(reason => log(`Could not connect to the database: ${String(reason)}`, logLevels.error));
 
 	connection.on("error", reason => {
-		logError(String(reason)).catch(console.error.bind(console));
+		log(String(reason), logLevels.error);
 	});
 
 	// Cleanup resources on exit.
