@@ -8,6 +8,8 @@ export interface Config {
 	botChannelId: string;
 	staffCategoryId: string;
 	ghRepoPath: string;
+	debugMode: string;
+	debugChannelId: string;
 }
 
 export function isConfig(config: unknown): config is Config {
@@ -24,6 +26,8 @@ export function isConfig(config: unknown): config is Config {
 		typeof record["reportChannelId"] === "string" &&
 		typeof record["botChannelId"] === "string" &&
 		typeof record["staffCategoryId"] === "string" &&
-		typeof record["ghRepoPath"] === "string"
+		typeof record["ghRepoPath"] === "string" &&
+		typeof record["debugMode"] === "string" &&
+		typeof record["debugChannelId"] === "string"
 	);
 }

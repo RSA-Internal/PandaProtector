@@ -7,5 +7,7 @@
 	"reportChannelId": "",
 	"botChannelId": "",
 	"staffCategoryId": "",
-	"ghRepoPath": ""
+	"ghRepoPath": "",
+	"debugMode": "",
+	"debugChannelId": ""
 }
