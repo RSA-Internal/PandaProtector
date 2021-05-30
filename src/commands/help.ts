@@ -10,8 +10,6 @@ const command: Command = {
 			type: "STRING",
 			name: "command",
 			description: "The command name to get help with.",
-			//_1.getCommands is not a function
-			//choices: getCommands().map(command => ({ name: command.name, value: command.name })),
 		},
 	],
 	hasPermission: () => true,

@@ -37,7 +37,7 @@ const command: Command = {
 					value: "python",
 				},
 				{
-					name: "Typescript",
+					name: "TypeScript",
 					value: "typescript",
 				},
 			],

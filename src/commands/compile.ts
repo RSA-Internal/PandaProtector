@@ -37,7 +37,7 @@ const command: Command = {
 					value: "cpython-head",
 				},
 				{
-					name: "Typescript",
+					name: "TypeScript",
 					value: "typescript-3.9.5",
 				},
 			],
