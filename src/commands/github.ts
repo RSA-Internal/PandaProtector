@@ -14,6 +14,28 @@ const command: Command = {
 			name: "name",
 			description: "The type of item to fetch (branch, commit, issue, pullrequest)",
 			required: true,
+			choices: [
+				{
+					name: "Branch",
+					value: "branch",
+				},
+				{
+					name: "Commit",
+					value: "commit",
+				},
+				{
+					name: "Issue",
+					value: "issue",
+				},
+				{
+					name: "Pull Request",
+					value: "pull",
+				},
+				{
+					name: "Respository",
+					value: "repo",
+				},
+			],
 		},
 		{
 			type: "STRING",
@@ -43,7 +65,6 @@ const command: Command = {
 
 		switch (objectType) {
 			case "branch":
-			case "branches":
 				oauthFetch(`https://api.github.com/repos/${repo}/branches/${query}`)
 					.then(json => {
 						const jsonData = json as Branch;
@@ -129,10 +150,7 @@ const command: Command = {
 					.catch(res => handleError(interaction, res as string));
 
 				break;
-			case "pull-request":
-			case "pullrequest":
-			case "pull request":
-			case "pr":
+			case "pull":
 				oauthFetch(`https://api.github.com/repos/${repo}/pulls/${query}`)
 					.then(json => {
 						const jsonData = json as PullRequest;
@@ -152,7 +170,6 @@ const command: Command = {
 
 				break;
 			case "repo":
-			case "repository":
 				oauthFetch(`https://api.github.com/repos/${query}`)
 					.then(json => {
 						const jsonData = json as Repository;

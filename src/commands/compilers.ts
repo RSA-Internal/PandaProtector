@@ -11,6 +11,36 @@ const command: Command = {
 			name: "language",
 			description: "List of compilers for the specified language.",
 			required: true,
+			choices: [
+				{
+					name: "C#",
+					value: "c#",
+				},
+				{
+					name: "C++",
+					value: "c++",
+				},
+				{
+					name: "Java",
+					value: "java",
+				},
+				{
+					name: "JavaScript",
+					value: "javascript",
+				},
+				{
+					name: "Lua",
+					value: "lua",
+				},
+				{
+					name: "Python",
+					value: "python",
+				},
+				{
+					name: "TypeScript",
+					value: "typescript",
+				},
+			],
 		},
 	],
 	hasPermission: () => true,

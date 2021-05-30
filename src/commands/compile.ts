@@ -11,6 +11,36 @@ const command: Command = {
 			name: "compiler",
 			description: "Compiler to use.",
 			required: true,
+			choices: [
+				{
+					name: "C#",
+					value: "mono-head",
+				},
+				{
+					name: "C++",
+					value: "gcc-head",
+				},
+				{
+					name: "Java",
+					value: "openjdk-head",
+				},
+				{
+					name: "JavaScript",
+					value: "nodejs-head",
+				},
+				{
+					name: "Lua",
+					value: "lua-5.4.0",
+				},
+				{
+					name: "Python",
+					value: "cpython-head",
+				},
+				{
+					name: "TypeScript",
+					value: "typescript-3.9.5",
+				},
+			],
 		},
 		{
 			type: "STRING",
