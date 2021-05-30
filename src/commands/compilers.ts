@@ -25,7 +25,7 @@ const command: Command = {
 					value: "java",
 				},
 				{
-					name: "Javascript",
+					name: "JavaScript",
 					value: "javascript",
 				},
 				{

@@ -25,7 +25,7 @@ const command: Command = {
 					value: "openjdk-head",
 				},
 				{
-					name: "Javascript",
+					name: "JavaScript",
 					value: "nodejs-head",
 				},
 				{
