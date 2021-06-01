@@ -1,19 +1,20 @@
 import type { Command } from "../command";
+import { getState } from "../store/state";
 
 const command: Command = {
 	name: "ping",
 	description: "Show bot latency information.",
 	options: [],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
-	handler: (state, interaction) => {
+	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	handler: interaction => {
 		const start = Date.now();
 
 		interaction
-			.reply("Pinging...", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+			.reply("Pinging...", { ephemeral: command.shouldBeEphemeral(interaction) })
 			.then(() =>
 				interaction.editReply(
-					`Websocket heartbeat: ${state.client.ws.ping}ms\nRoundtrip latency: ${Date.now() - start}ms`
+					`Websocket heartbeat: ${getState().client.ws.ping}ms\nRoundtrip latency: ${Date.now() - start}ms`
 				)
 			)
 			.catch(console.error.bind(console));

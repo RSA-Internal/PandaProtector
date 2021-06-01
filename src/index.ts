@@ -4,22 +4,23 @@ import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
-import { initLogger, log, logLevels } from "./logger";
+import { canUpdateVerbosity, log } from "./logger";
 import commandLogModel from "./models/commandLog.model";
 import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
 import { setOauth } from "./store/githubOauth";
+import { setState } from "./store/state";
 
 // USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
 const secretsPath = process.argv[3] ?? "secrets.json";
 
 function deploySlashCommands(client: Client, config: Config) {
-	log("Deploying slash commands", logLevels.info);
+	log("Deploying slash commands", "info");
 	const commands = client.guilds.cache.get(config.guildId)?.commands;
 
 	if (!commands) {
-		log('Could not deploy slash-commands. Can retry with "!deploy".', logLevels.warn);
+		log('Could not deploy slash-commands. Can retry with "!deploy".', "warn");
 		return Promise.reject("Could not deploy slash-commands.");
 	}
 
@@ -32,21 +33,28 @@ function deploySlashCommands(client: Client, config: Config) {
 					options: command.options,
 				})
 				.then(slash => {
-					log(`Loaded ${slash.name} with id: ${slash.id}.`, logLevels.debug);
+					log(`Loaded ${slash.name} with id: ${slash.id}.`, "debug");
 				})
-				.catch(err => log(err, logLevels.error));
+				.catch(err => log(err, "error"));
 		})
 	);
 }
 
 function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
-	initLogger(state, config.verbosityLevel);
+
+	setState(state);
+
+	if (!canUpdateVerbosity(config.verbosityLevel)) {
+		// TODO: a more scalable approach to sanity checking config.
+		config.verbosityLevel = "all";
+		log("Invalid verbosity level, using all instead.", "warn");
+	}
 
 	client.on("ready", () => {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
-		log("Client logged in.", logLevels.info);
-		log(`Client Version: ${state.version}`, logLevels.debug);
+		log("Client logged in.", "info");
+		log(`Client Version: ${state.version}`, "debug");
 		deploySlashCommands(client, config).catch(console.error.bind(console));
 	});
 
@@ -54,7 +62,7 @@ function main(state: State, secrets: Secrets) {
 		if (!interaction.isCommand()) return;
 		const command = getCommand(interaction.commandName);
 
-		if (command && command.hasPermission(state, interaction)) {
+		if (command && command.hasPermission(interaction)) {
 			commandLogModel
 				.create({
 					discordId: interaction.user.id,
@@ -63,7 +71,7 @@ function main(state: State, secrets: Secrets) {
 				})
 				.catch(console.error.bind(console));
 
-			command.handler(state, interaction, interaction.options);
+			command.handler(interaction, interaction.options);
 		}
 	});
 
@@ -127,10 +135,10 @@ function main(state: State, secrets: Secrets) {
 		useFindAndModify: false,
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
-	}).catch(reason => log(`Could not connect to the database: ${String(reason)}`, logLevels.error));
+	}).catch(reason => log(`Could not connect to the database: ${String(reason)}`, "error"));
 
 	connection.on("error", reason => {
-		log(String(reason), logLevels.error);
+		log(String(reason), "error");
 	});
 
 	// Cleanup resources on exit.
@@ -146,9 +154,7 @@ try {
 	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 	if (!isConfig(config)) {
-		log("Config file does not match the Config interface.", logLevels.warn);
-
-		//potentially replace missing fields with defaults instead of erroring out?
+		// Potentially replace missing fields with defaults instead of erroring out?
 		throw new Error("Config file does not match the Config interface.");
 	}
 
