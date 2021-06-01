@@ -1,15 +1,17 @@
+import type { Snowflake } from "discord.js";
+
 export interface Config {
-	guildId: string;
-	memberRoleId: string;
-	staffRoleId: string;
-	developerRoleId: string;
-	showcaseChannelId: string;
-	reportChannelId: string;
-	botChannelId: string;
-	staffCategoryId: string;
+	guildId: Snowflake;
+	memberRoleId: Snowflake;
+	staffRoleId: Snowflake;
+	developerRoleId: Snowflake;
+	showcaseChannelId: Snowflake;
+	reportChannelId: Snowflake;
+	botChannelId: Snowflake;
+	staffCategoryId: Snowflake;
 	ghRepoPath: string;
 	verbosityLevel: string;
-	logChannelId: string;
+	logChannelId: Snowflake;
 }
 
 export function isConfig(config: unknown): config is Config {
