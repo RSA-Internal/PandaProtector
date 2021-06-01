@@ -1,8 +1,8 @@
 import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
 import fetch from "node-fetch";
 import type { Command } from "../command";
-import type { Config } from "../config";
 import { getOauth } from "../store/githubOauth";
+import { getState } from "../store/state";
 import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../types/github";
 
 const command: Command = {
@@ -50,15 +50,13 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) =>
-		interaction.channelID !== state.config.botChannelId &&
-		!(interaction.member as GuildMember).roles.cache.has(state.config.developerRoleId),
-	handler: (state, interaction, args) => {
-		interaction
-			.defer({ ephemeral: command.shouldBeEphemeral(state, interaction) })
-			.catch(console.error.bind(console));
+	shouldBeEphemeral: interaction =>
+		interaction.channelID !== getState().config.botChannelId &&
+		!(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
+	handler: (interaction, args) => {
+		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(console.error.bind(console));
 
-		const repo = (args[2]?.value as string | undefined) ?? state.config.ghRepoPath;
+		const repo = (args[2]?.value as string | undefined) ?? getState().config.ghRepoPath;
 		const objectType = (args[0].value as string).toLowerCase();
 		const query = args[1].value as string;
 		const embedReply = new MessageEmbed();
@@ -144,7 +142,7 @@ const command: Command = {
 			case "issue":
 				oauthFetch(`https://api.github.com/repos/${repo}/issues/${query}`)
 					.then(json => {
-						const modifiedEmbed = handleIssueOrPr(state.config, json as Issue, embedReply);
+						const modifiedEmbed = handleIssueOrPr(repo, json as Issue, embedReply);
 						interaction.editReply(modifiedEmbed).catch(console.error.bind(console));
 					})
 					.catch(res => handleError(interaction, res as string));
@@ -154,7 +152,7 @@ const command: Command = {
 				oauthFetch(`https://api.github.com/repos/${repo}/pulls/${query}`)
 					.then(json => {
 						const jsonData = json as PullRequest;
-						const modifiedEmbed = handleIssueOrPr(state.config, jsonData, embedReply);
+						const modifiedEmbed = handleIssueOrPr(repo, jsonData, embedReply);
 						modifiedEmbed.addField("Merged", jsonData.merged, true);
 
 						if (!jsonData.merged) {
@@ -204,7 +202,7 @@ const command: Command = {
 
 export default command;
 
-function handleIssueOrPr(config: Config, jsonData: Issue | PullRequest, embedReply: MessageEmbed): MessageEmbed {
+function handleIssueOrPr(repo: string, jsonData: Issue | PullRequest, embedReply: MessageEmbed): MessageEmbed {
 	if (jsonData.labels.length > 0) {
 		const labelList = jsonData.labels.map(label => label.name);
 		embedReply.setDescription(labelList.join(", "));
@@ -221,14 +219,14 @@ function handleIssueOrPr(config: Config, jsonData: Issue | PullRequest, embedRep
 		embedReply.addField("Assignees", assignees.join("\n"), true);
 	}
 
-	embedReply.addField("Body", hyperlinkComments(config, jsonData.body), false);
+	embedReply.addField("Body", hyperlinkComments(repo, jsonData.body), false);
 
 	return embedReply;
 }
 
-function hyperlinkComments(config: Config, body: string): string {
+function hyperlinkComments(repo: string, body: string): string {
 	const newBody = body.replace(/(\(\S{7}\))+/g, match => {
-		return `[${match}](https://github.com/${config.ghRepoPath}/commit/${match.slice(1, match.length - 1)})`;
+		return `[${match}](https://github.com/${repo}/commit/${match.slice(1, match.length - 1)})`;
 	});
 
 	return `${newBody.slice(0, 800)}${newBody.length > 800 ? "\n...and more!" : ""}`;

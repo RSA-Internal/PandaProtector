@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { getCompilers } from "wandbox-api-updated";
 import type { Command } from "../command";
+import { getState } from "../store/state";
 
 const command: Command = {
 	name: "compilers",
@@ -44,8 +45,8 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
-	handler: (_, interaction, args) => {
+	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	handler: (interaction, args) => {
 		const language = args[0].value as string;
 
 		getCompilers(language)

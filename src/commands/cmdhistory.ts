@@ -2,6 +2,7 @@ import type { Snowflake } from "discord-api-types";
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import CommandLog from "../models/commandLog.model";
+import { getState } from "../store/state";
 
 const command: Command = {
 	name: "cmdhistory",
@@ -24,12 +25,11 @@ const command: Command = {
 			description: "The number of items per page (default 25).",
 		},
 	],
-	hasPermission: (state, interaction) =>
-		(interaction.member as GuildMember).roles.cache.has(state.config.staffRoleId),
-	shouldBeEphemeral: (state, interaction) =>
-		(interaction.channel as TextChannel).parent?.id !== state.config.staffCategoryId,
-	handler: (state, interaction, args) => {
-		const userObject = state.client.users.cache.get(args[0].value as Snowflake);
+	hasPermission: interaction => (interaction.member as GuildMember).roles.cache.has(getState().config.staffRoleId),
+	shouldBeEphemeral: interaction =>
+		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
+	handler: (interaction, args) => {
+		const userObject = getState().client.users.cache.get(args[0].value as Snowflake);
 		const page = args[1]?.value as number | undefined;
 		const count = args[2]?.value as number | undefined;
 
@@ -38,7 +38,7 @@ const command: Command = {
 			const countNumber = Math.min(Math.max(count ?? 1, 1), 50);
 
 			interaction
-				.defer({ ephemeral: command.shouldBeEphemeral(state, interaction) })
+				.defer({ ephemeral: command.shouldBeEphemeral(interaction) })
 				.then(() =>
 					CommandLog.find({ discordId: userObject.id }, "command arguments", {
 						limit: countNumber,
@@ -79,7 +79,7 @@ const command: Command = {
 				.catch(console.error.bind(console));
 		} else {
 			interaction
-				.reply("Unknown user.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+				.reply("Unknown user.", { ephemeral: command.shouldBeEphemeral(interaction) })
 				.catch(console.error.bind(console));
 		}
 	},

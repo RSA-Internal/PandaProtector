@@ -1,6 +1,7 @@
 import type { Snowflake } from "discord-api-types";
 import { MessageEmbed } from "discord.js";
 import type { Command } from "../command";
+import { getState } from "../store/state";
 
 const command: Command = {
 	name: "report",
@@ -21,8 +22,9 @@ const command: Command = {
 	],
 	hasPermission: () => true,
 	shouldBeEphemeral: () => true,
-	handler: (state, interaction, args) => {
+	handler: (interaction, args) => {
 		const reasonText = args[1].value as string;
+		const state = getState();
 		const userObject = state.client.users.cache.get(args[0].value as Snowflake);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
@@ -35,7 +37,7 @@ const command: Command = {
 		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
 			interaction
-				.reply("Could not report this user.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+				.reply("Could not report this user.", { ephemeral: command.shouldBeEphemeral(interaction) })
 				.catch(console.error.bind(console));
 			return;
 		}
@@ -80,7 +82,7 @@ const command: Command = {
 						message.edit("Reported.").catch(console.error.bind(console));
 						interaction
 							.reply(`You have reported the user.`, {
-								ephemeral: command.shouldBeEphemeral(state, interaction),
+								ephemeral: command.shouldBeEphemeral(interaction),
 							})
 							.catch(console.error.bind(console));
 						reportMessage.react("👀").catch(console.error.bind(console));
@@ -95,7 +97,7 @@ const command: Command = {
 						message.delete().catch(console.error.bind(console));
 						interaction
 							.reply(`Could not report the user, please mention an online mod.`, {
-								ephemeral: command.shouldBeEphemeral(state, interaction),
+								ephemeral: command.shouldBeEphemeral(interaction),
 							})
 							.catch(console.error.bind(console));
 					});
@@ -106,7 +108,7 @@ const command: Command = {
 
 				interaction
 					.reply(`Could not report the user, please mention an online mod.`, {
-						ephemeral: command.shouldBeEphemeral(state, interaction),
+						ephemeral: command.shouldBeEphemeral(interaction),
 					})
 					.catch(console.error.bind(console));
 			});
