@@ -154,8 +154,6 @@ try {
 	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 	if (!isConfig(config)) {
-		log("Config file does not match the Config interface.", "warn");
-
 		// Potentially replace missing fields with defaults instead of erroring out?
 		throw new Error("Config file does not match the Config interface.");
 	}
