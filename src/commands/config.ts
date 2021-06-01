@@ -86,7 +86,7 @@ const command: Command = {
 						}
 					}
 					// Update config value.
-					config[name as keyof typeof config] = value;
+					config[name as keyof typeof config] = value as `${bigint}`;
 
 					writeFile(state.configPath, JSON.stringify(config), err => {
 						if (!err) {

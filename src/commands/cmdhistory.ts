@@ -1,3 +1,4 @@
+import type { Snowflake } from "discord-api-types";
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import CommandLog from "../models/commandLog.model";
@@ -28,7 +29,7 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) =>
 		(interaction.channel as TextChannel).parent?.id !== state.config.staffCategoryId,
 	handler: (state, interaction, args) => {
-		const userObject = state.client.users.cache.get(args[0].value as string);
+		const userObject = state.client.users.cache.get(args[0].value as Snowflake);
 		const page = args[1]?.value as number | undefined;
 		const count = args[2]?.value as number | undefined;
 

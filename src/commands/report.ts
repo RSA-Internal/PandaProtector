@@ -1,3 +1,4 @@
+import type { Snowflake } from "discord-api-types";
 import { MessageEmbed } from "discord.js";
 import type { Command } from "../command";
 
@@ -22,7 +23,7 @@ const command: Command = {
 	shouldBeEphemeral: () => true,
 	handler: (state, interaction, args) => {
 		const reasonText = args[1].value as string;
-		const userObject = state.client.users.cache.get(args[0].value as string);
+		const userObject = state.client.users.cache.get(args[0].value as Snowflake);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
 		if (!reportChannel?.isText()) {
