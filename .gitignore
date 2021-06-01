@@ -103,4 +103,3 @@ dist
 # Environment files
 config.json
 secrets.json
-package-lock.json
