@@ -1,12 +1,13 @@
 {
 	"name": "pandaprotector",
-	"version": "3.0.4",
+	"version": "3.1.0",
 	"description": "RSA - Utility Bot",
 	"main": "index.js",
 	"scripts": {
 		"lint": "npx eslint . && npx prettier --check .",
 		"build": "npx tsc",
 		"start": "node dist/index.js",
+		"test": "npm run build && npm start",
 		"check": "npm run build && npm run lint"
 	},
 	"repository": {

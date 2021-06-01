@@ -41,7 +41,7 @@ function deploySlashCommands(client: Client, config: Config) {
 
 function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
-	initLogger(state, config.debugMode);
+	initLogger(state, config.verbosityLevel);
 
 	client.on("ready", () => {
 		client.user?.setActivity(state.version, { type: "PLAYING" });

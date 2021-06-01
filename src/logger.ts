@@ -46,7 +46,7 @@ export function log(message: string, logLevel: LogLevel): void {
 	const shouldLog = verbosityLevels.indexOf(logLevel.level.toLowerCase()) <= verbosityLevels.indexOf(verbosityLevel);
 
 	if (state && shouldLog) {
-		const logChannel = state.client.channels.resolve(state.config.debugChannelId) as TextChannel;
+		const logChannel = state.client.channels.resolve(state.config.logChannelId) as TextChannel;
 
 		if (logChannel) {
 			logChannel.send(`[${logLevel.level}]: ${message}`).catch(err => log(err, logLevels.error));

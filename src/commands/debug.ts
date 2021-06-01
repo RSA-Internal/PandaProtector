@@ -11,7 +11,9 @@ const command: Command = {
 	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
 	handler: (state, interaction) => {
 		interaction
-			.reply("This command helps with intentional debug testing.")
+			.reply("This command helps with intentional debug testing.", {
+				ephemeral: command.shouldBeEphemeral(state, interaction),
+			})
 			.then(() => {
 				log("This is an info message.", logLevels.info);
 				log("This is an warn message.", logLevels.warn);
