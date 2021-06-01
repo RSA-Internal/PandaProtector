@@ -1,7 +1,4 @@
-import type { ApplicationCommand, CommandInteraction } from "discord.js";
-
-// TODO: remove when Discord.js decides to actually expose these types...
-type ApplicationCommandOptionData = Parameters<typeof ApplicationCommand["transformOption"]>[0];
+import type { ApplicationCommandOptionData, CommandInteraction } from "discord.js";
 
 export interface Command {
 	readonly name: string;
