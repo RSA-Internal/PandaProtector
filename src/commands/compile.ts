@@ -1,6 +1,7 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { fromString } from "wandbox-api-updated";
 import type { Command } from "../command";
+import { getState } from "../store/state";
 
 const command: Command = {
 	name: "compile",
@@ -11,6 +12,36 @@ const command: Command = {
 			name: "compiler",
 			description: "Compiler to use.",
 			required: true,
+			choices: [
+				{
+					name: "C#",
+					value: "mono-head",
+				},
+				{
+					name: "C++",
+					value: "gcc-head",
+				},
+				{
+					name: "Java",
+					value: "openjdk-head",
+				},
+				{
+					name: "JavaScript",
+					value: "nodejs-head",
+				},
+				{
+					name: "Lua",
+					value: "lua-5.4.0",
+				},
+				{
+					name: "Python",
+					value: "cpython-head",
+				},
+				{
+					name: "TypeScript",
+					value: "typescript-3.9.5",
+				},
+			],
 		},
 		{
 			type: "STRING",
@@ -19,8 +50,8 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
-	handler: (state, interaction, args) => {
+	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	handler: (interaction, args) => {
 		let codeParse = "";
 		let missingSource = false;
 
@@ -34,7 +65,7 @@ const command: Command = {
 
 				if (message) {
 					codeParse = message.content;
-					if (lastMessageChannelID !== state.config.botChannelId) {
+					if (lastMessageChannelID !== getState().config.botChannelId) {
 						message.delete().catch(console.error.bind(console));
 					}
 				} else {
@@ -50,7 +81,7 @@ const command: Command = {
 		if (missingSource) {
 			interaction
 				.reply("Failed to parse previous message, did you send one?", {
-					ephemeral: command.shouldBeEphemeral(state, interaction),
+					ephemeral: command.shouldBeEphemeral(interaction),
 				})
 				.catch(console.error.bind(console));
 			return;
@@ -58,7 +89,7 @@ const command: Command = {
 
 		const code = /((```\S*)|`)?([\s\S]*?)`*$/g.exec(codeParse)?.splice(3).join(" ") ?? "";
 		interaction
-			.defer(command.shouldBeEphemeral(state, interaction))
+			.defer({ ephemeral: command.shouldBeEphemeral(interaction) })
 			.then(() =>
 				fromString({
 					compiler: args[0].value as string,

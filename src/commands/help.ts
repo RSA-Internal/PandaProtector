@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { getCommand, getCommands } from ".";
 import type { Command } from "../command";
+import { getState } from "../store/state";
 
 const command: Command = {
 	name: "help",
@@ -13,12 +14,12 @@ const command: Command = {
 		},
 	],
 	hasPermission: () => true,
-	shouldBeEphemeral: (state, interaction) => interaction.channelID !== state.config.botChannelId,
-	handler: (state, interaction, args) => {
+	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	handler: (interaction, args) => {
 		const commandName = args[0]?.value as string;
 		if (!commandName) {
 			// Display all commands.
-			const commands = getCommands().filter(commandName => commandName.hasPermission(state, interaction));
+			const commands = getCommands().filter(commandName => commandName.hasPermission(interaction));
 			interaction
 				.reply({
 					embeds: [
@@ -34,16 +35,16 @@ const command: Command = {
 							],
 						}),
 					],
-					ephemeral: command.shouldBeEphemeral(state, interaction),
+					ephemeral: command.shouldBeEphemeral(interaction),
 				})
 				.catch(console.error.bind(console));
 		} else {
 			// Display specific command information.
 			const commandObject = getCommand(commandName);
 
-			if (!commandObject || !commandObject.hasPermission(state, interaction)) {
+			if (!commandObject || !commandObject.hasPermission(interaction)) {
 				interaction
-					.reply("The command does not exist.", { ephemeral: command.shouldBeEphemeral(state, interaction) })
+					.reply("The command does not exist.", { ephemeral: command.shouldBeEphemeral(interaction) })
 					.catch(console.error.bind(console));
 				return;
 			}
@@ -73,7 +74,7 @@ const command: Command = {
 							],
 						}),
 					],
-					ephemeral: command.shouldBeEphemeral(state, interaction),
+					ephemeral: command.shouldBeEphemeral(interaction),
 				})
 				.catch(console.error.bind(console));
 		}

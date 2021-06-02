@@ -3,6 +3,7 @@ import cmdhistory from "./cmdhistory";
 import compile from "./compile";
 import compilers from "./compilers";
 import config from "./config";
+import debug from "./debug";
 import github from "./github";
 import help from "./help";
 import ping from "./ping";
@@ -16,6 +17,7 @@ const commands = {
 	compile,
 	compilers,
 	config,
+	debug,
 	github,
 	help,
 	ping,
@@ -29,5 +31,6 @@ export function getCommand(commandName: string): Command | undefined {
 }
 
 export function getCommands(): Command[] {
+	// TODO: return a readonly Command[] and cache it?
 	return Object.values(commands);
 }

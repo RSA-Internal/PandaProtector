@@ -1,42 +1,60 @@
 import { Client, Intents } from "discord.js";
-import { parse } from "dotenv";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand, getCommands } from "./commands";
 import { Config, isConfig } from "./config";
-import { DotEnv, isDotEnv } from "./dotEnv";
+import { canUpdateVerbosity, log } from "./logger";
 import commandLogModel from "./models/commandLog.model";
+import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
 import { setOauth } from "./store/githubOauth";
+import { setState } from "./store/state";
 
-// USAGE: npm start [configPath] [envPath]
+// USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
-const envPath = process.argv[3] ?? ".env";
+const secretsPath = process.argv[3] ?? "secrets.json";
 
 function deploySlashCommands(client: Client, config: Config) {
+	log("Deploying slash commands", "info");
 	const commands = client.guilds.cache.get(config.guildId)?.commands;
 
 	if (!commands) {
+		log('Could not deploy slash-commands. Can retry with "!deploy".', "warn");
 		return Promise.reject("Could not deploy slash-commands.");
 	}
 
 	return Promise.all(
-		getCommands().map(command =>
-			commands.create({
-				name: command.name,
-				description: command.description,
-				options: command.options,
-			})
-		)
+		getCommands().map(command => {
+			commands
+				.create({
+					name: command.name,
+					description: command.description,
+					options: command.options,
+				})
+				.then(slash => {
+					log(`Loaded ${slash.name} with id: ${slash.id}.`, "debug");
+				})
+				.catch(err => log(err, "error"));
+		})
 	);
 }
 
-function main(state: State, env: DotEnv) {
+function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
+
+	setState(state);
+
+	if (!canUpdateVerbosity(config.verbosityLevel)) {
+		// TODO: a more scalable approach to sanity checking config.
+		config.verbosityLevel = "all";
+		log("Invalid verbosity level, using all instead.", "warn");
+	}
 
 	client.on("ready", () => {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
+		log("Client logged in.", "info");
+		log(`Client Version: ${state.version}`, "debug");
 		deploySlashCommands(client, config).catch(console.error.bind(console));
 	});
 
@@ -44,7 +62,7 @@ function main(state: State, env: DotEnv) {
 		if (!interaction.isCommand()) return;
 		const command = getCommand(interaction.commandName);
 
-		if (command && command.hasPermission(state, interaction)) {
+		if (command && command.hasPermission(interaction)) {
 			commandLogModel
 				.create({
 					discordId: interaction.user.id,
@@ -53,7 +71,7 @@ function main(state: State, env: DotEnv) {
 				})
 				.catch(console.error.bind(console));
 
-			command.handler(state, interaction, interaction.options);
+			command.handler(interaction, interaction.options);
 		}
 	});
 
@@ -110,26 +128,17 @@ function main(state: State, env: DotEnv) {
 		}
 	});
 
-	const logError = async (message: string) => {
-		const reportChannel = client.guilds.cache.get(config.guildId)?.channels.cache.get(config.reportChannelId);
-		console.error(message);
-
-		if (reportChannel?.isText()) {
-			return reportChannel.send(message);
-		}
-	};
-
 	// Connect to the database.
-	connect(env.dbUri, {
+	connect(secrets.dbUri, {
 		ssl: true,
 		useCreateIndex: true,
 		useFindAndModify: false,
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
-	}).catch(reason => logError(`Could not connect to the database: ${String(reason)}`));
+	}).catch(reason => log(`Could not connect to the database: ${String(reason)}`, "error"));
 
 	connection.on("error", reason => {
-		logError(String(reason)).catch(console.error.bind(console));
+		log(String(reason), "error");
 	});
 
 	// Cleanup resources on exit.
@@ -141,30 +150,30 @@ function main(state: State, env: DotEnv) {
 
 try {
 	const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
+	const secrets = JSON.parse(readFileSync(secretsPath, "utf-8")) as unknown;
 	const version = (JSON.parse(readFileSync("package.json", "utf-8")) as { version: string })["version"];
 
 	if (!isConfig(config)) {
+		// Potentially replace missing fields with defaults instead of erroring out?
 		throw new Error("Config file does not match the Config interface.");
 	}
 
-	const env = parse(readFileSync(envPath, "utf-8"));
-
-	if (!isDotEnv(env)) {
-		throw new Error("Environment file does not match the DotEnv interface.");
+	if (!isSecrets(secrets)) {
+		throw new Error("Secrets file does not match the Secrets interface.");
 	}
 
 	const client = new Client({
 		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS],
 	});
 
-	if (env.ghOauth) {
-		setOauth(env.ghOauth);
+	if (secrets.ghOauth !== "") {
+		setOauth(secrets.ghOauth);
 	}
 
 	// Connect to Discord.
 	client
-		.login(env.token)
-		.then(() => main({ version, config, client, configPath }, env))
+		.login(secrets.token)
+		.then(() => main({ version, config, client, configPath }, secrets))
 		.catch(console.error.bind(console));
 } catch (e) {
 	console.error(e);
