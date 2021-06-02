@@ -101,7 +101,7 @@ const command: Command = {
 							`Total: ${jsonData.stats.total}\nAdditions: ${jsonData.stats.additions}\nDeletions: ${jsonData.stats.deletions}`,
 							true
 						);
-						embedReply.addField("Signed", jsonData.commit.verification.verified, true);
+						embedReply.addField("Signed", String(jsonData.commit.verification.verified), true);
 						embedReply.addField("Message", jsonData.commit.message, false);
 
 						const fileCount = jsonData.files.length;
@@ -153,10 +153,10 @@ const command: Command = {
 					.then(json => {
 						const jsonData = json as PullRequest;
 						const modifiedEmbed = handleIssueOrPr(repo, jsonData, embedReply);
-						modifiedEmbed.addField("Merged", jsonData.merged, true);
+						modifiedEmbed.addField("Merged", String(jsonData.merged), true);
 
 						if (!jsonData.merged) {
-							modifiedEmbed.addField("Mergeable", jsonData.mergeable, true);
+							modifiedEmbed.addField("Mergeable", String(jsonData.mergeable), true);
 						} else {
 							modifiedEmbed.addField("Merged at", jsonData.merged_at, true);
 							modifiedEmbed.addField("Merged by", generateGitHubUserLink(jsonData.merged_by), true);
@@ -180,9 +180,9 @@ const command: Command = {
 						embedReply.addField("Owner", generateGitHubUserLink(jsonData.owner), true);
 						embedReply.addField("Language", jsonData.language, true);
 						embedReply.addField("Creation Date", jsonData.created_at, true);
-						embedReply.addField("Is a fork", jsonData.fork, true);
-						embedReply.addField("Open Issues", jsonData.open_issues_count, true);
-						embedReply.addField("Watchers", jsonData.watchers_count, true);
+						embedReply.addField("Is a fork", String(jsonData.fork), true);
+						embedReply.addField("Open Issues", String(jsonData.open_issues_count), true);
+						embedReply.addField("Watchers", String(jsonData.watchers_count), true);
 						embedReply.addField("Description", jsonData.description ?? "No description set.");
 
 						interaction.editReply(embedReply).catch(console.error.bind(console));

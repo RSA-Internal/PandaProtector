@@ -1,11 +1,11 @@
 {
 	"name": "pandaprotector",
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"description": "RSA - Utility Bot",
 	"main": "index.js",
 	"scripts": {
 		"lint": "npx eslint . && npx prettier --check .",
-		"build": "npx tsc",
+		"build": "tsc",
 		"start": "node dist/index.js",
 		"test": "npm run build && npm start",
 		"check": "npm run build && npm run lint"
@@ -25,7 +25,7 @@
 		"@types/node": "^15.6.1",
 		"@types/node-fetch": "^2.5.10",
 		"discord-api-types": "^0.18.1",
-		"discord.js": "github:discordjs/discord.js#pull/5723/head",
+		"discord.js": "^13.0.0-dev.5141ea4f0694a60375d8bc0801b1225928bb3bd1",
 		"exit-hook": "^2.2.1",
 		"mongoose": "^5.12.11",
 		"node-fetch": "^2.6.1",
