@@ -1,4 +1,4 @@
-import type { ApplicationCommandOptionData, CommandInteraction } from "discord.js";
+import type { ApplicationCommandOptionData, CommandInteraction, CommandInteractionOption } from "discord.js";
 
 export interface Command {
 	readonly name: string;
@@ -6,5 +6,5 @@ export interface Command {
 	readonly options: ApplicationCommandOptionData[];
 	readonly hasPermission: (interaction: CommandInteraction) => boolean;
 	readonly shouldBeEphemeral: (interaction: CommandInteraction) => boolean;
-	readonly handler: (interaction: CommandInteraction, args: CommandInteraction["options"]) => void;
+	readonly handler: (interaction: CommandInteraction, args: CommandInteractionOption[]) => void;
 }
