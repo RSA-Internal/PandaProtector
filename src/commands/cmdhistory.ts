@@ -29,9 +29,9 @@ const command: Command = {
 	shouldBeEphemeral: interaction =>
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
 	handler: (interaction, args) => {
-		const userObject = getState().client.users.cache.get(args[0].value as Snowflake);
-		const page = args[1]?.value as number | undefined;
-		const count = args[2]?.value as number | undefined;
+		const userObject = getState().client.users.cache.get(args.get("user")?.value as Snowflake);
+		const page = args.get("page")?.value as number | undefined;
+		const count = args.get("count")?.value as number | undefined;
 
 		if (userObject) {
 			const pageNumber = Math.min(Math.max(page ?? 1, 1), Number.MAX_SAFE_INTEGER);

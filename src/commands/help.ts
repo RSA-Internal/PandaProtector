@@ -16,7 +16,7 @@ const command: Command = {
 	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: (interaction, args) => {
-		const commandName = args[0]?.value as string;
+		const commandName = args.get("command")?.value as string;
 		if (!commandName) {
 			// Display all commands.
 			const commands = getCommands().filter(commandName => commandName.hasPermission(interaction));

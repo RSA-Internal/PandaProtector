@@ -23,9 +23,9 @@ const command: Command = {
 	hasPermission: () => true,
 	shouldBeEphemeral: () => true,
 	handler: (interaction, args) => {
-		const reasonText = args[1].value as string;
+		const reasonText = args.get("reason")?.value as string;
 		const state = getState();
-		const userObject = state.client.users.cache.get(args[0].value as Snowflake);
+		const userObject = state.client.users.cache.get(args.get("user")?.value as Snowflake);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
 		if (!reportChannel?.isText()) {
