@@ -136,10 +136,10 @@ function handleCommit(jsonData: Commit, embedReply: MessageEmbed): MessageEmbed 
 	});
 
 	if (fileCount > 0) {
-		const count = 0;
+		const displayCount = Math.min(5, fileCount);
 		const lines: string[] = [];
 
-		for (let count = 0; count < Math.min(5, fileCount); count++) {
+		for (let count = 0; count < displayCount; count++) {
 			const file = jsonData.files[count];
 
 			lines.push(
@@ -151,7 +151,7 @@ function handleCommit(jsonData: Commit, embedReply: MessageEmbed): MessageEmbed 
 			);
 		}
 
-		if (fileCount > count) lines.push(`...and ${fileCount - count} more.`);
+		if (fileCount > displayCount) lines.push(`... and ${fileCount - displayCount} more.`);
 
 		embedReply.addField("Files", `\`\`\`${lines.join("\n")}\n\`\`\``, false);
 	}
