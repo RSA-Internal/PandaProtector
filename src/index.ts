@@ -122,9 +122,17 @@ function main(state: State, secrets: Secrets) {
 		}
 	});
 
-	client.on("guildMemberUpdate", member => {
-		if (member.pending) {
-			member.roles.add(config.memberRoleId).catch(console.error.bind(console));
+	client.on("guildMemberUpdate", (oldMember, newMember) => {
+		if (oldMember.pending) {
+			newMember.roles.add(config.memberRoleId).catch(console.error.bind(console));
+		}
+
+		if (JSON.parse(config.removeMemberRoleOnMute)) {
+			if (newMember.roles.cache.has(config.mutedRoleId as `${bigint}`)) {
+				newMember.roles.remove(config.memberRoleId);
+			} else if (!newMember.roles.cache.has(config.mutedRoleId as `${bigint}`)) {
+				newMember.roles.add(config.memberRoleId);
+			}
 		}
 	});
 

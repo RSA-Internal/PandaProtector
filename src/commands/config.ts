@@ -51,11 +51,19 @@ const command: Command = {
 				},
 				{
 					name: "Debug Mode",
-					value: "debugMode",
+					value: "verbosityLevel",
 				},
 				{
 					name: "Debug Channel Id",
-					value: "debugChannelId",
+					value: "logChannelId",
+				},
+				{
+					name: "Remove Member Role on Mute",
+					value: "removeMemberRoleOnMute",
+				},
+				{
+					name: "Muted Role Id",
+					value: "mutedRoleId",
 				},
 			],
 		},
