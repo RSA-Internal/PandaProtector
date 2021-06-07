@@ -56,9 +56,9 @@ const command: Command = {
 	handler: (interaction, args) => {
 		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(console.error.bind(console));
 
-		const repo = (args[2]?.value as string | undefined) ?? getState().config.ghRepoPath;
-		const objectType = (args[0].value as string).toLowerCase();
-		const query = args[1].value as string;
+		const repo = (args.get("repo")?.value as string | undefined) ?? getState().config.ghRepoPath;
+		const objectType = (args.get("name")?.value as string).toLowerCase();
+		const query = args.get("query")?.value as string;
 		const embedReply = new MessageEmbed();
 
 		switch (objectType) {

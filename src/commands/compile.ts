@@ -55,7 +55,7 @@ const command: Command = {
 		let codeParse = "";
 		let missingSource = false;
 
-		if (!args[1]) {
+		if (!args.get("src")) {
 			const { lastMessageID, lastMessageChannelID } = interaction.member as GuildMember;
 
 			if (lastMessageChannelID && lastMessageID) {
@@ -75,7 +75,7 @@ const command: Command = {
 				missingSource = true;
 			}
 		} else {
-			codeParse = args[1].value as string;
+			codeParse = args.get("src")?.value as string;
 		}
 
 		if (missingSource) {
@@ -92,7 +92,7 @@ const command: Command = {
 			.defer({ ephemeral: command.shouldBeEphemeral(interaction) })
 			.then(() =>
 				fromString({
-					compiler: args[0].value as string,
+					compiler: args.get("compiler")?.value as string,
 					code: code,
 					save: false,
 				})

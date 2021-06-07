@@ -70,8 +70,8 @@ const command: Command = {
 	shouldBeEphemeral: interaction =>
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
 	handler: (interaction, args) => {
-		const name = args[0]?.value as string | undefined;
-		const value = args[1]?.value as string | undefined;
+		const name = args.get("name")?.value as string | undefined;
+		const value = args.get("value")?.value as string | undefined;
 		const { config, configPath } = getState();
 
 		if (name) {
