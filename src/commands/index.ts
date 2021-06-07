@@ -8,6 +8,7 @@ import github from "./github";
 import help from "./help";
 import ping from "./ping";
 import report from "./report";
+import serverinfo from "./serverinfo";
 import update from "./update";
 import uptime from "./uptime";
 
@@ -22,6 +23,7 @@ const commands = {
 	help,
 	ping,
 	report,
+	serverinfo,
 	update,
 	uptime,
 };
