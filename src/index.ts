@@ -52,7 +52,7 @@ function deploySlashCommands(client: Client, config: Config) {
 					if (permissions) {
 						const perms = permissions.perms;
 						if (perms[0].id === "0") {
-							perms[0].id = getPermField(permissions.field, config) as `${bigint}`;
+							perms[0].id = getPermField(permissions.field, config);
 						}
 						slash.setPermissions(permissions.perms).catch(err => log(err as string, "warn"));
 						finalPermId = perms[0].id;
