@@ -1,5 +1,5 @@
 import type { Snowflake } from "discord-api-types";
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import type { Command } from "../command";
 import CommandLog from "../models/commandLog.model";
 import { getState } from "../store/state";
@@ -25,7 +25,6 @@ const command: Command = {
 			description: "The number of items per page (default 25).",
 		},
 	],
-	hasPermission: interaction => (interaction.member as GuildMember).roles.cache.has(getState().config.staffRoleId),
 	shouldBeEphemeral: interaction =>
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
 	handler: (interaction, args) => {

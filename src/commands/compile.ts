@@ -49,7 +49,6 @@ const command: Command = {
 			description: "Source to compile. Can also use the last message sent by you.",
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: (interaction, args) => {
 		let codeParse = "";

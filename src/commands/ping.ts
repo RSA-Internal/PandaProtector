@@ -5,7 +5,6 @@ const command: Command = {
 	name: "ping",
 	description: "Show bot latency information.",
 	options: [],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: interaction => {
 		const start = Date.now();

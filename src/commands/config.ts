@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import { writeFile } from "fs";
 import type { Command } from "../command";
 import { canUpdateVerbosity, log } from "../logger";
@@ -73,8 +73,6 @@ const command: Command = {
 			description: "The new value for the config.",
 		},
 	],
-	hasPermission: interaction =>
-		(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
 	shouldBeEphemeral: interaction =>
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
 	handler: (interaction, args) => {

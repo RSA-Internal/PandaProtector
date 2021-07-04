@@ -9,11 +9,23 @@ import commandLogModel from "./models/commandLog.model";
 import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
 import { setOauth } from "./store/githubOauth";
+import { getPermissions, setPermState } from "./store/permissions";
 import { setState } from "./store/state";
+import { getMemberCommands } from "./util";
 
 // USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
 const secretsPath = process.argv[3] ?? "secrets.json";
+
+function getPermField(idField: string, config: Config): `${bigint}` {
+	let newId: `${bigint}` = "0";
+
+	if (idField === "memberRoleId") newId = config.memberRoleId;
+	if (idField === "staffRoleId") newId = config.staffRoleId;
+	if (idField === "developerRoleId") newId = config.developerRoleId;
+
+	return newId;
+}
 
 function deploySlashCommands(client: Client, config: Config) {
 	log("Deploying slash commands", "info");
@@ -31,9 +43,22 @@ function deploySlashCommands(client: Client, config: Config) {
 					name: command.name,
 					description: command.description,
 					options: command.options,
+					defaultPermission: false,
 				})
 				.then(slash => {
-					log(`Loaded ${slash.name} with id: ${slash.id}.`, "debug");
+					const permissions = getPermissions(command.name);
+					let finalPermId = "0";
+
+					if (permissions) {
+						const perms = permissions.perms;
+						if (perms[0].id === "0") {
+							perms[0].id = getPermField(permissions.field, config) as `${bigint}`;
+						}
+						slash.setPermissions(permissions.perms).catch(err => log(err as string, "warn"));
+						finalPermId = perms[0].id;
+					}
+
+					log(`Loaded ${slash.name} with id: ${slash.id} [PermissionsID: ${finalPermId}].`, "debug");
 				})
 				.catch(err => log(err, "error"));
 		})
@@ -44,6 +69,7 @@ function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
 
 	setState(state);
+	setPermState(state);
 
 	if (!canUpdateVerbosity(config.verbosityLevel)) {
 		// TODO: a more scalable approach to sanity checking config.
@@ -62,7 +88,9 @@ function main(state: State, secrets: Secrets) {
 		if (!interaction.isCommand()) return;
 		const command = getCommand(interaction.commandName);
 
-		if (command && command.hasPermission(interaction)) {
+		const memberCommands = getMemberCommands(interaction.member);
+
+		if (command && memberCommands.includes(command)) {
 			commandLogModel
 				.create({
 					discordId: interaction.user.id,

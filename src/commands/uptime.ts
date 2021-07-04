@@ -5,7 +5,6 @@ const command: Command = {
 	name: "uptime",
 	description: "Displays bot uptime.",
 	options: [],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: interaction => {
 		const uptime = process.uptime();

@@ -1,7 +1,9 @@
 import { MessageEmbed } from "discord.js";
-import { getCommand, getCommands } from ".";
+import { getCommand } from ".";
 import type { Command } from "../command";
+import { log } from "../logger";
 import { getState } from "../store/state";
+import { getMemberCommands } from "../util";
 
 const command: Command = {
 	name: "help",
@@ -13,13 +15,13 @@ const command: Command = {
 			description: "The command name to get help with.",
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: (interaction, args) => {
 		const commandName = args.get("command")?.value as string;
+		const memberCommands = getMemberCommands(interaction.member);
+
 		if (!commandName) {
-			// Display all commands.
-			const commands = getCommands().filter(commandName => commandName.hasPermission(interaction));
+			// Display all commands
 			interaction
 				.reply({
 					embeds: [
@@ -28,7 +30,7 @@ const command: Command = {
 								{
 									name: "Commands",
 									value:
-										`${commands
+										`${memberCommands
 											.map(command => `*${command.name}* - ${command.description}`)
 											.join("\n")}` || "None",
 								},
@@ -37,14 +39,23 @@ const command: Command = {
 					],
 					ephemeral: command.shouldBeEphemeral(interaction),
 				})
-				.catch(console.error.bind(console));
+				.catch(err => log(err as string, "error"));
 		} else {
-			// Display specific command information.
+			//Display specific command information.
 			const commandObject = getCommand(commandName);
 
-			if (!commandObject || !commandObject.hasPermission(interaction)) {
+			if (!commandObject) {
 				interaction
 					.reply("The command does not exist.", { ephemeral: command.shouldBeEphemeral(interaction) })
+					.catch(console.error.bind(console));
+				return;
+			}
+
+			if (!memberCommands.includes(commandObject)) {
+				interaction
+					.reply("You do not have access to this command.", {
+						ephemeral: command.shouldBeEphemeral(interaction),
+					})
 					.catch(console.error.bind(console));
 				return;
 			}

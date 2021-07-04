@@ -1,4 +1,3 @@
-import type { GuildMember } from "discord.js";
 import type { Command } from "../command";
 import { log } from "../logger";
 import { getState } from "../store/state";
@@ -7,8 +6,6 @@ const command: Command = {
 	name: "debug",
 	description: "Test logger.",
 	options: [],
-	hasPermission: interaction =>
-		(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: interaction => {
 		interaction

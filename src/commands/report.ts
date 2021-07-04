@@ -20,7 +20,6 @@ const command: Command = {
 			required: true,
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: () => true,
 	handler: (interaction, args) => {
 		const reasonText = args.get("reason")?.value as string;

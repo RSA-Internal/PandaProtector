@@ -44,7 +44,6 @@ const command: Command = {
 			],
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: (interaction, args) => {
 		const language = args.get("language")?.value as string;

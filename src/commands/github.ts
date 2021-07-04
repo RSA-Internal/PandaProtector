@@ -50,7 +50,6 @@ const command: Command = {
 			description: "A custom repository to fetch data from",
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction =>
 		interaction.channelID !== getState().config.botChannelId &&
 		!(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
