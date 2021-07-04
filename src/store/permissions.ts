@@ -95,6 +95,16 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	permissions: {
+		field: "staffRoleId",
+		perms: [
+			{
+				id: getState()?.config.staffRoleId ?? "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 	ping: {
 		field: "memberRoleId",
 		perms: [

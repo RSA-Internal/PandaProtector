@@ -34,7 +34,7 @@ const command: Command = {
 					);
 				})
 				.then(() => {
-					interaction.editReply(embed).catch(err => log(err, "error"));
+					interaction.editReply({ embeds: [embed] }).catch(err => log(err, "error"));
 				})
 				.catch(err => log(err, "error"));
 		}

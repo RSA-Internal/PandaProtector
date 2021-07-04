@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed } from "discord.js";
 import { getCommand } from ".";
 import type { Command } from "../command";
 import { log } from "../logger";
@@ -18,7 +18,7 @@ const command: Command = {
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: (interaction, args) => {
 		const commandName = args.get("command")?.value as string;
-		const memberCommands = getMemberCommands(interaction.member);
+		const memberCommands = getMemberCommands(interaction.member as GuildMember);
 
 		if (!commandName) {
 			// Display all commands
@@ -46,14 +46,18 @@ const command: Command = {
 
 			if (!commandObject) {
 				interaction
-					.reply("The command does not exist.", { ephemeral: command.shouldBeEphemeral(interaction) })
+					.reply({
+						content: "The command does not exist.",
+						ephemeral: command.shouldBeEphemeral(interaction),
+					})
 					.catch(console.error.bind(console));
 				return;
 			}
 
 			if (!memberCommands.includes(commandObject)) {
 				interaction
-					.reply("You do not have access to this command.", {
+					.reply({
+						content: "You do not have access to this command.",
 						ephemeral: command.shouldBeEphemeral(interaction),
 					})
 					.catch(console.error.bind(console));

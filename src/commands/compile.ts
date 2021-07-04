@@ -1,6 +1,7 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { fromString } from "wandbox-api-updated";
 import type { Command } from "../command";
+import { log } from "../logger";
 import { getState } from "../store/state";
 
 const command: Command = {
@@ -79,7 +80,8 @@ const command: Command = {
 
 		if (missingSource) {
 			interaction
-				.reply("Failed to parse previous message, did you send one?", {
+				.reply({
+					content: "Failed to parse previous message, did you send one?",
 					ephemeral: command.shouldBeEphemeral(interaction),
 				})
 				.catch(console.error.bind(console));
@@ -119,10 +121,10 @@ const command: Command = {
 					);
 				}
 
-				interaction.editReply(embed).catch(console.error.bind(console));
+				interaction.editReply({ embeds: [embed] }).catch(err => log(err, "warn"));
 			})
 			.catch(err => {
-				interaction.editReply(err, { allowedMentions: {} }).catch(console.error.bind(console));
+				interaction.editReply({ content: err as string, allowedMentions: {} }).catch(err => log(err, "error"));
 			});
 	},
 };

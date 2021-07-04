@@ -1,4 +1,4 @@
-import { Client, Intents } from "discord.js";
+import { Client, GuildMember, Intents } from "discord.js";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
@@ -54,7 +54,13 @@ function deploySlashCommands(client: Client, config: Config) {
 						if (perms[0].id === "0") {
 							perms[0].id = getPermField(permissions.field, config);
 						}
-						slash.setPermissions(permissions.perms).catch(err => log(err as string, "warn"));
+						slash.manager.permissions
+							.add({
+								command: slash,
+								guild: config.guildId,
+								permissions: permissions.perms,
+							})
+							.catch(err => log(err, "warn"));
 						finalPermId = perms[0].id;
 					}
 
@@ -84,11 +90,11 @@ function main(state: State, secrets: Secrets) {
 		deploySlashCommands(client, config).catch(console.error.bind(console));
 	});
 
-	client.on("interaction", interaction => {
+	client.on("interactionCreate", interaction => {
 		if (!interaction.isCommand()) return;
 		const command = getCommand(interaction.commandName);
 
-		const memberCommands = getMemberCommands(interaction.member);
+		const memberCommands = getMemberCommands(interaction.member as GuildMember);
 
 		if (command && memberCommands.includes(command)) {
 			commandLogModel
@@ -103,7 +109,7 @@ function main(state: State, secrets: Secrets) {
 		}
 	});
 
-	client.on("message", message => {
+	client.on("messageCreate", message => {
 		if (message.author.bot) {
 			// Do not process bot messages.
 			return;

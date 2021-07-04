@@ -72,11 +72,11 @@ const command: Command = {
 
 				if (objectType === "issues" || objectType === "pulls") {
 					const modifiedReply = handleIssueOrPr(repo, jsonData as Issue | PullRequest, embedReply);
-					interaction.editReply(modifiedReply).catch(err => log(err, "error"));
+					interaction.editReply({ embeds: [modifiedReply] }).catch(err => log(err, "error"));
 					return;
 				} else if (objectType === "commits") {
 					const modifiedReply = handleCommit(jsonData as Commit, embedReply);
-					interaction.editReply(modifiedReply).catch(err => log(err, "error"));
+					interaction.editReply({ embeds: [modifiedReply] }).catch(err => log(err, "error"));
 					return;
 				} else if (objectType === "branches") {
 					jsonData = jsonData as Branch;
@@ -104,7 +104,7 @@ const command: Command = {
 					embedReply.addField("Description", jsonData.description ?? "No description set.");
 				}
 
-				interaction.editReply(embedReply).catch(err => log(err, "error"));
+				interaction.editReply({ embeds: [embedReply] }).catch(err => log(err, "error"));
 			})
 			.catch(res => handleError(interaction, res as string));
 	},

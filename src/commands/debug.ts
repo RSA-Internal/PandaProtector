@@ -9,7 +9,8 @@ const command: Command = {
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: interaction => {
 		interaction
-			.reply("This command helps with intentional debug testing.", {
+			.reply({
+				content: "This command helps with intentional debug testing.",
 				ephemeral: command.shouldBeEphemeral(interaction),
 			})
 			.then(() => {
