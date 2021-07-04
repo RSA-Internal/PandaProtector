@@ -11,7 +11,7 @@ const command: Command = {
 		const uptime = process.uptime();
 		const seconds = (Math.floor(uptime) % 60).toString().padStart(2, "0");
 		const minutes = (Math.floor(uptime / 60) % 60).toString().padStart(2, "0");
-		const hours = (Math.floor(uptime / 3600) % 60).toString().padStart(2, "0");
+		const hours = (Math.floor(uptime / 3600) % 24).toString().padStart(2, "0");
 		const days = Math.floor(uptime / 86400);
 
 		interaction
