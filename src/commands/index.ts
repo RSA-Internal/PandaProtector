@@ -1,4 +1,4 @@
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import cmdhistory from "./cmdhistory";
 import compile from "./compile";
 import compilers from "./compilers";

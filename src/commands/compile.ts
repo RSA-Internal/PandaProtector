@@ -1,6 +1,6 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { fromString } from "wandbox-api-updated";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getState } from "../store/state";
 

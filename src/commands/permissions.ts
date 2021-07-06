@@ -1,5 +1,5 @@
 import type { GuildMemberRoleManager } from "discord.js";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getPermissions } from "../store/permissions";
 import { getState } from "../store/state";
