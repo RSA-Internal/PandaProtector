@@ -66,7 +66,7 @@ const command: Command = {
 				interaction.reply({ embeds: [listEmbed] }).catch(err => log(err, "error"));
 			})
 			.catch(err => {
-				interaction.reply({ content: err as string, allowedMentions: {} }).catch(err => log(err, "error"));
+				interaction.reply({ content: String(err), allowedMentions: {} }).catch(err => log(err, "error"));
 			});
 	},
 };

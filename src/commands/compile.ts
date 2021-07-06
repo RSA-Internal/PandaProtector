@@ -124,7 +124,7 @@ const command: Command = {
 				interaction.editReply({ embeds: [embed] }).catch(err => log(err, "warn"));
 			})
 			.catch(err => {
-				interaction.editReply({ content: err as string, allowedMentions: {} }).catch(err => log(err, "error"));
+				interaction.editReply({ content: String(err), allowedMentions: {} }).catch(err => log(err, "error"));
 			});
 	},
 };

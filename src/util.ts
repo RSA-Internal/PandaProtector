@@ -1,7 +1,8 @@
 import type { Snowflake } from "discord-api-types";
-import type { ApplicationCommand, Client, GuildMember, User } from "discord.js";
-import type { Command } from "./command";
+import type { Client, User } from "discord.js";
 import { getCommands } from "./commands";
+import type { Config } from "./config";
+import { log } from "./logger";
 import { getPermissions } from "./store/permissions";
 import { getState } from "./store/state";
 
@@ -16,27 +17,54 @@ export function getUserFromMention(client: Client, mention: string): User | unde
 	return id ? client.users.cache.get(id as Snowflake) : undefined;
 }
 
-function getApplicationCommandFromCommandName(client: Client, commandName: string): ApplicationCommand | undefined {
-	return client.guilds.cache
-		.get(getState().config.guildId)
-		?.commands.cache.filter(cmd => cmd.name === commandName)
-		.first();
+function getPermField(idField: keyof Config, config: Config): `${bigint}` {
+	return config[idField] as `${bigint}`;
 }
 
-export function getMemberCommands(member: GuildMember): Command[] {
-	return getCommands().filter(async command => {
-		const applicationCommand = getApplicationCommandFromCommandName(member.client, command.name);
+export async function deploySlashCommands(): Promise<void[]> {
+	const { client, config } = getState();
 
-		let hasPermission = false;
+	log("Deploying slash commands", "debug");
+	const commands = client.guilds.cache.get(config.guildId)?.commands;
 
-		if (applicationCommand) {
-			const perms = await applicationCommand.permissions.fetch({ command: applicationCommand.id });
+	if (!commands) {
+		log('Could not deploy slash-commands. Can retry with "!deploy".', "warn");
+		return Promise.reject("Could not deploy slash-commands.");
+	}
 
-			if (!hasPermission) hasPermission = perms.filter(perm => perm.id === member.id).length > 0;
-		}
+	const cachedCommands = (await commands.fetch()).map(command => command.name);
 
-		if (!hasPermission) hasPermission = member?.roles.cache.has(getPermissions(command.name).perms[0].id);
+	return Promise.all(
+		getCommands()
+			.filter(command => !cachedCommands.includes(command.name))
+			.map(command => {
+				commands
+					.create({
+						name: command.name,
+						description: command.description,
+						options: command.options,
+						defaultPermission: false,
+					})
+					.then(slash => {
+						const permissions = getPermissions(command.name);
+						let finalPermId = "0";
 
-		return hasPermission;
-	});
+						if (permissions) {
+							const perms = permissions.perms;
+							perms[0].id = getPermField(permissions.field as keyof Config, config);
+							slash.manager.permissions
+								.add({
+									command: slash,
+									guild: config.guildId,
+									permissions: permissions.perms,
+								})
+								.catch(err => log(err, "warn"));
+							finalPermId = perms[0].id;
+						}
+
+						log(`Loaded ${slash.name} with id: ${slash.id} [PermissionsID: ${finalPermId}].`, "debug");
+					})
+					.catch(err => log(err, "error"));
+			})
+	);
 }

@@ -1,81 +1,25 @@
-import { Client, GuildMember, Intents } from "discord.js";
+import { Client, Intents } from "discord.js";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
-import { getCommand, getCommands } from "./commands";
-import { Config, isConfig } from "./config";
+import { getCommand } from "./commands";
+import { isConfig } from "./config";
 import { canUpdateVerbosity, log } from "./logger";
 import commandLogModel from "./models/commandLog.model";
 import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
 import { setOauth } from "./store/githubOauth";
-import { getPermissions, setPermState } from "./store/permissions";
 import { setState } from "./store/state";
-import { getMemberCommands } from "./util";
+import { deploySlashCommands } from "./util";
 
 // USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
 const secretsPath = process.argv[3] ?? "secrets.json";
 
-function getPermField(idField: string, config: Config): `${bigint}` {
-	let newId: `${bigint}` = "0";
-
-	if (idField === "memberRoleId") newId = config.memberRoleId;
-	if (idField === "staffRoleId") newId = config.staffRoleId;
-	if (idField === "developerRoleId") newId = config.developerRoleId;
-
-	return newId;
-}
-
-function deploySlashCommands(client: Client, config: Config) {
-	log("Deploying slash commands", "info");
-	const commands = client.guilds.cache.get(config.guildId)?.commands;
-
-	if (!commands) {
-		log('Could not deploy slash-commands. Can retry with "!deploy".', "warn");
-		return Promise.reject("Could not deploy slash-commands.");
-	}
-
-	return Promise.all(
-		getCommands().map(command => {
-			commands
-				.create({
-					name: command.name,
-					description: command.description,
-					options: command.options,
-					defaultPermission: false,
-				})
-				.then(slash => {
-					const permissions = getPermissions(command.name);
-					let finalPermId = "0";
-
-					if (permissions) {
-						const perms = permissions.perms;
-						if (perms[0].id === "0") {
-							perms[0].id = getPermField(permissions.field, config);
-						}
-						slash.manager.permissions
-							.add({
-								command: slash,
-								guild: config.guildId,
-								permissions: permissions.perms,
-							})
-							.catch(err => log(err, "warn"));
-						finalPermId = perms[0].id;
-					}
-
-					log(`Loaded ${slash.name} with id: ${slash.id} [PermissionsID: ${finalPermId}].`, "debug");
-				})
-				.catch(err => log(err, "error"));
-		})
-	);
-}
-
 function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
 
 	setState(state);
-	setPermState(state);
 
 	if (!canUpdateVerbosity(config.verbosityLevel)) {
 		// TODO: a more scalable approach to sanity checking config.
@@ -87,16 +31,13 @@ function main(state: State, secrets: Secrets) {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
 		log("Client logged in.", "info");
 		log(`Client Version: ${state.version}`, "debug");
-		deploySlashCommands(client, config).catch(console.error.bind(console));
+		deploySlashCommands().catch(err => log(err, "error"));
 	});
 
 	client.on("interactionCreate", interaction => {
 		if (!interaction.isCommand()) return;
 		const command = getCommand(interaction.commandName);
-
-		const memberCommands = getMemberCommands(interaction.member as GuildMember);
-
-		if (command && memberCommands.includes(command)) {
+		if (command) {
 			commandLogModel
 				.create({
 					discordId: interaction.user.id,
@@ -134,7 +75,7 @@ function main(state: State, secrets: Secrets) {
 		// Handle meta commands.
 		if (message.member?.roles.cache.has(state.config.developerRoleId)) {
 			if (message.content.toLowerCase() === "!deploy") {
-				deploySlashCommands(client, config)
+				deploySlashCommands()
 					.then(() => message.reply("Successfully loaded slash-commands."))
 					.catch(console.error.bind(console));
 			} else if (message.content.toLowerCase() === "!unload") {

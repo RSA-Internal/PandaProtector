@@ -1,5 +1,4 @@
 import type { ApplicationCommandPermissionData } from "discord.js";
-import type { State } from "../state";
 
 interface PermissionTree {
 	[key: string]: PermissionObject;
@@ -8,16 +7,6 @@ interface PermissionTree {
 interface PermissionObject {
 	field: string;
 	perms: ApplicationCommandPermissionData[];
-}
-
-let state: State | undefined;
-
-export function setPermState(newState: State): void {
-	state = newState;
-}
-
-function getState() {
-	return state;
 }
 
 export function getPermissions(commandName: string): PermissionObject {
@@ -29,7 +18,7 @@ const permissions: PermissionTree = {
 		field: "staffRoleId",
 		perms: [
 			{
-				id: getState()?.config.staffRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -39,7 +28,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -49,7 +38,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -59,7 +48,7 @@ const permissions: PermissionTree = {
 		field: "developerRoleId",
 		perms: [
 			{
-				id: getState()?.config.developerRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -69,7 +58,7 @@ const permissions: PermissionTree = {
 		field: "developerRoleId",
 		perms: [
 			{
-				id: getState()?.config.developerRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -79,7 +68,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -89,7 +78,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -99,7 +88,7 @@ const permissions: PermissionTree = {
 		field: "staffRoleId",
 		perms: [
 			{
-				id: getState()?.config.staffRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -109,7 +98,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -119,7 +108,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -129,7 +118,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -139,7 +128,7 @@ const permissions: PermissionTree = {
 		field: "developerRoleId",
 		perms: [
 			{
-				id: getState()?.config.developerRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
@@ -149,7 +138,7 @@ const permissions: PermissionTree = {
 		field: "memberRoleId",
 		perms: [
 			{
-				id: getState()?.config.memberRoleId ?? "0",
+				id: "0",
 				type: "ROLE",
 				permission: true,
 			},
