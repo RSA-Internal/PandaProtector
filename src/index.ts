@@ -49,15 +49,7 @@ function main(state: State, secrets: Secrets) {
 		log(String(reason), "error");
 	});
 
-	exitHook(callback => {
-		client.guilds.cache
-			.get(config.guildId)
-			?.commands.set([])
-			.then(callback)
-			.catch(err => {
-				log(err, "error");
-				callback();
-			});
+	exitHook(() => {
 		disconnect().catch(console.error.bind(console));
 	});
 }
