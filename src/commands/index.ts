@@ -5,7 +5,7 @@ import compilers from "./compilers";
 import config from "./config";
 import debug from "./debug";
 import github from "./github";
-import help from "./help";
+import permissions from "./permissions";
 import ping from "./ping";
 import report from "./report";
 import serverinfo from "./serverinfo";
@@ -20,7 +20,7 @@ const commands = {
 	config,
 	debug,
 	github,
-	help,
+	permissions,
 	ping,
 	report,
 	serverinfo,

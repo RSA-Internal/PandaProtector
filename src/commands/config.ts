@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import { writeFile } from "fs";
 import type { Command } from "../command";
 import { canUpdateVerbosity, log } from "../logger";
@@ -73,8 +73,6 @@ const command: Command = {
 			description: "The new value for the config.",
 		},
 	],
-	hasPermission: interaction =>
-		(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
 	shouldBeEphemeral: interaction =>
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
 	handler: (interaction, args) => {
@@ -101,7 +99,8 @@ const command: Command = {
 					writeFile(configPath, JSON.stringify(config), err => {
 						if (!err) {
 							interaction
-								.reply(`Updated config ${name}.`, {
+								.reply({
+									content: `Updated config ${name}.`,
 									ephemeral: command.shouldBeEphemeral(interaction),
 								})
 								.catch(err => log(err, "error"));
@@ -109,7 +108,8 @@ const command: Command = {
 							log(err.message, "error");
 
 							interaction
-								.reply(`Updated config ${name}, but could not save to file: ${err.message}.`, {
+								.reply({
+									content: `Updated config ${name}, but could not save to file: ${err.message}.`,
 									ephemeral: command.shouldBeEphemeral(interaction),
 								})
 								.catch(err => log(err, "error"));
@@ -118,27 +118,29 @@ const command: Command = {
 				} else {
 					// Get config value.
 					interaction
-						.reply(`${name}: ${config[name as keyof typeof config]}`, { ephemeral: true })
+						.reply({ content: `${name}: ${config[name as keyof typeof config]}`, ephemeral: true })
 						.catch(err => log(err, "error"));
 				}
 			} else {
 				interaction
-					.reply("Unknown config.", { ephemeral: command.shouldBeEphemeral(interaction) })
+					.reply({ content: "Unknown config.", ephemeral: command.shouldBeEphemeral(interaction) })
 					.catch(console.error.bind(console));
 			}
 		} else {
 			// List config entries.
 			interaction
-				.reply(
-					new MessageEmbed({
-						title: "Config",
-						fields: Object.entries(config).map(([name, value]) => ({
-							name,
-							value: value as string,
-							inline: true,
-						})),
-					})
-				)
+				.reply({
+					embeds: [
+						new MessageEmbed({
+							title: "Config",
+							fields: Object.entries(config).map(([name, value]) => ({
+								name,
+								value: value as string,
+								inline: true,
+							})),
+						}),
+					],
+				})
 				.catch(err => log(err, "error"));
 		}
 	},

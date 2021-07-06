@@ -5,7 +5,6 @@ const command: Command = {
 	name: "uptime",
 	description: "Displays bot uptime.",
 	options: [],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: interaction => {
 		const uptime = process.uptime();
@@ -15,7 +14,8 @@ const command: Command = {
 		const days = Math.floor(uptime / 86400);
 
 		interaction
-			.reply(`Uptime: ${days} days ${hours}:${minutes}:${seconds}`, {
+			.reply({
+				content: `Uptime: ${days} days ${hours}:${minutes}:${seconds}`,
 				ephemeral: command.shouldBeEphemeral(interaction),
 			})
 			.catch(console.error.bind(console));

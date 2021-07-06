@@ -2,43 +2,19 @@ import { Client, Intents } from "discord.js";
 import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
-import { getCommand, getCommands } from "./commands";
-import { Config, isConfig } from "./config";
+import { getCommand } from "./commands";
+import { isConfig } from "./config";
 import { canUpdateVerbosity, log } from "./logger";
 import commandLogModel from "./models/commandLog.model";
 import { isSecrets, Secrets } from "./secrets";
 import type { State } from "./state";
 import { setOauth } from "./store/githubOauth";
 import { setState } from "./store/state";
+import { deploySlashCommands } from "./util";
 
 // USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
 const secretsPath = process.argv[3] ?? "secrets.json";
-
-function deploySlashCommands(client: Client, config: Config) {
-	log("Deploying slash commands", "info");
-	const commands = client.guilds.cache.get(config.guildId)?.commands;
-
-	if (!commands) {
-		log('Could not deploy slash-commands. Can retry with "!deploy".', "warn");
-		return Promise.reject("Could not deploy slash-commands.");
-	}
-
-	return Promise.all(
-		getCommands().map(command => {
-			commands
-				.create({
-					name: command.name,
-					description: command.description,
-					options: command.options,
-				})
-				.then(slash => {
-					log(`Loaded ${slash.name} with id: ${slash.id}.`, "debug");
-				})
-				.catch(err => log(err, "error"));
-		})
-	);
-}
 
 function main(state: State, secrets: Secrets) {
 	const { config, client } = state;
@@ -55,14 +31,15 @@ function main(state: State, secrets: Secrets) {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
 		log("Client logged in.", "info");
 		log(`Client Version: ${state.version}`, "debug");
-		deploySlashCommands(client, config).catch(console.error.bind(console));
+		deploySlashCommands()
+			.then(() => log("Loaded slash commands.", "info"))
+			.catch(err => log(err, "error"));
 	});
 
-	client.on("interaction", interaction => {
+	client.on("interactionCreate", interaction => {
 		if (!interaction.isCommand()) return;
 		const command = getCommand(interaction.commandName);
-
-		if (command && command.hasPermission(interaction)) {
+		if (command) {
 			commandLogModel
 				.create({
 					discordId: interaction.user.id,
@@ -75,7 +52,7 @@ function main(state: State, secrets: Secrets) {
 		}
 	});
 
-	client.on("message", message => {
+	client.on("messageCreate", message => {
 		if (message.author.bot) {
 			// Do not process bot messages.
 			return;
@@ -100,7 +77,7 @@ function main(state: State, secrets: Secrets) {
 		// Handle meta commands.
 		if (message.member?.roles.cache.has(state.config.developerRoleId)) {
 			if (message.content.toLowerCase() === "!deploy") {
-				deploySlashCommands(client, config)
+				deploySlashCommands()
 					.then(() => message.reply("Successfully loaded slash-commands."))
 					.catch(console.error.bind(console));
 			} else if (message.content.toLowerCase() === "!unload") {

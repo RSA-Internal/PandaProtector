@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { getCompilers } from "wandbox-api-updated";
 import type { Command } from "../command";
+import { log } from "../logger";
 import { getState } from "../store/state";
 
 const command: Command = {
@@ -44,7 +45,6 @@ const command: Command = {
 			],
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: (interaction, args) => {
 		const language = args.get("language")?.value as string;
@@ -63,10 +63,10 @@ const command: Command = {
 				// Discord embeds do not allow for more than 25 fields.
 				listEmbed.fields.splice(25);
 
-				interaction.reply(listEmbed).catch(console.error.bind(console));
+				interaction.reply({ embeds: [listEmbed] }).catch(err => log(err, "error"));
 			})
 			.catch(err => {
-				interaction.reply(err, { allowedMentions: {} }).catch(console.error.bind(console));
+				interaction.reply({ content: String(err), allowedMentions: {} }).catch(err => log(err, "error"));
 			});
 	},
 };

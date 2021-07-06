@@ -7,7 +7,6 @@ const command: Command = {
 	name: "serverinfo",
 	description: "Show info about the server.",
 	options: [],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
 	handler: interaction => {
 		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(err => log(err, "error"));
@@ -35,7 +34,7 @@ const command: Command = {
 					);
 				})
 				.then(() => {
-					interaction.editReply(embed).catch(err => log(err, "error"));
+					interaction.editReply({ embeds: [embed] }).catch(err => log(err, "error"));
 				})
 				.catch(err => log(err, "error"));
 		}
