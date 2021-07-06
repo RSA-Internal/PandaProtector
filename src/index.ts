@@ -131,7 +131,10 @@ function main(state: State, secrets: Secrets) {
 			.get(config.guildId)
 			?.commands.set([])
 			.then(callback)
-			.catch(err => log(err, "error"));
+			.catch(err => {
+				log(err, "error");
+				callback();
+			});
 		disconnect().catch(console.error.bind(console));
 	});
 }
