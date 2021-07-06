@@ -21,10 +21,10 @@ function getPermField(idField: keyof Config, config: Config): `${bigint}` {
 	return config[idField] as `${bigint}`;
 }
 
-export async function deploySlashCommands(): Promise<void[]> {
+export function deploySlashCommands(): Promise<void> {
 	const { client, config } = getState();
 
-	log("Deploying slash commands", "debug");
+	log("Deploying slash commands", "info");
 	const commands = client.guilds.cache.get(config.guildId)?.commands;
 
 	if (!commands) {
@@ -32,39 +32,24 @@ export async function deploySlashCommands(): Promise<void[]> {
 		return Promise.reject("Could not deploy slash-commands.");
 	}
 
-	const cachedCommands = (await commands.fetch()).map(command => command.name);
+	const commandList = getCommands().map(command => ({
+		name: command.name,
+		description: command.description,
+		options: command.options,
+		defaultPermission: false,
+	}));
 
-	return Promise.all(
-		getCommands()
-			.filter(command => !cachedCommands.includes(command.name))
-			.map(command => {
-				commands
-					.create({
-						name: command.name,
-						description: command.description,
-						options: command.options,
-						defaultPermission: false,
-					})
-					.then(slash => {
-						const permissions = getPermissions(command.name);
-						let finalPermId = "0";
-
-						if (permissions) {
-							const perms = permissions.perms;
-							perms[0].id = getPermField(permissions.field as keyof Config, config);
-							slash.manager.permissions
-								.add({
-									command: slash,
-									guild: config.guildId,
-									permissions: permissions.perms,
-								})
-								.catch(err => log(err, "warn"));
-							finalPermId = perms[0].id;
-						}
-
-						log(`Loaded ${slash.name} with id: ${slash.id} [PermissionsID: ${finalPermId}].`, "debug");
-					})
-					.catch(err => log(err, "error"));
-			})
-	);
+	return commands
+		.set(commandList)
+		.then(slashCommands => {
+			const permissionList = [
+				...slashCommands.map((slashCommand, commandId) => {
+					const permissions = getPermissions(slashCommand.name);
+					permissions.perms[0].id = getPermField(permissions.field as keyof Config, config);
+					return { id: commandId, permissions: permissions.perms };
+				}),
+			];
+			commands.permissions.set({ fullPermissions: permissionList }).catch(err => log(err, "error"));
+		})
+		.catch(err => log(err, "error"));
 }

@@ -31,7 +31,9 @@ function main(state: State, secrets: Secrets) {
 		client.user?.setActivity(state.version, { type: "PLAYING" });
 		log("Client logged in.", "info");
 		log(`Client Version: ${state.version}`, "debug");
-		deploySlashCommands().catch(err => log(err, "error"));
+		deploySlashCommands()
+			.then(() => log("Loaded slash commands.", "info"))
+			.catch(err => log(err, "error"));
 	});
 
 	client.on("interactionCreate", interaction => {
