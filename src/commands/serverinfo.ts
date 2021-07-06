@@ -1,5 +1,5 @@
 import { MessageEmbed } from "discord.js";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getState } from "../store/state";
 

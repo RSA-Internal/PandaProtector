@@ -1,6 +1,6 @@
 import type { Snowflake } from "discord-api-types";
 import { MessageEmbed } from "discord.js";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { getState } from "../store/state";
 
 const command: Command = {

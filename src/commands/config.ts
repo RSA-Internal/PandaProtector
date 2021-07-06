@@ -1,6 +1,6 @@
 import { MessageEmbed, TextChannel } from "discord.js";
 import { writeFile } from "fs";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { canUpdateVerbosity, log } from "../logger";
 import { getState } from "../store/state";
 

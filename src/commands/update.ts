@@ -1,4 +1,4 @@
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 
 const command: Command = {
 	name: "update",

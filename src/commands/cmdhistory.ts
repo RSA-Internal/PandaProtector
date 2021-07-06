@@ -1,6 +1,6 @@
 import type { Snowflake } from "discord-api-types";
 import { MessageEmbed, TextChannel } from "discord.js";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import CommandLog from "../models/commandLog.model";
 import { getState } from "../store/state";
 

@@ -1,4 +1,4 @@
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { getState } from "../store/state";
 
 const command: Command = {

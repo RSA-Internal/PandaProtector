@@ -1,6 +1,6 @@
 import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
 import fetch from "node-fetch";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getOauth } from "../store/githubOauth";
 import { getState } from "../store/state";

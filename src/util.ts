@@ -1,7 +1,7 @@
 import type { Snowflake } from "discord-api-types";
 import type { Client, User } from "discord.js";
 import { getCommands } from "./commands";
-import type { Config } from "./config";
+import type { Config } from "./structures/config";
 import { log } from "./logger";
 import { getPermissions } from "./store/permissions";
 import { getState } from "./store/state";
