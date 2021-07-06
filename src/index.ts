@@ -1,5 +1,5 @@
+import exitHook from "async-exit-hook";
 import { Client, Intents } from "discord.js";
-import exitHook from "exit-hook";
 import { readFileSync } from "fs";
 import { connect, connection, disconnect } from "mongoose";
 import { getCommand } from "./commands";
@@ -126,9 +126,12 @@ function main(state: State, secrets: Secrets) {
 		log(String(reason), "error");
 	});
 
-	// Cleanup resources on exit.
-	exitHook(() => {
-		client.guilds.cache.get(config.guildId)?.commands.set([]).catch(console.error.bind(console));
+	exitHook(callback => {
+		client.guilds.cache
+			.get(config.guildId)
+			?.commands.set([])
+			.then(callback)
+			.catch(err => log(err, "error"));
 		disconnect().catch(console.error.bind(console));
 	});
 }
