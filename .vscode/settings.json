@@ -4,11 +4,9 @@
 		"source.organizeImports": true
 	},
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnPaste": true,
 	"editor.formatOnSave": true,
 	"eslint.run": "onType",
-	"typescript.tsdk": "node_modules/typescript/lib",
-	"eslint.options": {
-		"configFile": ".eslintrc.dev.json",
-		"useEslintrc": false
-	}
+	"eslint.format.enable": true,
+	"typescript.tsdk": "node_modules/typescript/lib"
 }
