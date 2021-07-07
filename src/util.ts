@@ -38,17 +38,17 @@ export function addModerationRecordWithMessageToDB(
 	actionLevel: number
 ): void {
 	moderationActionLogModel
-		.count({}, undefined)
-		.catch(err => {
-			console.error(err);
-			setTimeout(() => {
-				addModerationRecordWithMessageToDB(offender, moderator, reason, messageId, actionLevel);
-			}, 120000);
-		})
-		.then(countedCaseNo =>
+		.count({}, (err, count) => {
+			if (err) {
+				log(err.message, "error");
+				setTimeout(() => {
+					addModerationRecordToDB(offender, moderator, reason, actionLevel);
+				}, 120000);
+				return;
+			}
 			moderationActionLogModel
 				.create({
-					caseNumber: countedCaseNo,
+					caseNumber: count,
 					offenderId: offender,
 					moderatorId: moderator,
 					actionLevel: actionLevel,
@@ -56,12 +56,18 @@ export function addModerationRecordWithMessageToDB(
 					messageId: messageId,
 				})
 				.catch(err => {
-					console.error(err);
+					log(err, "error");
 					setTimeout(() => {
 						addModerationRecordWithMessageToDB(offender, moderator, reason, messageId, actionLevel);
 					}, 120000);
-				})
-		);
+				});
+		})
+		.catch(err => {
+			log(err, "error");
+			setTimeout(() => {
+				addModerationRecordWithMessageToDB(offender, moderator, reason, messageId, actionLevel);
+			}, 120000);
+		});
 }
 
 export function addModerationRecordToDB(
@@ -71,29 +77,35 @@ export function addModerationRecordToDB(
 	actionLevel: number
 ): void {
 	moderationActionLogModel
-		.count({}, undefined)
-		.catch(err => {
-			console.error(err);
-			setTimeout(() => {
-				addModerationRecordToDB(offender, moderator, reason, actionLevel);
-			}, 120000);
-		})
-		.then(countedCaseNo =>
+		.count({}, (err, count) => {
+			if (err) {
+				log(err.message, "error");
+				setTimeout(() => {
+					addModerationRecordToDB(offender, moderator, reason, actionLevel);
+				}, 120000);
+				return;
+			}
 			moderationActionLogModel
 				.create({
-					caseNumber: countedCaseNo,
+					caseNumber: count,
 					offenderId: offender,
 					moderatorId: moderator,
 					actionLevel: actionLevel,
 					reason: reason,
 				})
 				.catch(err => {
-					console.error(err);
+					log(err, "error");
 					setTimeout(() => {
 						addModerationRecordToDB(offender, moderator, reason, actionLevel);
 					}, 120000);
-				})
-		);
+				});
+		})
+		.catch(err => {
+			log(err, "error");
+			setTimeout(() => {
+				addModerationRecordToDB(offender, moderator, reason, actionLevel);
+			}, 120000);
+		});
 }
 
 function getPermField(idField: keyof Config, config: Config): `${bigint}` {

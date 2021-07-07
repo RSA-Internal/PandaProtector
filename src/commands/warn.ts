@@ -1,6 +1,7 @@
 import type { Snowflake } from "discord-api-types";
 import { MessageEmbed, TextChannel } from "discord.js";
 import { modOptions } from "../../short-reasons.json";
+import { log } from "../logger";
 import moderatedMessageLogModel from "../models/moderatedMessageLog.model";
 import { getState } from "../store/state";
 import type { Command } from "../types/command";
@@ -60,28 +61,34 @@ const command: Command = {
 			}
 		})();
 
-		interaction.reply({
-			content: "Issuing warning...",
-			ephemeral: command.shouldBeEphemeral(interaction),
-		});
+		interaction
+			.reply({
+				content: "Issuing warning...",
+				ephemeral: command.shouldBeEphemeral(interaction),
+			})
+			.catch(err => log(err, "error"));
 
 		if (offender === undefined) {
-			interaction.editReply("Failed, offender not found.");
+			interaction.editReply("Failed, offender not found.").catch(err => log(err, "error"));
 			return;
 		}
 		if (finalreason === null) {
-			interaction.editReply(
-				"Failed, custom short reason selected and no long reason provided. Proper reasons are required to effect actions."
-			);
+			interaction
+				.editReply(
+					"Failed, custom short reason selected and no long reason provided. Proper reasons are required to effect actions."
+				)
+				.catch(err => log(err, "error"));
 			return;
 		}
 
 		if (offendingMessage !== undefined) {
-			moderatedMessageLogModel.create({
-				messageId: offendingMessage.id,
-				channelId: offendingMessage.channel.id,
-				messageContent: offendingMessage.content,
-			});
+			moderatedMessageLogModel
+				.create({
+					messageId: offendingMessage.id,
+					channelId: offendingMessage.channel.id,
+					messageContent: offendingMessage.content,
+				})
+				.catch(err => log(err, "error"));
 			addModerationRecordWithMessageToDB(offender.id, interaction.user.id, finalreason, offendingMessage.id, 20);
 		} else {
 			addModerationRecordToDB(offender.id, interaction.user.id, finalreason, 20);
@@ -117,21 +124,21 @@ const command: Command = {
 						}),
 					],
 				})
-				.catch(err => console.log("Failed to report action to transparency channels.\n", err));
+				.catch(err => log("Failed to report action to transparency channels.\n", err));
 		}
 
 		offender
 			.createDM()
-			.catch(err => {
-				console.log(err);
-			})
 			.then(dms => {
 				if (dms) {
-					dms.send(`You have been warned in ${interaction.guild?.name} for ${finalreason}.`);
+					dms.send(
+						`You have been warned in ${interaction.guild?.name ?? "Unknown Guild"} for ${finalreason}.`
+					).catch(err => log(err, "error"));
 				}
-			});
+			})
+			.catch(err => log(err, "error"));
 
-		interaction.editReply(`Warning issued successfully. 👍`);
+		interaction.editReply(`Warning issued successfully. 👍`).catch(err => log(err, "error"));
 	},
 };
 
