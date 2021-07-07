@@ -18,39 +18,39 @@
 		},
 		{
 			"name": "vcabuse - Voice Chat Abuse",
-			"value": ""
+			"value": "vcab"
 		},
 		{
 			"name": "exploit - Requesting Exploit Scripts",
-			"value": ""
+			"value": "expl"
 		},
 		{
 			"name": "selfbot - Self Bot",
-			"value": ""
+			"value": "sbot"
 		},
 		{
 			"name": "report - Report Abuse",
-			"value": ""
+			"value": "rpta"
 		},
 		{
 			"name": "hire - Hiring",
-			"value": ""
+			"value": "hire"
 		},
 		{
 			"name": "age - Children Under 13 (COPPA)",
-			"value": ""
+			"value": "udra"
 		},
 		{
 			"name": "malware - Malware Link or File",
-			"value": ""
+			"value": "malw"
 		},
 		{
 			"name": "helpabuse - Help Channel Abuse",
-			"value": ""
+			"value": "hlpa"
 		},
 		{
 			"name": "custom - Custom",
-			"value": ""
+			"value": "cust"
 		}
 	]
 }

@@ -1,56 +1,43 @@
 {
-	"modOptions": [
-		{
-			"name": "nsfw",
+	"modOptions": {
+		"nsfw": {
 			"value": ":underage: Materials which display explicit or suggestive sexual or gory content. Content or media inappropriate for general audience, professional, or educational settings."
 		},
-		{
-			"name": "scam",
+		"scam": {
 			"value": ":money_mouth: Intent to obtain account information, personally identifiable information, or solicitation of a service or product with no intention to fulfill such action."
 		},
-		{
-			"name": "spam",
+		"spam": {
 			"value": ":mailbox_with_no_mail: Repeated messages or link advertisements with intent to clutter or disrupt normal proceedings in a channel."
 		},
-		{
-			"name": "altr",
+		"altr": {
 			"value": ":busts_in_silhouette: Use of an alternative or secondary account to bypass mute or ban."
 		},
-		{
-			"name": "vcabuse - Voice Chat Abuse",
+		"vcab": {
 			"value": ""
 		},
-		{
-			"name": "exploit - Requesting Exploit Scripts",
+		"expl": {
 			"value": ""
 		},
-		{
-			"name": "selfbot - Self Bot",
+		"sbot": {
 			"value": ""
 		},
-		{
-			"name": "report - Report Abuse",
+		"rpta": {
 			"value": ""
 		},
-		{
-			"name": "hire - Hiring",
+		"hire": {
 			"value": ""
 		},
-		{
-			"name": "age - Children Under 13 (COPPA)",
+		"udra": {
 			"value": ""
 		},
-		{
-			"name": "malware - Malware Link or File",
+		"malw": {
 			"value": ""
 		},
-		{
-			"name": "helpabuse - Help Channel Abuse",
+		"hlpa": {
 			"value": ""
 		},
-		{
-			"name": "custom - Custom",
+		"cust": {
 			"value": ""
 		}
-	]
+	}
 }

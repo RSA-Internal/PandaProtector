@@ -38,12 +38,9 @@ export function addModerationRecordWithMessageToDB(
 	actionLevel: number
 ): void {
 	moderationActionLogModel
-		.count({}, (err, count) => {
+		.countDocuments({}, (err, count) => {
 			if (err) {
 				log(err.message, "error");
-				setTimeout(() => {
-					addModerationRecordToDB(offender, moderator, reason, actionLevel);
-				}, 120000);
 				return;
 			}
 			moderationActionLogModel
@@ -57,16 +54,10 @@ export function addModerationRecordWithMessageToDB(
 				})
 				.catch(err => {
 					log(err, "error");
-					setTimeout(() => {
-						addModerationRecordWithMessageToDB(offender, moderator, reason, messageId, actionLevel);
-					}, 120000);
 				});
 		})
 		.catch(err => {
 			log(err, "error");
-			setTimeout(() => {
-				addModerationRecordWithMessageToDB(offender, moderator, reason, messageId, actionLevel);
-			}, 120000);
 		});
 }
 
@@ -77,13 +68,9 @@ export function addModerationRecordToDB(
 	actionLevel: number
 ): void {
 	moderationActionLogModel
-		.count({}, (err, count) => {
+		.countDocuments({}, (err, count) => {
 			if (err) {
 				log(err.message, "error");
-				setTimeout(() => {
-					addModerationRecordToDB(offender, moderator, reason, actionLevel);
-				}, 120000);
-				return;
 			}
 			moderationActionLogModel
 				.create({
@@ -95,16 +82,10 @@ export function addModerationRecordToDB(
 				})
 				.catch(err => {
 					log(err, "error");
-					setTimeout(() => {
-						addModerationRecordToDB(offender, moderator, reason, actionLevel);
-					}, 120000);
 				});
 		})
 		.catch(err => {
 			log(err, "error");
-			setTimeout(() => {
-				addModerationRecordToDB(offender, moderator, reason, actionLevel);
-			}, 120000);
 		});
 }
 

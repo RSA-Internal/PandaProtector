@@ -38,34 +38,37 @@ const command: Command = {
 	],
 	shouldBeEphemeral: interaction =>
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
-	handler: (interaction, args) => {
+	handler: async (interaction, args) => {
+		await interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) });
 		//Initial, unmodified, retrieved values.
 		const offender = getState().client.users.cache.get(args.get("offender")?.value as Snowflake);
 		const shortres = args.get("short");
 		const longres = args.get("reason")?.value as string | undefined;
 		const messId = args.get("message")?.value as Snowflake | undefined;
+		console.log(shortres);
+		console.log(longres);
 
 		//Final, retrieved values.
 		const offendingMessage =
 			messId && interaction.guild !== null ? getMessageFromId(messId, interaction.guild) : undefined; //If messId is not undefined and guild is not null, get the message from Id, return type message or undefined, if nothing returned, give null.
 		const finalreason = (function (): string | null {
-			if (shortres?.name.startsWith("custom") && longres !== "" && longres !== undefined) {
+			if (shortres?.value === "cust" && longres !== "" && longres !== undefined) {
 				if (longres.length > 1500) {
 					return longres.substring(0, 1500) + "...";
 				} else {
 					return longres;
 				}
-			} else if (!shortres?.name.startsWith("custom") && shortres?.value !== undefined) {
-				return modOptions.find(reasonOption => reasonOption.name === shortres.value)?.value ?? "";
+			} else if (shortres?.value !== undefined && shortres.value !== "cust") {
+				return modOptions[shortres.value as keyof typeof modOptions].value;
+				//modOptions.find(reasonOption => reasonOption.name === shortres.value)?.value ?? "";
 			} else {
 				return null;
 			}
 		})();
-
+		console.log(finalreason);
 		interaction
-			.reply({
+			.editReply({
 				content: "Issuing warning...",
-				ephemeral: command.shouldBeEphemeral(interaction),
 			})
 			.catch(err => log(err, "error"));
 
@@ -73,7 +76,7 @@ const command: Command = {
 			interaction.editReply("Failed, offender not found.").catch(err => log(err, "error"));
 			return;
 		}
-		if (finalreason === null) {
+		if (finalreason === null || finalreason === "") {
 			interaction
 				.editReply(
 					"Failed, custom short reason selected and no long reason provided. Proper reasons are required to effect actions."
@@ -99,7 +102,6 @@ const command: Command = {
 			| TextChannel
 			| undefined;
 		if (transparencyChannel !== undefined) {
-			new MessageEmbed();
 			transparencyChannel
 				.send({
 					embeds: [
