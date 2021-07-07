@@ -1,0 +1,56 @@
+{
+	"shortMappings": [
+		{
+			"name": "nsfw - Not Safe For Work",
+			"value": "nsfw"
+		},
+		{
+			"name": "scam - Scam",
+			"value": "scam"
+		},
+		{
+			"name": "spam - Spam",
+			"value": "spam"
+		},
+		{
+			"name": "altr - Alternate Account",
+			"value": "altr"
+		},
+		{
+			"name": "vcabuse - Voice Chat Abuse",
+			"value": ""
+		},
+		{
+			"name": "exploit - Requesting Exploit Scripts",
+			"value": ""
+		},
+		{
+			"name": "selfbot - Self Bot",
+			"value": ""
+		},
+		{
+			"name": "report - Report Abuse",
+			"value": ""
+		},
+		{
+			"name": "hire - Hiring",
+			"value": ""
+		},
+		{
+			"name": "age - Children Under 13 (COPPA)",
+			"value": ""
+		},
+		{
+			"name": "malware - Malware Link or File",
+			"value": ""
+		},
+		{
+			"name": "helpabuse - Help Channel Abuse",
+			"value": ""
+		},
+		{
+			"name": "custom - Custom",
+			"value": ""
+		}
+	]
+}
