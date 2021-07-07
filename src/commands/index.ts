@@ -11,6 +11,7 @@ import report from "./report";
 import serverinfo from "./serverinfo";
 import update from "./update";
 import uptime from "./uptime";
+import warn from "./warn";
 
 /** Keep commands in lowercase. */
 const commands = {
@@ -26,6 +27,7 @@ const commands = {
 	serverinfo,
 	update,
 	uptime,
+	warn,
 };
 
 export function getCommand(commandName: string): Command | undefined {

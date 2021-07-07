@@ -1,8 +1,8 @@
 import { MessageEmbed, TextChannel } from "discord.js";
 import { writeFile } from "fs";
-import type { Command } from "../types/command";
 import { canUpdateVerbosity, log } from "../logger";
 import { getState } from "../store/state";
+import type { Command } from "../types/command";
 
 const command: Command = {
 	name: "config",
@@ -64,6 +64,10 @@ const command: Command = {
 				{
 					name: "Muted Role Id",
 					value: "mutedRoleId",
+				},
+				{
+					name: "Moderation Action Log Id",
+					value: "modActionLogChannelId",
 				},
 			],
 		},

@@ -144,4 +144,14 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	warn: {
+		field: "staffRoleId",
+		perms: [
+			{
+				id: "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 };

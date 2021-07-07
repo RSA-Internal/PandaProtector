@@ -11,5 +11,6 @@
 	"verbosityLevel": "",
 	"logChannelId": "",
 	"removeMemberRoleOnMute": "",
-	"mutedRoleId": ""
+	"mutedRoleId": "",
+	"modActionLogChannelId": ""
 }
