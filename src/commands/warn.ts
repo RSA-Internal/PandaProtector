@@ -1,5 +1,6 @@
 import type { Snowflake } from "discord-api-types";
 import { MessageEmbed, TextChannel } from "discord.js";
+import { shortMappings } from "../../short-reasons-mapping.json";
 import { modOptions } from "../../short-reasons.json";
 import { log } from "../logger";
 import moderatedMessageLogModel from "../models/moderatedMessageLog.model";
@@ -22,7 +23,7 @@ const command: Command = {
 			name: "short",
 			description: "Shorthand reason for action.",
 			required: true,
-			choices: modOptions,
+			choices: shortMappings,
 		},
 		{
 			type: "STRING",
@@ -55,7 +56,7 @@ const command: Command = {
 					return longres;
 				}
 			} else if (!shortres?.name.startsWith("custom") && shortres?.value !== undefined) {
-				return shortres.value?.toString();
+				return modOptions.find(reasonOption => reasonOption.name === shortres.value)?.value ?? "";
 			} else {
 				return null;
 			}
