@@ -1,5 +1,5 @@
 import type { Client } from "discord.js";
-import type { Config } from "./config";
+import type { Config } from "../structures/config";
 
 export interface State {
 	readonly version: string;

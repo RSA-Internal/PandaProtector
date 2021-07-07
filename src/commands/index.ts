@@ -1,13 +1,14 @@
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import cmdhistory from "./cmdhistory";
 import compile from "./compile";
 import compilers from "./compilers";
 import config from "./config";
 import debug from "./debug";
 import github from "./github";
-import help from "./help";
+import permissions from "./permissions";
 import ping from "./ping";
 import report from "./report";
+import serverinfo from "./serverinfo";
 import update from "./update";
 import uptime from "./uptime";
 
@@ -19,9 +20,10 @@ const commands = {
 	config,
 	debug,
 	github,
-	help,
+	permissions,
 	ping,
 	report,
+	serverinfo,
 	update,
 	uptime,
 };

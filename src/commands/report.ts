@@ -1,6 +1,6 @@
 import type { Snowflake } from "discord-api-types";
 import { MessageEmbed } from "discord.js";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
 import { getState } from "../store/state";
 
 const command: Command = {
@@ -20,12 +20,11 @@ const command: Command = {
 			required: true,
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: () => true,
 	handler: (interaction, args) => {
-		const reasonText = args[1].value as string;
+		const reasonText = args.get("reason")?.value as string;
 		const state = getState();
-		const userObject = state.client.users.cache.get(args[0].value as Snowflake);
+		const userObject = state.client.users.cache.get(args.get("user")?.value as Snowflake);
 		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
 
 		if (!reportChannel?.isText()) {
@@ -37,7 +36,10 @@ const command: Command = {
 		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
 			// Ensure the target user is reportable and not the reporter.
 			interaction
-				.reply("Could not report this user.", { ephemeral: command.shouldBeEphemeral(interaction) })
+				.reply({
+					content: "Could not report this user.",
+					ephemeral: command.shouldBeEphemeral(interaction),
+				})
 				.catch(console.error.bind(console));
 			return;
 		}
@@ -51,37 +53,40 @@ const command: Command = {
 			.send("Reporting...")
 			.then(message => {
 				reportChannel
-					.send(
-						new MessageEmbed({
-							fields: [
-								{
-									name: "Reporter",
-									value: `<@${interaction.user.id}>`,
-									inline: true,
-								},
-								{
-									name: "Accused",
-									value: `<@${userObject.id}>`,
-									inline: true,
-								},
-								{
-									name: "Jump Link",
-									value: `[Here](${message.url})`,
-									inline: true,
-								},
-								{
-									name: "Reason",
-									value: reasonText,
-								},
-							],
-							timestamp: interaction.createdTimestamp,
-							color: "#FF0000",
-						})
-					)
+					.send({
+						embeds: [
+							new MessageEmbed({
+								fields: [
+									{
+										name: "Reporter",
+										value: `<@${interaction.user.id}>`,
+										inline: true,
+									},
+									{
+										name: "Accused",
+										value: `<@${userObject.id}>`,
+										inline: true,
+									},
+									{
+										name: "Jump Link",
+										value: `[Here](${message.url})`,
+										inline: true,
+									},
+									{
+										name: "Reason",
+										value: reasonText,
+									},
+								],
+								timestamp: interaction.createdTimestamp,
+								color: "#FF0000",
+							}),
+						],
+					})
 					.then(reportMessage => {
 						message.edit("Reported.").catch(console.error.bind(console));
 						interaction
-							.reply(`You have reported the user.`, {
+							.reply({
+								content: `You have reported the user.`,
 								ephemeral: command.shouldBeEphemeral(interaction),
 							})
 							.catch(console.error.bind(console));
@@ -96,7 +101,8 @@ const command: Command = {
 						// If the embed fails to send, remove the jump link message.
 						message.delete().catch(console.error.bind(console));
 						interaction
-							.reply(`Could not report the user, please mention an online mod.`, {
+							.reply({
+								content: `Could not report the user, please mention an online mod.`,
 								ephemeral: command.shouldBeEphemeral(interaction),
 							})
 							.catch(console.error.bind(console));
@@ -107,7 +113,8 @@ const command: Command = {
 				console.error(reason);
 
 				interaction
-					.reply(`Could not report the user, please mention an online mod.`, {
+					.reply({
+						content: `Could not report the user, please mention an online mod.`,
 						ephemeral: command.shouldBeEphemeral(interaction),
 					})
 					.catch(console.error.bind(console));

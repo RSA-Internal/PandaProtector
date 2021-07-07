@@ -1,4 +1,4 @@
-import type { State } from "../state";
+import type { State } from "../types/state";
 import { assert } from "../util";
 
 let state: State | undefined;

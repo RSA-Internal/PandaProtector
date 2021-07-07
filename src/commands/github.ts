@@ -1,6 +1,7 @@
 import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
 import fetch from "node-fetch";
-import type { Command } from "../command";
+import type { Command } from "../types/command";
+import { log } from "../logger";
 import { getOauth } from "../store/githubOauth";
 import { getState } from "../store/state";
 import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../types/github";
@@ -17,19 +18,19 @@ const command: Command = {
 			choices: [
 				{
 					name: "Branch",
-					value: "branch",
+					value: "branches",
 				},
 				{
 					name: "Commit",
-					value: "commit",
+					value: "commits",
 				},
 				{
 					name: "Issue",
-					value: "issue",
+					value: "issues",
 				},
 				{
 					name: "Pull Request",
-					value: "pull",
+					value: "pulls",
 				},
 				{
 					name: "Respository",
@@ -49,158 +50,113 @@ const command: Command = {
 			description: "A custom repository to fetch data from",
 		},
 	],
-	hasPermission: () => true,
 	shouldBeEphemeral: interaction =>
 		interaction.channelID !== getState().config.botChannelId &&
 		!(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
 	handler: (interaction, args) => {
 		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(console.error.bind(console));
 
-		const repo = (args[2]?.value as string | undefined) ?? getState().config.ghRepoPath;
-		const objectType = (args[0].value as string).toLowerCase();
-		const query = args[1].value as string;
+		const repo = (args.get("repo")?.value as string | undefined) ?? getState().config.ghRepoPath;
+		const objectType = (args.get("name")?.value as string).toLowerCase();
+		const query = args.get("query")?.value as string;
 		const embedReply = new MessageEmbed();
 
-		switch (objectType) {
-			case "branch":
-				oauthFetch(`https://api.github.com/repos/${repo}/branches/${query}`)
-					.then(json => {
-						const jsonData = json as Branch;
+		const route =
+			objectType === "repo"
+				? `https://api.github.com/repos/${query}`
+				: `https://api.github.com/repos/${repo}/${objectType}/${query}`;
 
-						embedReply.setTitle(`${jsonData.name} in ${repo}`);
-						embedReply.setThumbnail(jsonData.commit.author.avatar_url);
-						embedReply.setURL(jsonData._links.html);
-						embedReply.addField("Branch Name", `[${jsonData.name}](${jsonData._links.html})`, true);
-						embedReply.addField(
-							"Latest Commit",
-							`[${jsonData.commit.sha.slice(0, 7)}](${jsonData.commit.html_url})`,
-							true
-						);
-						embedReply.addField(
-							"Latest Commit Author",
-							generateGitHubUserLink(jsonData.commit.author),
-							true
-						);
+		oauthFetch(route)
+			.then(json => {
+				let jsonData = json as Branch | Commit | Issue | PullRequest | Repository;
 
-						interaction.editReply(embedReply).catch(console.error.bind(console));
-					})
-					.catch(res => handleError(interaction, res as string));
+				if (objectType === "issues" || objectType === "pulls") {
+					const modifiedReply = handleIssueOrPr(repo, jsonData as Issue | PullRequest, embedReply);
+					interaction.editReply({ embeds: [modifiedReply] }).catch(err => log(err, "error"));
+					return;
+				} else if (objectType === "commits") {
+					const modifiedReply = handleCommit(jsonData as Commit, embedReply);
+					interaction.editReply({ embeds: [modifiedReply] }).catch(err => log(err, "error"));
+					return;
+				} else if (objectType === "branches") {
+					jsonData = jsonData as Branch;
+					embedReply.setTitle(`${jsonData.name} in ${repo}`);
+					embedReply.setThumbnail(jsonData.commit.author.avatar_url);
+					embedReply.setURL(jsonData._links.html);
+					embedReply.addField("Branch Name", `[${jsonData.name}](${jsonData._links.html})`, true);
+					embedReply.addField(
+						"Latest Commit",
+						`[${jsonData.commit.sha.slice(0, 7)}](${jsonData.commit.html_url})`,
+						true
+					);
+					embedReply.addField("Latest Commit Author", generateGitHubUserLink(jsonData.commit.author), true);
+				} else if (objectType === "repo") {
+					jsonData = jsonData as Repository;
+					embedReply.setTitle(jsonData.name);
+					embedReply.setDescription(jsonData.full_name);
+					embedReply.setURL(jsonData.html_url);
+					embedReply.addField("Owner", generateGitHubUserLink(jsonData.owner), true);
+					embedReply.addField("Language", jsonData.language, true);
+					embedReply.addField("Creation Date", jsonData.created_at, true);
+					embedReply.addField("Is a fork", String(jsonData.fork), true);
+					embedReply.addField("Open Issues", String(jsonData.open_issues_count), true);
+					embedReply.addField("Watchers", String(jsonData.watchers_count), true);
+					embedReply.addField("Description", jsonData.description ?? "No description set.");
+				}
 
-				break;
-			case "commit":
-				oauthFetch(`https://api.github.com/repos/${repo}/commits/${query}`)
-					.then(json => {
-						const jsonData = json as Commit;
-
-						embedReply.setTitle(`commit: ${jsonData.sha}`);
-						embedReply.setURL(jsonData.html_url);
-						embedReply.setThumbnail(jsonData.author.avatar_url);
-						embedReply.addField("Author", generateGitHubUserLink(jsonData.author), true);
-						embedReply.addField(
-							"Stats",
-							`Total: ${jsonData.stats.total}\nAdditions: ${jsonData.stats.additions}\nDeletions: ${jsonData.stats.deletions}`,
-							true
-						);
-						embedReply.addField("Signed", String(jsonData.commit.verification.verified), true);
-						embedReply.addField("Message", jsonData.commit.message, false);
-
-						const fileCount = jsonData.files.length;
-						let filePadding = 0;
-						let diffPadding = 0;
-
-						jsonData.files.forEach(file => {
-							filePadding = Math.max(filePadding, file.filename.length);
-							diffPadding = Math.max(diffPadding, Math.floor(Math.log10(file.additions || 1)));
-						});
-
-						if (fileCount > 0) {
-							const count = 0;
-							const lines: string[] = [];
-
-							for (let count = 0; count < Math.min(5, fileCount); count++) {
-								const file = jsonData.files[count];
-
-								lines.push(
-									`[${file.status.slice(0, 1).toUpperCase()}] ${file.filename}: ${" ".repeat(
-										filePadding - file.filename.length
-									)} +${file.additions}${" ".repeat(
-										diffPadding - Math.floor(Math.log10(file.additions || 1))
-									)} | -${file.deletions}`
-								);
-							}
-
-							if (fileCount > count) lines.push(`...and ${fileCount - count} more.`);
-
-							embedReply.addField("Files", `\`\`\`${lines.join("\n")}\n\`\`\``, false);
-						}
-
-						interaction.editReply(embedReply).catch(console.error.bind(console));
-					})
-					.catch(res => handleError(interaction, res as string));
-
-				break;
-			case "issue":
-				oauthFetch(`https://api.github.com/repos/${repo}/issues/${query}`)
-					.then(json => {
-						const modifiedEmbed = handleIssueOrPr(repo, json as Issue, embedReply);
-						interaction.editReply(modifiedEmbed).catch(console.error.bind(console));
-					})
-					.catch(res => handleError(interaction, res as string));
-
-				break;
-			case "pull":
-				oauthFetch(`https://api.github.com/repos/${repo}/pulls/${query}`)
-					.then(json => {
-						const jsonData = json as PullRequest;
-						const modifiedEmbed = handleIssueOrPr(repo, jsonData, embedReply);
-						modifiedEmbed.addField("Merged", String(jsonData.merged), true);
-
-						if (!jsonData.merged) {
-							modifiedEmbed.addField("Mergeable", String(jsonData.mergeable), true);
-						} else {
-							modifiedEmbed.addField("Merged at", jsonData.merged_at, true);
-							modifiedEmbed.addField("Merged by", generateGitHubUserLink(jsonData.merged_by), true);
-						}
-
-						interaction.editReply(modifiedEmbed).catch(console.error.bind(console));
-					})
-					.catch(res => handleError(interaction, res as string));
-
-				break;
-			case "repo":
-				oauthFetch(`https://api.github.com/repos/${query}`)
-					.then(json => {
-						const jsonData = json as Repository;
-						const embedReply = new MessageEmbed();
-
-						embedReply.setTitle(jsonData.name);
-						embedReply.setDescription(jsonData.full_name);
-						embedReply.setURL(jsonData.html_url);
-						embedReply.setThumbnail(jsonData.owner.avatar_url);
-						embedReply.addField("Owner", generateGitHubUserLink(jsonData.owner), true);
-						embedReply.addField("Language", jsonData.language, true);
-						embedReply.addField("Creation Date", jsonData.created_at, true);
-						embedReply.addField("Is a fork", String(jsonData.fork), true);
-						embedReply.addField("Open Issues", String(jsonData.open_issues_count), true);
-						embedReply.addField("Watchers", String(jsonData.watchers_count), true);
-						embedReply.addField("Description", jsonData.description ?? "No description set.");
-
-						interaction.editReply(embedReply).catch(console.error.bind(console));
-					})
-					.catch(res => handleError(interaction, res as string));
-				break;
-			default:
-				interaction
-					.editReply(
-						"Invalid object type provided. Valid Types: Branch, Commit, Issue, Pull-Request, Repository"
-					)
-					.catch(console.error.bind(console));
-				break;
-		}
+				interaction.editReply({ embeds: [embedReply] }).catch(err => log(err, "error"));
+			})
+			.catch(res => handleError(interaction, res as string));
 	},
 };
 
 export default command;
+
+function handleCommit(jsonData: Commit, embedReply: MessageEmbed): MessageEmbed {
+	embedReply.setURL(jsonData.html_url);
+	embedReply.setThumbnail(jsonData.author.avatar_url);
+	embedReply.setTitle(`commit: ${jsonData.sha}`);
+	embedReply.addField("Author", generateGitHubUserLink(jsonData.author), true);
+	embedReply.addField(
+		"Stats",
+		`Total: ${jsonData.stats.total}\nAdditions: ${jsonData.stats.additions}\nDeletions: ${jsonData.stats.deletions}`,
+		true
+	);
+	embedReply.addField("Signed", String(jsonData.commit.verification.verified), true);
+	embedReply.addField("Message", jsonData.commit.message, false);
+
+	const fileCount = jsonData.files.length;
+	let filePadding = 0;
+	let diffPadding = 0;
+
+	jsonData.files.forEach(file => {
+		filePadding = Math.max(filePadding, file.filename.length);
+		diffPadding = Math.max(diffPadding, Math.floor(Math.log10(file.additions || 1)));
+	});
+
+	if (fileCount > 0) {
+		const displayCount = Math.min(5, fileCount);
+		const lines: string[] = [];
+
+		for (let count = 0; count < displayCount; count++) {
+			const file = jsonData.files[count];
+
+			lines.push(
+				`[${file.status.slice(0, 1).toUpperCase()}] ${file.filename}: ${" ".repeat(
+					filePadding - file.filename.length
+				)} +${file.additions}${" ".repeat(diffPadding - Math.floor(Math.log10(file.additions || 1)))} | -${
+					file.deletions
+				}`
+			);
+		}
+
+		if (fileCount > displayCount) lines.push(`... and ${fileCount - displayCount} more.`);
+
+		embedReply.addField("Files", `\`\`\`${lines.join("\n")}\n\`\`\``, false);
+	}
+
+	return embedReply;
+}
 
 function handleIssueOrPr(repo: string, jsonData: Issue | PullRequest, embedReply: MessageEmbed): MessageEmbed {
 	if (jsonData.labels.length > 0) {
