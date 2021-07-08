@@ -70,7 +70,7 @@ const command: Command = {
 		(interaction.channel as TextChannel).parent?.id !== getState().config.staffCategoryId,
 	handler: async (interaction, args) => {
 		await interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) });
-		const subCommandArg = args.first() as CommandInteractionOption | undefined;
+		const subCommandArg = args.first() as CommandInteractionOption;
 		if (subCommandArg !== undefined && subCommandArg.options !== undefined) {
 			if (subCommandArg.name === "user") {
 				//Define basic variables.
@@ -81,7 +81,9 @@ const command: Command = {
 
 				//Verify user variable is satisfied.
 				if (!userForNote) {
-					interaction.editReply("Failed, there was an issue getting user for note.");
+					interaction
+						.editReply("Failed, there was an issue getting user for note.")
+						.catch(err => log(err, "error"));
 					return;
 				}
 				//Add record, no weight.
