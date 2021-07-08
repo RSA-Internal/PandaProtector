@@ -2,6 +2,7 @@ import type { Snowflake } from "discord-api-types";
 import type { Client, Guild, Message, User } from "discord.js";
 import { getCommands } from "./commands";
 import { log } from "./logger";
+import moderatedMessageLogModel from "./models/moderatedMessageLog.model";
 import moderationActionLogModel from "./models/moderationActionLog.model";
 import { getPermissions } from "./store/permissions";
 import { getState } from "./store/state";
@@ -28,6 +29,18 @@ export function getMessageFromId(messageId: Snowflake, guild: Guild): Message | 
 		}
 	}
 	return undefined;
+}
+
+export function addModeratedMessageToDB(message: Message): void {
+	moderatedMessageLogModel
+		.create({
+			messageId: message.id,
+			channelId: message.channel.id,
+			messageContent: message.cleanContent,
+		})
+		.catch(err => {
+			log(err, "error");
+		});
 }
 
 export function addModerationRecordWithMessageToDB(

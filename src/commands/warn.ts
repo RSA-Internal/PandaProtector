@@ -3,10 +3,14 @@ import { MessageEmbed, TextChannel } from "discord.js";
 import { shortMappings } from "../../short-reasons-mapping.json";
 import { modOptions } from "../../short-reasons.json";
 import { log } from "../logger";
-import moderatedMessageLogModel from "../models/moderatedMessageLog.model";
 import { getState } from "../store/state";
 import type { Command } from "../types/command";
-import { addModerationRecordToDB, addModerationRecordWithMessageToDB, getMessageFromId } from "../util";
+import {
+	addModeratedMessageToDB,
+	addModerationRecordToDB,
+	addModerationRecordWithMessageToDB,
+	getMessageFromId,
+} from "../util";
 
 const command: Command = {
 	name: "warn",
@@ -45,8 +49,6 @@ const command: Command = {
 		const shortres = args.get("short");
 		const longres = args.get("reason")?.value as string | undefined;
 		const messId = args.get("message")?.value as Snowflake | undefined;
-		console.log(shortres);
-		console.log(longres);
 
 		//Final, retrieved values.
 		const offendingMessage =
@@ -65,16 +67,21 @@ const command: Command = {
 				return null;
 			}
 		})();
-		console.log(finalreason);
+
+		//Notify staff member, warning is starting.
 		interaction
 			.editReply({
 				content: "Issuing warning...",
 			})
 			.catch(err => log(err, "error"));
 
+		//Completing final checks.
 		if (offender === undefined) {
 			interaction.editReply("Failed, offender not found.").catch(err => log(err, "error"));
 			return;
+		}
+		if (interaction.guild?.members.resolve(offender.id)?.roles.cache.has(getState().config.staffRoleId)) {
+			interaction.editReply("Failed, attempted to action a staff member.");
 		}
 		if (finalreason === null || finalreason === "") {
 			interaction
@@ -85,19 +92,16 @@ const command: Command = {
 			return;
 		}
 
+		//If message is found, document, delete, and document in relation to mod action. Otherwise, document as standalone warning.
 		if (offendingMessage !== undefined) {
-			moderatedMessageLogModel
-				.create({
-					messageId: offendingMessage.id,
-					channelId: offendingMessage.channel.id,
-					messageContent: offendingMessage.content,
-				})
-				.catch(err => log(err, "error"));
+			addModeratedMessageToDB(offendingMessage);
+			offendingMessage.delete().catch(err => log(err, "error"));
 			addModerationRecordWithMessageToDB(offender.id, interaction.user.id, finalreason, offendingMessage.id, 20);
 		} else {
 			addModerationRecordToDB(offender.id, interaction.user.id, finalreason, 20);
 		}
 
+		//Add record to the moderation actions channel.
 		const transparencyChannel = interaction.guild?.channels.resolve(getState().config.modActionLogChannelId) as
 			| TextChannel
 			| undefined;
@@ -130,6 +134,7 @@ const command: Command = {
 				.catch(err => log("Failed to report action to transparency channels.\n", err));
 		}
 
+		//Attempt to DM the person being warned.
 		offender
 			.createDM()
 			.then(dms => {
