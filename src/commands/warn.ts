@@ -81,7 +81,7 @@ const command: Command = {
 			return;
 		}
 		if (interaction.guild?.members.resolve(offender.id)?.roles.cache.has(getState().config.staffRoleId)) {
-			interaction.editReply("Failed, attempted to action a staff member.");
+			interaction.editReply("Failed, attempted to action a staff member.").catch(err => log(err, "error"));
 		}
 		if (finalreason === null || finalreason === "") {
 			interaction
@@ -110,6 +110,7 @@ const command: Command = {
 				.send({
 					embeds: [
 						new MessageEmbed({
+							title: "Warning Issued",
 							fields: [
 								{
 									name: "Moderator",
@@ -140,7 +141,7 @@ const command: Command = {
 			.then(dms => {
 				if (dms) {
 					dms.send(
-						`You have been warned in ${interaction.guild?.name ?? "Unknown Guild"} for ${finalreason}.`
+						`You have been warned in ${interaction.guild?.name ?? "Unknown Guild"} for ${finalreason}`
 					).catch(err => log(err, "error"));
 				}
 			})
