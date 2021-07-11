@@ -1,6 +1,6 @@
 import type { Snowflake } from "discord-api-types";
 import type { CommandInteractionOption } from "discord.js";
-import { writeFile } from "fs";
+import { unlink, writeFile } from "fs";
 import { log } from "../logger";
 import moderatedMessageLogModel from "../models/moderatedMessageLog.model";
 import moderationActionLogModel from "../models/moderationActionLog.model";
@@ -65,9 +65,8 @@ const command: Command = {
 						.resolve(interaction.user.id)
 						?.roles.cache.get(getState().config.staffRoleId))
 			) {
-				moderationActionLogModel.find(
-					{ offenderId: historicalUser.id, publicRemoved: false },
-					async (err, docs) => {
+				moderationActionLogModel
+					.find({ offenderId: historicalUser.id, publicRemoved: false }, (err, docs) => {
 						if (err) {
 							log(err.message, "error");
 						}
@@ -91,52 +90,72 @@ const command: Command = {
 							}
 							htmlString += `<p><b>Reason</b>: ${actionReason}</p>`;
 							if (affiliatedMessageId) {
-								//eslint-disable-next-line @typescript-eslint/ban-ts-comment
-								//@ts-ignore
-								moderatedMessageLogModel.findOne({ messageId: affiliatedMessageId }, (err, doc) => {
-									if (err) {
-										log(err.message, "error");
-										htmlString += `Failed to load Message ID ${affiliatedMessageId}.`;
-									} else {
-										htmlString += `<p><b>Affiliated Message</b>: ${doc.messageContent}</p>`;
-									}
-								});
+								moderatedMessageLogModel
+									.find({ messageId: affiliatedMessageId }, (err, msgs) => {
+										if (err) {
+											log(err.message, "error");
+											htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
+										} else if (msgs.length === 0) {
+											htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
+										} else {
+											htmlString += `<p><b>Affiliated Message</b>: ${msgs[0].messageContent}</p>`;
+										}
+									})
+									.catch(err => {
+										log(err, "error");
+										htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
+									});
 							}
 							htmlString += `<p><small>Case Number: ${item.caseNumber}</small></p></div>`;
 						});
 						htmlString += `</div></body></html>`;
+
 						const fileName = Math.floor(Math.random() * 9999999).toString() + ".html";
+
 						writeFile(`./temporaryFiles/${fileName}`, htmlString, err => {
 							if (err) {
 								console.log(err);
+								interaction
+									.editReply("Error creating the document.")
+									.catch(subErr => log(subErr, "error"));
 							} else {
-								// TODO: Send file to DMs or leave in staff chat. Files can not be published to ephemerals.
-								/*interaction
-									.editReply({
+								interaction.user.createDM().then(dms => {
+									dms.send({
 										files: [
 											{
-												attachment: createReadStream(`./temporaryFiles/${fileName}`),
+												attachment: `./temporaryFiles/${fileName}`,
 											},
 										],
-									})
-									.catch(console.error.bind(console));*/
-								console.log("Something");
+									}).catch(err => {
+										log(err, "error");
+										interaction
+											.editReply("The document couldn't be DM'ed to the requester.")
+											.catch(subErr => log(subErr, "error"));
+									});
+								});
 							}
 						});
-
-						/*unlink(`./temporaryFiles/${fileName}`, err => {
-							if (err) log(err?.message, "error");
-						});*/
+						interaction
+							.editReply("Records have been sent to your DMs.")
+							.catch(subErr => log(subErr, "error"));
+						setTimeout(function () {
+							unlink(`./temporaryFiles/${fileName}`, err => {
+								if (err) log(err?.message, "error");
+							});
+						}, 10000);
 						//console.log("Hi!");
-					}
-				);
+					})
+					.catch(err => {
+						log(err, "error");
+						interaction.editReply("Couldn't query database.").catch(subErr => log(subErr, "error"));
+					});
 			}
 			//interaction.editReply("Command in testing phase.");
 		} else if (subCommandArgument.name === "remove" && subCommandArgument.options) {
 			const caseId = subCommandArgument.options.get("case")?.value;
 			console.log(caseId);
 		} else {
-			interaction.editReply("Failed, subcommand not recognized.");
+			interaction.editReply("Failed, subcommand not recognized.").catch(err => log(err, "error"));
 		}
 	},
 };
