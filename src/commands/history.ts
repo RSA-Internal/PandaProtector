@@ -194,11 +194,13 @@ const command: Command = {
 			}
 			const caseId = subCommandArgument.options.get("case")?.value as number;
 			if (caseId) {
-				moderationActionLogModel.updateOne({ caseNumber: caseId }, { publicRemoved: true }, null, err => {
-					if (err) {
-						log(err.message, "error");
-					}
-				});
+				moderationActionLogModel
+					.updateOne({ caseNumber: caseId }, { publicRemoved: true }, null, err => {
+						if (err) {
+							log(err.message, "error");
+						}
+					})
+					.catch(err => log(err, "error"));
 			}
 			interaction.editReply("Record has been removed.").catch(subErr => log(subErr, "error"));
 		} else {
