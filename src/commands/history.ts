@@ -86,92 +86,95 @@ const command: Command = {
 							interaction.editReply("Couldn't query database.").catch(subErr => log(subErr, "error"));
 							return;
 						}
-						if (docs.length === 0) {
-							interaction.editReply("The user doesn't have any moderation records.").catch(err => {
-								log(err, "error");
-								return;
-							});
-						}
+						console.log(docs);
+						console.log(docs.length);
 						const username = `${historicalUser.username} [${historicalUser.id}]`;
 
-						let htmlString = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');*{font-family: 'Rubik', sans-serif;}body{background-color: #fffdee;}h1{text-align: center;}.wrapper{display: grid;grid-template-columns: repeat(5,auto);gap: 10px;grid-auto-rows: minmax(100px, auto);}@media screen and (max-width: 1920px){.wrapper{grid-template-columns: repeat(3,auto);}}@media screen and (max-width: 1250px){.wrapper{grid-template-columns: repeat(2,auto);}}@media screen and (max-width: 900px){.wrapper{grid-template-columns: repeat(1,auto);}}.card{border-width: 1px 1px 1px 3px;border-radius: 3px;border-style: solid;padding: 5px 10px;}.pban{border-color: #BBB #BBB #BBB #000000;background-color: #C0C0C0;}.tban{border-color: #BBB #BBB #BBB #FF0000;background-color: #E9C9C9;}.kick{border-color: #BBB #BBB #BBB #FF6A00;background-color: #F1DED1;}.mute{border-color: #BBB #BBB #BBB #FFD800;background-color: #F9F3D9;}.warn{border-color: #BBB #BBB #BBB #0094FF;background-color: #CEE1EE;}.note{border-color: #BBB #BBB #BBB #C0C0C0;background-color: #FFFFFF;}</style><title>Moderation Record</title></head><body><h1>Moderation Records for ${username}</h1><div class="wrapper">`;
-						docs.forEach(item => {
-							const translatedCaseTypeCss = caseTypeCss[item.actionLevel];
-							const translatedaseTypeName = caseTypeName[item.actionLevel];
-							const moderator = getState().client.users.cache.get(item.moderatorId as Snowflake);
-							const timeStamp = item.createdAt.toUTCString();
-							const actionNote = item.note;
-							const actionReason = item.reason;
-							const affiliatedMessageId = item.messageId;
-							htmlString += `<div class="card ${translatedCaseTypeCss}"><h3>${translatedaseTypeName}</h3><p><b>Moderator</b>: ${
-								moderator ? moderator.username : "unknown"
-							} [${item.moderatorId}]</p><p><b>Timestamp</b>: ${timeStamp}</p>`;
-							if (actionNote && isStaff) {
-								htmlString += `<p><b>Note</b>: ${actionNote}</p>`;
-							}
-							htmlString += `<p><b>Reason</b>: ${actionReason}</p>`;
-							if (affiliatedMessageId) {
-								moderatedMessageLogModel
-									.find({ messageId: affiliatedMessageId }, (err, msgs) => {
-										if (err) {
-											log(err.message, "error");
+						if (docs.length > 0) {
+							let htmlString = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');*{font-family: 'Rubik', sans-serif;}body{background-color: #fffdee;}h1{text-align: center;}.wrapper{display: grid;grid-template-columns: repeat(5,auto);gap: 10px;grid-auto-rows: minmax(100px, auto);}@media screen and (max-width: 1920px){.wrapper{grid-template-columns: repeat(3,auto);}}@media screen and (max-width: 1250px){.wrapper{grid-template-columns: repeat(2,auto);}}@media screen and (max-width: 900px){.wrapper{grid-template-columns: repeat(1,auto);}}.card{border-width: 1px 1px 1px 3px;border-radius: 3px;border-style: solid;padding: 5px 10px;}.pban{border-color: #BBB #BBB #BBB #000000;background-color: #C0C0C0;}.tban{border-color: #BBB #BBB #BBB #FF0000;background-color: #E9C9C9;}.kick{border-color: #BBB #BBB #BBB #FF6A00;background-color: #F1DED1;}.mute{border-color: #BBB #BBB #BBB #FFD800;background-color: #F9F3D9;}.warn{border-color: #BBB #BBB #BBB #0094FF;background-color: #CEE1EE;}.note{border-color: #BBB #BBB #BBB #C0C0C0;background-color: #FFFFFF;}</style><title>Moderation Record</title></head><body><h1>Moderation Records for ${username}</h1><div class="wrapper">`;
+							docs.forEach(item => {
+								const translatedCaseTypeCss = caseTypeCss[item.actionLevel];
+								const translatedaseTypeName = caseTypeName[item.actionLevel];
+								const moderator = getState().client.users.cache.get(item.moderatorId as Snowflake);
+								const timeStamp = item.createdAt.toUTCString();
+								const actionNote = item.note;
+								const actionReason = item.reason;
+								const affiliatedMessageId = item.messageId;
+								htmlString += `<div class="card ${translatedCaseTypeCss}"><h3>${translatedaseTypeName}</h3><p><b>Moderator</b>: ${
+									moderator ? moderator.username : "unknown"
+								} [${item.moderatorId}]</p><p><b>Timestamp</b>: ${timeStamp}</p>`;
+								if (actionNote && isStaff) {
+									htmlString += `<p><b>Note</b>: ${actionNote}</p>`;
+								}
+								htmlString += `<p><b>Reason</b>: ${actionReason}</p>`;
+								if (affiliatedMessageId) {
+									moderatedMessageLogModel
+										.find({ messageId: affiliatedMessageId }, (err, msgs) => {
+											if (err) {
+												log(err.message, "error");
+												htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
+											} else if (msgs.length === 0) {
+												htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
+											} else {
+												htmlString += `<p><b>Affiliated Message</b>: ${msgs[0].messageContent}</p>`;
+											}
+										})
+										.catch(err => {
+											log(err, "error");
 											htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
-										} else if (msgs.length === 0) {
-											htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
-										} else {
-											htmlString += `<p><b>Affiliated Message</b>: ${msgs[0].messageContent}</p>`;
-										}
-									})
-									.catch(err => {
-										log(err, "error");
-										htmlString += `<p>Failed to load Message ID ${affiliatedMessageId}.</p>`;
-									});
-							}
-							htmlString += `<p><small>Case Number: ${item.caseNumber}</small></p></div>`;
-						});
-						htmlString += `</div></body></html>`;
+										});
+								}
+								htmlString += `<p><small>Case Number: ${item.caseNumber}</small></p></div>`;
+							});
+							htmlString += `</div></body></html>`;
 
-						const fileName = Math.floor(Math.random() * 9999999).toString() + ".html";
-						writeFile(`./temporaryFiles/${fileName}`, htmlString, err => {
-							if (err) {
-								console.log(err);
-								interaction
-									.editReply("Error creating the document.")
-									.catch(subErr => log(subErr, "error"));
-								return;
-							} else {
-								interaction.user
-									.createDM()
-									.then(dms => {
-										dms.send({
-											files: [
-												{
-													attachment: `./temporaryFiles/${fileName}`,
-												},
-											],
-										}).catch(err => {
+							const fileName = Math.floor(Math.random() * 9999999).toString() + ".html";
+							writeFile(`./temporaryFiles/${fileName}`, htmlString, err => {
+								if (err) {
+									console.log(err);
+									interaction
+										.editReply("Error creating the document.")
+										.catch(subErr => log(subErr, "error"));
+									return;
+								} else {
+									interaction.user
+										.createDM()
+										.then(dms => {
+											dms.send({
+												files: [
+													{
+														attachment: `./temporaryFiles/${fileName}`,
+													},
+												],
+											}).catch(err => {
+												log(err, "error");
+												interaction
+													.editReply("The document couldn't be DM'ed to the requester.")
+													.catch(subErr => log(subErr, "error"));
+											});
+										})
+										.catch(err => {
 											log(err, "error");
 											interaction
 												.editReply("The document couldn't be DM'ed to the requester.")
 												.catch(subErr => log(subErr, "error"));
 										});
-									})
-									.catch(err => {
-										log(err, "error");
-										interaction
-											.editReply("The document couldn't be DM'ed to the requester.")
-											.catch(subErr => log(subErr, "error"));
-									});
-							}
-						});
-						interaction
-							.editReply("Records have been sent to your DMs.")
-							.catch(subErr => log(subErr, "error"));
-						setTimeout(function () {
-							unlink(`./temporaryFiles/${fileName}`, err => {
-								if (err) log(err?.message, "error");
+								}
 							});
-						}, 10000);
+							interaction
+								.editReply("Records have been sent to your DMs.")
+								.catch(subErr => log(subErr, "error"));
+							setTimeout(function () {
+								unlink(`./temporaryFiles/${fileName}`, err => {
+									if (err) log(err?.message, "error");
+								});
+							}, 10000);
+						} else {
+							interaction.editReply("The user doesn't have any moderation records.").catch(err => {
+								log(err, "error");
+								return;
+							});
+						}
 						//console.log("Hi!");
 					})
 					.catch(err => {
