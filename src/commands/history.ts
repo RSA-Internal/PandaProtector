@@ -1,6 +1,6 @@
 import type { Snowflake } from "discord-api-types";
 import type { CommandInteractionOption } from "discord.js";
-import { unlink, writeFile } from "fs";
+import { mkdir, stat, unlink, writeFile } from "fs";
 import { log } from "../logger";
 import moderatedMessageLogModel from "../models/moderatedMessageLog.model";
 import moderationActionLogModel from "../models/moderationActionLog.model";
@@ -111,29 +111,42 @@ const command: Command = {
 						htmlString += `</div></body></html>`;
 
 						const fileName = Math.floor(Math.random() * 9999999).toString() + ".html";
-
-						writeFile(`./temporaryFiles/${fileName}`, htmlString, err => {
+						stat("./temporaryFiles", (err, stat) => {
 							if (err) {
-								console.log(err);
-								interaction
-									.editReply("Error creating the document.")
-									.catch(subErr => log(subErr, "error"));
-							} else {
-								interaction.user.createDM().then(dms => {
-									dms.send({
-										files: [
-											{
-												attachment: `./temporaryFiles/${fileName}`,
-											},
-										],
-									}).catch(err => {
-										log(err, "error");
-										interaction
-											.editReply("The document couldn't be DM'ed to the requester.")
-											.catch(subErr => log(subErr, "error"));
-									});
+								log(err.message, "error");
+							}
+							if (!stat.isDirectory()) {
+								mkdir("./temporaryFiles", err => {
+									if (err) {
+										log(err.message, "error");
+										return;
+									}
 								});
 							}
+							writeFile(`./temporaryFiles/${fileName}`, htmlString, err => {
+								if (err) {
+									console.log(err);
+									interaction
+										.editReply("Error creating the document.")
+										.catch(subErr => log(subErr, "error"));
+									return;
+								} else {
+									interaction.user.createDM().then(dms => {
+										dms.send({
+											files: [
+												{
+													attachment: `./temporaryFiles/${fileName}`,
+												},
+											],
+										}).catch(err => {
+											log(err, "error");
+											interaction
+												.editReply("The document couldn't be DM'ed to the requester.")
+												.catch(subErr => log(subErr, "error"));
+										});
+									});
+								}
+							});
 						});
 						interaction
 							.editReply("Records have been sent to your DMs.")
