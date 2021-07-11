@@ -1,40 +1,40 @@
 {
 	"modOptions": {
 		"nsfw": {
-			"value": ":underage: Materials which display explicit or suggestive sexual or gory content. Content or media inappropriate for general audience, professional, or educational settings."
+			"value": "🔞 Materials which display explicit or suggestive sexual or gory content. Content or media inappropriate for general audience, professional, or educational settings."
 		},
 		"scam": {
-			"value": ":money_mouth: Intent to obtain account information, personally identifiable information, or solicitation of a service or product with no intention to fulfill such action."
+			"value": "🤑 Intent to obtain account information, personally identifiable information, or solicitation of a service or product with no intention to fulfill such action."
 		},
 		"spam": {
-			"value": ":mailbox_with_no_mail: Repeated messages or link advertisements with intent to clutter or disrupt normal proceedings in a channel."
+			"value": "📭 Repeated messages or link advertisements with intent to clutter or disrupt normal proceedings in a channel."
 		},
 		"altr": {
-			"value": ":busts_in_silhouette: Use of an alternative or secondary account to bypass mute or ban."
+			"value": "👥 Use of an alternative or secondary account to bypass mute or ban."
 		},
 		"vcab": {
-			"value": ":hear_no_evil: Inappropriate, harmfully loud, or other intentional abuse of voice channel sound or behavior."
+			"value": "🙉 Inappropriate, harmfully loud, or other intentional abuse of voice channel sound or behavior."
 		},
 		"expl": {
-			"value": ":detective: This server does not permit the use, requesting of help, or creating of exploit scripts or cheat programs."
+			"value": "🕵️‍♂️ This server does not permit the use, requesting of help, or creating of exploit scripts or cheat programs."
 		},
 		"sbot": {
-			"value": ":robot: Use of self-bots is both against Discord ToS and the server's rules."
+			"value": "🤖 Use of self-bots is both against Discord ToS and the server's rules."
 		},
 		"rpta": {
-			"value": ":face_with_monocle: Inappropriate or unjust use of the server's report feature. False reporting of another server member or spam of the system."
+			"value": "🧐 Inappropriate or unjust use of the server's report feature. False reporting of another server member or spam of the system."
 		},
 		"hire": {
-			"value": ":briefcase: This server does not condone or permit the hiring of members for products or services in exchange for physical, monetary of digital goods or currency."
+			"value": "💼 This server does not condone or permit the hiring of members for products or services in exchange for physical, monetary of digital goods or currency."
 		},
 		"udra": {
-			"value": ":children_crossing: Persons under the age of thirteen are not permitted on Discord per Terms of Service and as needed to remain in compliance with the Children's Online Privacy Protection Act (COPPA) of 1998."
+			"value": "🚸 Persons under the age of thirteen are not permitted on Discord per Terms of Service and as needed to remain in compliance with the Children's Online Privacy Protection Act (COPPA) of 1998."
 		},
 		"malw": {
-			"value": ":no_entry: Suspicious or determined malicious file or link. Potential for remote access, crypto mining, keylogging, IP grabbing or other behavior with intention to infect a user's system."
+			"value": "⛔ Suspicious or determined malicious file or link. Potential for remote access, crypto mining, keylogging, IP grabbing or other behavior with intention to infect a user's system."
 		},
 		"hlpa": {
-			"value": ":clown: Trolling or continual jokes in the help channels."
+			"value": "🤡 Trolling or continual jokes in the help channels."
 		},
 		"cust": {
 			"value": ""

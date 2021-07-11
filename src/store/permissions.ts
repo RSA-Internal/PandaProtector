@@ -164,4 +164,14 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	history: {
+		field: "memberRoleId",
+		perms: [
+			{
+				id: "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 };

@@ -9,23 +9,6 @@ import { addModerationRecordToDB } from "../util";
 const command: Command = {
 	name: "note",
 	description: "Add a staff note to user. Document event that may not require moderation.",
-	/*
-	Collection(1) [Map] {
-		'user' => {
-			name: 'user',
-			type: 'SUB_COMMAND',
-			options: Collection(2) [Map] { 'user' => [Object], 'details' => [Object] }
-		}
-	}
-	[debug]: Firing event: interactionCreate
-	Collection(1) [Map] {
-		'case' => {
-			name: 'case',
-			type: 'SUB_COMMAND',
-			options: Collection(2) [Map] { 'caseid' => [Object], 'details' => [Object] }
-		}
-	}
-	*/
 	options: [
 		{
 			type: "SUB_COMMAND",
@@ -99,7 +82,7 @@ const command: Command = {
 					.updateOne(
 						{ caseNumber: caseID },
 						{
-							note: `On ${new Date().toDateString()}, moderator <@${
+							note: `On ${new Date().toUTCString()}, moderator <@${
 								interaction.user.id
 							}> added the note: ${details}`,
 						}

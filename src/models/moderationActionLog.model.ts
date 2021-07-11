@@ -23,7 +23,9 @@ export interface IModerationActionLog extends Document {
 	readonly reason: string;
 	readonly messageId: string;
 	readonly channelId: string;
+	publicRemoved: boolean;
 	note: string;
+	createdAt: Date;
 }
 
 export default model<IModerationActionLog>(
@@ -37,6 +39,7 @@ export default model<IModerationActionLog>(
 			reason: { type: String, required: true },
 			messageId: { type: String, required: false },
 			channelId: { type: String, required: false },
+			publicRemoved: { type: Boolean, required: false, default: false },
 			note: { type: String, required: false },
 		},
 		{ timestamps: true }

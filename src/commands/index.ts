@@ -5,6 +5,7 @@ import compilers from "./compilers";
 import config from "./config";
 import debug from "./debug";
 import github from "./github";
+import history from "./history";
 import note from "./note";
 import permissions from "./permissions";
 import ping from "./ping";
@@ -30,6 +31,7 @@ const commands = {
 	uptime,
 	warn,
 	note,
+	history,
 };
 
 export function getCommand(commandName: string): Command | undefined {
