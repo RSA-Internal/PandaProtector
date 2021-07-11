@@ -131,20 +131,28 @@ const command: Command = {
 										.catch(subErr => log(subErr, "error"));
 									return;
 								} else {
-									interaction.user.createDM().then(dms => {
-										dms.send({
-											files: [
-												{
-													attachment: `./temporaryFiles/${fileName}`,
-												},
-											],
-										}).catch(err => {
+									interaction.user
+										.createDM()
+										.then(dms => {
+											dms.send({
+												files: [
+													{
+														attachment: `./temporaryFiles/${fileName}`,
+													},
+												],
+											}).catch(err => {
+												log(err, "error");
+												interaction
+													.editReply("The document couldn't be DM'ed to the requester.")
+													.catch(subErr => log(subErr, "error"));
+											});
+										})
+										.catch(err => {
 											log(err, "error");
 											interaction
 												.editReply("The document couldn't be DM'ed to the requester.")
 												.catch(subErr => log(subErr, "error"));
 										});
-									});
 								}
 							});
 						});
