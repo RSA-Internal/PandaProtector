@@ -164,6 +164,16 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	purge: {
+		field: "staffRoleId",
+		perms: [
+			{
+				id: "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 	history: {
 		field: "memberRoleId",
 		perms: [

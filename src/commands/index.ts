@@ -9,6 +9,7 @@ import history from "./history";
 import note from "./note";
 import permissions from "./permissions";
 import ping from "./ping";
+import purge from "./purge";
 import report from "./report";
 import serverinfo from "./serverinfo";
 import update from "./update";
@@ -32,6 +33,7 @@ const commands = {
 	warn,
 	note,
 	history,
+	purge,
 };
 
 export function getCommand(commandName: string): Command | undefined {
