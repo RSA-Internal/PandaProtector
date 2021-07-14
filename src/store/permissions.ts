@@ -114,6 +114,16 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	role: {
+		field: "memberRoleId",
+		perms: [
+			{
+				id: "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 	serverinfo: {
 		field: "memberRoleId",
 		perms: [

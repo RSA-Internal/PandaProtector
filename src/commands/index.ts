@@ -8,6 +8,7 @@ import github from "./github";
 import permissions from "./permissions";
 import ping from "./ping";
 import report from "./report";
+import role from "./role";
 import serverinfo from "./serverinfo";
 import update from "./update";
 import uptime from "./uptime";
@@ -23,6 +24,7 @@ const commands = {
 	permissions,
 	ping,
 	report,
+	role,
 	serverinfo,
 	update,
 	uptime,
