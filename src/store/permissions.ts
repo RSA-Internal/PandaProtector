@@ -84,6 +84,16 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	mod: {
+		field: "staffRoleId",
+		perms: [
+			{
+				id: "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 	permissions: {
 		field: "staffRoleId",
 		perms: [
