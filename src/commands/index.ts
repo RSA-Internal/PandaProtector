@@ -15,19 +15,19 @@ import uptime from "./uptime";
 
 /** Keep commands in lowercase. */
 const commands = {
-	// cmdhistory,
-	// compile,
-	// compilers,
-	// config,
-	// debug,
-	// github,
+	cmdhistory,
+	compile,
+	compilers,
+	config,
+	debug,
+	github,
 	mod,
-	// permissions,
-	// ping,
-	// report,
-	// serverinfo,
-	// update,
-	// uptime,
+	permissions,
+	ping,
+	report,
+	serverinfo,
+	update,
+	uptime,
 };
 
 export function getCommand(commandName: string): Command | undefined {

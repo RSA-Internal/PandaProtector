@@ -55,6 +55,11 @@ const command: Command = {
 
 		const guild = interaction.guild;
 
+		if (!guild) {
+			await interaction.editReply("Failed to handle command.").catch(console.warn.bind(console));
+			return;
+		}
+
 		const userArg = args.get("user");
 		const reasonArg = args.get("reason");
 		const actionArg = args.get("action");
@@ -171,7 +176,7 @@ const command: Command = {
 							.send({
 								embeds: [
 									new MessageEmbed()
-										.setTitle(`You have been ${actionBased} in ${interaction.guild?.name}`)
+										.setTitle(`You have been ${actionBased} in ${guild.name}`)
 										.setColor(`RED`)
 										.setDescription(reason)
 										.addField(
