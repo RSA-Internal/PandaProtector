@@ -11,21 +11,23 @@ import report from "./report";
 import serverinfo from "./serverinfo";
 import update from "./update";
 import uptime from "./uptime";
+import verify from "./verify";
 
 /** Keep commands in lowercase. */
 const commands = {
-	cmdhistory,
-	compile,
-	compilers,
-	config,
-	debug,
-	github,
-	permissions,
+	// cmdhistory,
+	// compile,
+	// compilers,
+	// config,
+	// debug,
+	// github,
+	// permissions,
 	ping,
-	report,
-	serverinfo,
-	update,
-	uptime,
+	// report,
+	// serverinfo,
+	// update,
+	// uptime,
+	verify
 };
 
 export function getCommand(commandName: string): Command | undefined {
