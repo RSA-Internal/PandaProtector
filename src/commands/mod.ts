@@ -3,6 +3,18 @@ import moderationLogModel from "../models/moderationLog.model";
 import { getState } from "../store/state";
 import type { Command } from "../types/command";
 
+const mods = {
+	m: 60,
+	h: 3600,
+	d: 86400,
+	w: 604800,
+	mo: 2592000,
+	y: 31536000,
+} as { [key: string]: number };
+
+// TODO: Handle caching of mutes/tempbans on load
+// TODO: Store timed infraction to []
+
 const command: Command = {
 	name: "mod",
 	description: "moderation command",
@@ -85,26 +97,12 @@ const command: Command = {
 
 			if (duration && duration !== "0") {
 				const modifier = duration[duration.length - 1];
-				let value = parseInt(duration.slice(0, duration.length - 1)) * 1000;
-
-				if (modifier === "m") {
-					value *= 60;
-				} else if (modifier === "h") {
-					value *= 3600;
-				} else if (modifier === "d") {
-					value *= 86400;
-				} else if (modifier === "w") {
-					value *= 604800;
-				} else if (modifier === "mo") {
-					value *= 2592000;
-				} else if (modifier === "y") {
-					value *= 31536000;
-				}
+				const value = parseInt(duration.slice(0, duration.length - 1)) * 1000 * (mods[modifier] ?? 1);
 
 				endDate = new Date(Date.now() + value);
 			}
 
-			const result = `${action}ing ${member?.displayName ?? userId}.\nReason: ${reason}${
+			let result = `${action}ing ${member?.displayName ?? userId}.\nReason: ${reason}${
 				action === "mute" || action === "ban" ? `\nDuration: ${duration}` : ""
 			}`;
 
@@ -203,6 +201,21 @@ const command: Command = {
 					})
 					.catch(console.warn.bind(console));
 
+				if (action === "mute") {
+					const muteRoleId = getState().config.mutedRoleId;
+
+					if (muteRoleId.length === 0) {
+						result += "\n\nNo mute role ID set, failed to mute member.";
+					} else {
+						const role = guild.roles.resolveID(muteRoleId as `${bigint}`);
+
+						if (role) {
+							member.roles.add(role).catch(console.warn.bind(console));
+						} else {
+							result += `\n\nNo role with ID ${muteRoleId} exists in the guild.`;
+						}
+					}
+				}
 				if (action === "kick") {
 					member.kick(reason).catch(console.warn.bind(console));
 				}
