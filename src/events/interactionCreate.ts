@@ -1,6 +1,11 @@
-import { Interaction, MessageActionRow, MessageButton, MessageEmbed, TextChannel } from "discord.js";
+import { Interaction, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, TextChannel } from "discord.js";
 import { getCommand } from "../commands";
-import { captchaCache } from "../commands/verify";
+import {
+	captchaCache,
+	generateCaptchaForMember,
+	generateCaptchaImage,
+	generateFakeCaptchaList,
+} from "../commands/verify";
 import { log } from "../logger";
 import commandLogModel from "../models/commandLog.model";
 import { getState } from "../store/state";
@@ -94,65 +99,111 @@ const event: Event = {
 				if (guild) {
 					const member = guild.members.cache.get(interaction.user.id);
 
-					if (member && member.roles.cache.has(getState().config.staffRoleId)) {
-						if (components) {
-							const idToInteract = (components[0].components as MessageButton[]).filter(
-								button => button.customID === "memberId"
-							)[0].label as `${bigint}`;
+					if (member) {
+						if (name === "ban" || name === "kick") {
+							if (member.roles.cache.has(getState().config.staffRoleId)) {
+								if (components) {
+									const idToInteract = (components[0].components as MessageButton[]).filter(
+										button => button.customID === "memberId"
+									)[0].label as `${bigint}`;
 
-							if (idToInteract) {
-								const memberToInteract = guild.members.cache.get(idToInteract);
+									if (idToInteract) {
+										const memberToInteract = guild.members.cache.get(idToInteract);
 
-								if (memberToInteract) {
-									if (name === "ban") {
-										memberToInteract
-											.ban({
-												reason: `Banned by ${member.displayName}[${member.id}] via join embed.`,
-											})
-											.then(() => {
-												interaction
-													.update({
-														embeds: interaction.message.embeds as MessageEmbed[],
-														components: [
-															new MessageActionRow().addComponents(
-																new MessageButton()
-																	.setCustomID("banned")
-																	.setStyle("SECONDARY")
-																	.setLabel(
-																		`Banned by ${member.displayName}[${member.id}]`
-																	)
-																	.setDisabled(true)
-															),
-														],
+										if (memberToInteract) {
+											if (name === "ban") {
+												memberToInteract
+													.ban({
+														reason: `Banned by ${member.displayName}[${member.id}] via join embed.`,
+													})
+													.then(() => {
+														interaction
+															.update({
+																embeds: interaction.message.embeds as MessageEmbed[],
+																components: [
+																	new MessageActionRow().addComponents(
+																		new MessageButton()
+																			.setCustomID("banned")
+																			.setStyle("SECONDARY")
+																			.setLabel(
+																				`Banned by ${member.displayName}[${member.id}]`
+																			)
+																			.setDisabled(true)
+																	),
+																],
+															})
+															.catch(err => log(err, "error"));
 													})
 													.catch(err => log(err, "error"));
-											})
-											.catch(err => log(err, "error"));
-									} else if (name === "kick") {
-										memberToInteract
-											.kick(`Kicked by ${member.displayName}[${member.id}] via join embed.`)
-											.then(() => {
-												interaction
-													.update({
-														embeds: interaction.message.embeds as MessageEmbed[],
-														components: [
-															new MessageActionRow().addComponents(
-																new MessageButton()
-																	.setCustomID("kicked")
-																	.setStyle("SECONDARY")
-																	.setLabel(
-																		`Kicked by ${member.displayName}[${member.id}]`
-																	)
-																	.setDisabled(true)
-															),
-														],
+											} else if (name === "kick") {
+												memberToInteract
+													.kick(
+														`Kicked by ${member.displayName}[${member.id}] via join embed.`
+													)
+													.then(() => {
+														interaction
+															.update({
+																embeds: interaction.message.embeds as MessageEmbed[],
+																components: [
+																	new MessageActionRow().addComponents(
+																		new MessageButton()
+																			.setCustomID("kicked")
+																			.setStyle("SECONDARY")
+																			.setLabel(
+																				`Kicked by ${member.displayName}[${member.id}]`
+																			)
+																			.setDisabled(true)
+																	),
+																],
+															})
+															.catch(err => log(err, "error"));
 													})
 													.catch(err => log(err, "error"));
-											})
-											.catch(err => log(err, "error"));
+											}
+										}
 									}
 								}
 							}
+						} else if (name === "regenCaptcha") {
+							const captcha = generateCaptchaForMember(member.id);
+							const canvas = generateCaptchaImage(captcha);
+							const captchaData = generateFakeCaptchaList(captcha);
+
+							interaction.channel
+								?.send({
+									files: [
+										{
+											attachment: canvas.toBuffer(),
+											name: "captcha.png",
+										},
+									],
+								})
+								.then(async message => {
+									const captchaUrl = message.attachments.first()?.url;
+
+									await interaction.update({
+										embeds: [
+											new MessageEmbed().setTitle("Verification").setImage(captchaUrl ?? ""),
+										],
+										components: [
+											new MessageActionRow().addComponents(
+												new MessageButton()
+													.setCustomID("regenCaptcha")
+													.setLabel("Regenerate")
+													.setStyle("PRIMARY")
+											),
+											new MessageActionRow().addComponents(
+												new MessageSelectMenu()
+													.setCustomID("captchaSelector")
+													.setMinValues(1)
+													.setMaxValues(1)
+													.addOptions(captchaData)
+											),
+										],
+									});
+
+									message.delete().catch(err => log(err, "error"));
+								});
 						}
 					}
 				}
