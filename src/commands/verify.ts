@@ -1,4 +1,6 @@
+import Canvas from "canvas";
 import { MessageActionRow, MessageEmbed, MessageSelectMenu, Snowflake } from "discord.js";
+import { log } from "../logger";
 import type { Command } from "../types/command";
 
 export const captchaCache = new Map<Snowflake, string>();
@@ -43,19 +45,42 @@ const command: Command = {
 			[captchaData[rand], captchaData[i]] = [captchaData[i], captchaData[rand]];
 		}
 
-		// return embed as ephemeral
-		await interaction.editReply({
-			embeds: [new MessageEmbed().setTitle("Verification").addField("Captcha", captcha, true)],
-			components: [
-				new MessageActionRow().addComponents(
-					new MessageSelectMenu()
-						.setCustomID("captchaSelector")
-						.setMinValues(1)
-						.setMaxValues(1)
-						.addOptions(captchaData)
-				),
-			],
-		});
+		const canvas = Canvas.createCanvas(200, 50);
+		const context = canvas.getContext("2d");
+
+		context.fillStyle = "#9214fa";
+		context.fillRect(0, 0, 200, 50);
+		context.font = "32px sans-serif";
+		context.fillStyle = "#ffffff";
+		context.fillText(captcha, 50, 40);
+
+		interaction.channel
+			?.send({
+				files: [
+					{
+						attachment: canvas.toBuffer(),
+						name: "captcha.png",
+					},
+				],
+			})
+			.then(async message => {
+				const captchaUrl = message.attachments.first()?.url;
+
+				await interaction.editReply({
+					embeds: [new MessageEmbed().setTitle("Verification").setImage(captchaUrl ?? "")],
+					components: [
+						new MessageActionRow().addComponents(
+							new MessageSelectMenu()
+								.setCustomID("captchaSelector")
+								.setMinValues(1)
+								.setMaxValues(1)
+								.addOptions(captchaData)
+						),
+					],
+				});
+
+				message.delete().catch(err => log(err, "error"));
+			});
 	},
 };
 
