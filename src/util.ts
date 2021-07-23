@@ -53,3 +53,7 @@ export function deploySlashCommands(): Promise<void> {
 		})
 		.catch(err => log(err, "error"));
 }
+
+export function randomMinMax(min: number, max: number): number {
+	return Math.random() * (max - min) + min;
+}
