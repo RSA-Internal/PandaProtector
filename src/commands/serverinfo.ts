@@ -1,15 +1,15 @@
 import { MessageEmbed } from "discord.js";
-import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getState } from "../store/state";
+import type { Command } from "../types/command";
 
 const command: Command = {
 	name: "serverinfo",
 	description: "Show info about the server.",
 	options: [],
 	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
-	handler: interaction => {
-		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(err => log(err, "error"));
+	handler: async interaction => {
+		await interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(err => log(err, "error"));
 		const embed = new MessageEmbed().setTitle("Server Info");
 		const guild = interaction.guild;
 

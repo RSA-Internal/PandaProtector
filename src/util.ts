@@ -1,10 +1,10 @@
 import type { Snowflake } from "discord-api-types";
 import type { Client, User } from "discord.js";
 import { getCommands } from "./commands";
-import type { Config } from "./structures/config";
 import { log } from "./logger";
 import { getPermissions } from "./store/permissions";
 import { getState } from "./store/state";
+import type { Config } from "./structures/config";
 
 export function assert<T>(expr: T, message?: string): asserts expr {
 	if (expr === null || expr === undefined) {
@@ -36,7 +36,7 @@ export function deploySlashCommands(): Promise<void> {
 		name: command.name,
 		description: command.description,
 		options: command.options,
-		defaultPermission: false,
+		defaultPermission: command.name === "verify" ? true : false,
 	}));
 
 	return commands
@@ -52,4 +52,8 @@ export function deploySlashCommands(): Promise<void> {
 			commands.permissions.set({ fullPermissions: permissionList }).catch(err => log(err, "error"));
 		})
 		.catch(err => log(err, "error"));
+}
+
+export function randomMinMax(min: number, max: number): number {
+	return Math.random() * (max - min) + min;
 }
