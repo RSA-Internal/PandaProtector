@@ -18,30 +18,41 @@ export function handleJoinButtons(
 			if (idToInteract) {
 				const memberToInteract = guild.members.cache.get(idToInteract);
 
+				if (name === "ban") {
+					guild.bans
+						.create(idToInteract, {
+							reason: `Banned by ${member.displayName}[${member.id}] via join embed.`,
+						})
+						.then(() => {
+							interaction
+								.update({
+									embeds: interaction.message.embeds as MessageEmbed[],
+									components: [
+										new MessageActionRow().addComponents(
+											new MessageButton()
+												.setCustomID("banned")
+												.setStyle("SECONDARY")
+												.setLabel(`Banned by ${member.displayName}[${member.id}]`)
+												.setDisabled(true)
+										),
+									],
+								})
+								.catch(err => log(err, "error"));
+						})
+						.catch(err => {
+							log(err, "error");
+							interaction
+								.reply({
+									ephemeral: true,
+									content: `Failed to ban member. ${err as string}`,
+								})
+								.catch(err => log(err, "error"));
+						});
+					return;
+				}
+
 				if (memberToInteract) {
-					if (name === "ban") {
-						memberToInteract
-							.ban({
-								reason: `Banned by ${member.displayName}[${member.id}] via join embed.`,
-							})
-							.then(() => {
-								interaction
-									.update({
-										embeds: interaction.message.embeds as MessageEmbed[],
-										components: [
-											new MessageActionRow().addComponents(
-												new MessageButton()
-													.setCustomID("banned")
-													.setStyle("SECONDARY")
-													.setLabel(`Banned by ${member.displayName}[${member.id}]`)
-													.setDisabled(true)
-											),
-										],
-									})
-									.catch(err => log(err, "error"));
-							})
-							.catch(err => log(err, "error"));
-					} else if (name === "kick") {
+					if (name === "kick") {
 						memberToInteract
 							.kick(`Kicked by ${member.displayName}[${member.id}] via join embed.`)
 							.then(() => {
@@ -60,9 +71,21 @@ export function handleJoinButtons(
 									})
 									.catch(err => log(err, "error"));
 							})
-							.catch(err => log(err, "error"));
+							.catch(err => {
+								log(err, "error");
+								interaction
+									.reply({
+										ephemeral: true,
+										content: `Failed to kick member. ${err as string}`,
+									})
+									.catch(err => log(err, "error"));
+							});
 					}
+				} else {
+					interaction.reply({ ephemeral: true, content: "Invalid member." }).catch(err => log(err, "error"));
 				}
+			} else {
+				interaction.reply({ ephemeral: true, content: "Invalid id." }).catch(err => log(err, "error"));
 			}
 		}
 	}
