@@ -13,7 +13,7 @@ const event: Event = {
 		const guild = member.guild;
 
 		const config = getState().config;
-		const logChannel = (await guild.channels.fetch(config.joinLogChannelId as `${bigint}`)) as TextChannel;
+		const logChannel = (await guild.channels.fetch(config.joinLogChannelId)) as TextChannel;
 
 		const creation = member.user.createdAt;
 		const now = new Date(Date.now());

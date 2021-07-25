@@ -18,10 +18,15 @@ const event: Event = {
 			}
 
 			if (JSON.parse(config.removeMemberRoleOnMute)) {
-				if (newMember.roles.cache.has(config.mutedRoleId as `${bigint}`)) {
-					newMember.roles.remove(config.memberRoleId).catch(err => log(err, "error"));
-				} else if (!newMember.roles.cache.has(config.mutedRoleId as `${bigint}`)) {
+				const mutedRoleSnowflake = config.mutedRoleId;
+
+				if (oldMember.roles.cache.has(mutedRoleSnowflake) && !newMember.roles.cache.has(mutedRoleSnowflake)) {
 					newMember.roles.add(config.memberRoleId).catch(err => log(err, "error"));
+				} else if (
+					!oldMember.roles.cache.has(mutedRoleSnowflake) &&
+					newMember.roles.cache.has(mutedRoleSnowflake)
+				) {
+					newMember.roles.remove(config.memberRoleId).catch(err => log(err, "error"));
 				}
 			}
 		}

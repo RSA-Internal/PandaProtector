@@ -23,9 +23,7 @@ export function handleCaptchaSelector(
 			})
 			.then(() => {
 				const messageId = embedCache.get(user.id);
-				const logChannel = guild?.channels.cache.get(
-					getState().config.joinLogChannelId as `${bigint}`
-				) as TextChannel;
+				const logChannel = guild?.channels.cache.get(getState().config.joinLogChannelId) as TextChannel;
 
 				if (logChannel && messageId) {
 					logChannel.messages

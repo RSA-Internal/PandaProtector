@@ -13,8 +13,8 @@ export interface Config {
 	verbosityLevel: string;
 	logChannelId: Snowflake;
 	removeMemberRoleOnMute: string;
-	mutedRoleId: string;
-	joinLogChannelId: string;
+	mutedRoleId: Snowflake;
+	joinLogChannelId: Snowflake;
 }
 
 export function isConfig(config: unknown): config is Config {

@@ -1,9 +1,9 @@
 import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
 import fetch from "node-fetch";
-import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getOauth } from "../store/githubOauth";
 import { getState } from "../store/state";
+import type { Command } from "../types/command";
 import type { Branch, Commit, GithubUser, Issue, PullRequest, Repository } from "../types/github";
 
 const command: Command = {
@@ -60,6 +60,8 @@ const command: Command = {
 		const objectType = (args.get("name")?.value as string).toLowerCase();
 		const query = args.get("query")?.value as string;
 		const embedReply = new MessageEmbed();
+
+		console.log(repo);
 
 		const route =
 			objectType === "repo"
