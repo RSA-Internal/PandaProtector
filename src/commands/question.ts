@@ -97,6 +97,42 @@ const command: Command = {
 
 		if (guild) {
 			await interaction.reply("WIP").catch(err => log(err, "error"));
+
+			/**
+			 * Get passed options
+			 * Handle appropriate routes
+			 *
+			 *
+			 	* asking questions
+					* look up (fuzzy search) before generating question
+						* if a question was found return that result instead of posting question
+					* generate question
+						* post to mongoose
+						* if threads are enabled (probably not for a while) create a thread
+							* if possible set notification of thread to only mentions
+			*
+			*
+				* answering questions
+					* mongoose findAndUpdate based on questionID
+					* provide memberID and content
+					* check if author of question has opt-d into receiving notifications
+						* if yes, DM that an answer has been posted to their question
+
+			*
+			*
+				* accepting answers
+					* TBD
+
+			*
+			*
+				* upvoting / downvoting answers
+					* TBD
+
+			*
+			*
+				* looking up questions
+					* TBD
+			 */
 		}
 	},
 };
