@@ -7,6 +7,7 @@ import debug from "./debug";
 import github from "./github";
 import permissions from "./permissions";
 import ping from "./ping";
+import question from "./question";
 import report from "./report";
 import serverinfo from "./serverinfo";
 import update from "./update";
@@ -15,19 +16,20 @@ import verify from "./verify";
 
 /** Keep commands in lowercase. */
 const commands = {
-	cmdhistory,
-	compile,
-	compilers,
-	config,
-	debug,
-	github,
-	permissions,
-	ping,
-	report,
-	serverinfo,
-	update,
-	uptime,
-	verify,
+	// cmdhistory,
+	// compile,
+	// compilers,
+	// config,
+	// debug,
+	// github,
+	// permissions,
+	// ping,
+	question,
+	// report,
+	// serverinfo,
+	// update,
+	// uptime,
+	// verify,
 };
 
 export function getCommand(commandName: string): Command | undefined {

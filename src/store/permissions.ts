@@ -104,6 +104,16 @@ const permissions: PermissionTree = {
 			},
 		],
 	},
+	question: {
+		field: "memberRoleId",
+		perms: [
+			{
+				id: "0",
+				type: "ROLE",
+				permission: true,
+			},
+		],
+	},
 	report: {
 		field: "memberRoleId",
 		perms: [
