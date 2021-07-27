@@ -28,11 +28,11 @@ export function handleRegenCaptcha(interaction: ButtonInteraction, member: Guild
 				embeds: [new MessageEmbed().setTitle("Verification").setImage(captchaUrl ?? "")],
 				components: [
 					new MessageActionRow().addComponents(
-						new MessageButton().setCustomID("regenCaptcha").setLabel("Regenerate").setStyle("PRIMARY")
+						new MessageButton().setCustomId("regenCaptcha").setLabel("Regenerate").setStyle("PRIMARY")
 					),
 					new MessageActionRow().addComponents(
 						new MessageSelectMenu()
-							.setCustomID("captchaSelector")
+							.setCustomId("captchaSelector")
 							.setMinValues(1)
 							.setMaxValues(1)
 							.addOptions(fakeCaptchas)

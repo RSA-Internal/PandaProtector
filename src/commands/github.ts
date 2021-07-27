@@ -51,7 +51,7 @@ const command: Command = {
 		},
 	],
 	shouldBeEphemeral: interaction =>
-		interaction.channelID !== getState().config.botChannelId &&
+		interaction.channelId !== getState().config.botChannelId &&
 		!(interaction.member as GuildMember).roles.cache.has(getState().config.developerRoleId),
 	handler: (interaction, args) => {
 		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(console.error.bind(console));

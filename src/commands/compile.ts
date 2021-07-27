@@ -1,8 +1,8 @@
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import { fromString } from "wandbox-api-updated";
-import type { Command } from "../types/command";
 import { log } from "../logger";
 import { getState } from "../store/state";
+import type { Command } from "../types/command";
 
 const command: Command = {
 	name: "compile",
@@ -50,22 +50,24 @@ const command: Command = {
 			description: "Source to compile. Can also use the last message sent by you.",
 		},
 	],
-	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
-	handler: (interaction, args) => {
+	shouldBeEphemeral: interaction => interaction.channelId !== getState().config.botChannelId,
+	handler: async (interaction, args) => {
 		let codeParse = "";
 		let missingSource = false;
 
 		if (!args.get("src")) {
-			const { lastMessageID, lastMessageChannelID } = interaction.member as GuildMember;
+			// TODO: Fetch these out of channel.. :sob:
+			const lastMessageId = undefined;
+			const lastMessageChannelId = undefined;
 
-			if (lastMessageChannelID && lastMessageID) {
+			if (lastMessageChannelId && lastMessageId) {
 				const message = (
-					interaction.guild?.channels.resolve(lastMessageChannelID) as TextChannel
-				).messages.resolve(lastMessageID);
+					interaction.guild?.channels.resolve(lastMessageChannelId) as TextChannel
+				).messages.resolve(lastMessageId);
 
 				if (message) {
 					codeParse = message.content;
-					if (lastMessageChannelID !== getState().config.botChannelId) {
+					if (lastMessageChannelId !== getState().config.botChannelId) {
 						message.delete().catch(console.error.bind(console));
 					}
 				} else {

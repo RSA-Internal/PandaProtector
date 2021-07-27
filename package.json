@@ -28,7 +28,7 @@
 		"async-exit-hook": "^2.0.1",
 		"canvas-constructor": "^4.1.0",
 		"discord-api-types": "^0.18.1",
-		"discord.js": "13.0.0-dev.ab0b3b9.1625400166",
+		"discord.js": "^13.0.0-dev.4886ae2.1627344219",
 		"mongoose": "^5.12.11",
 		"node-fetch": "^2.6.1",
 		"typescript": "^4.3.2",

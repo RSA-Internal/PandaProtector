@@ -13,8 +13,9 @@ export interface Config {
 	verbosityLevel: string;
 	logChannelId: Snowflake;
 	removeMemberRoleOnMute: string;
-	mutedRoleId: string;
-	joinLogChannelId: string;
+	mutedRoleId: Snowflake;
+	joinLogChannelId: Snowflake;
+	qaChannelId: Snowflake;
 }
 
 export function isConfig(config: unknown): config is Config {
@@ -36,6 +37,7 @@ export function isConfig(config: unknown): config is Config {
 		typeof record["logChannelId"] === "string" &&
 		typeof record["removeMemberRoleOnMute"] === "string" &&
 		typeof record["mutedRoleId"] === "string" &&
-		typeof record["joinLogChannelId"] === "string"
+		typeof record["joinLogChannelId"] === "string" &&
+		typeof record["qaChannelId"] === "string"
 	);
 }

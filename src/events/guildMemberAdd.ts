@@ -37,13 +37,13 @@ const event: Event = {
 					],
 					components: [
 						new MessageActionRow().addComponents(
-							new MessageButton().setCustomID("kick").setStyle("SUCCESS").setLabel("Kick"),
+							new MessageButton().setCustomId("kick").setStyle("SUCCESS").setLabel("Kick"),
 							new MessageButton()
-								.setCustomID("memberId")
+								.setCustomId("memberId")
 								.setStyle("SECONDARY")
 								.setLabel(member.id)
 								.setDisabled(true),
-							new MessageButton().setCustomID("ban").setStyle("DANGER").setLabel("Ban")
+							new MessageButton().setCustomId("ban").setStyle("DANGER").setLabel("Ban")
 						),
 					],
 				})

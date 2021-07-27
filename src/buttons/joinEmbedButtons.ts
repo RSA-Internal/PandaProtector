@@ -12,7 +12,7 @@ export function handleJoinButtons(
 	if (member.roles.cache.has(getState().config.staffRoleId)) {
 		if (components) {
 			const idToInteract = (components[0].components as MessageButton[]).filter(
-				button => button.customID === "memberId"
+				button => button.customId === "memberId"
 			)[0].label as `${bigint}`;
 
 			if (idToInteract) {
@@ -30,7 +30,7 @@ export function handleJoinButtons(
 									components: [
 										new MessageActionRow().addComponents(
 											new MessageButton()
-												.setCustomID("banned")
+												.setCustomId("banned")
 												.setStyle("SECONDARY")
 												.setLabel(`Banned by ${member.displayName}[${member.id}]`)
 												.setDisabled(true)
@@ -62,7 +62,7 @@ export function handleJoinButtons(
 										components: [
 											new MessageActionRow().addComponents(
 												new MessageButton()
-													.setCustomID("kicked")
+													.setCustomId("kicked")
 													.setStyle("SECONDARY")
 													.setLabel(`Kicked by ${member.displayName}[${member.id}]`)
 													.setDisabled(true)

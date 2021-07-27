@@ -37,9 +37,9 @@ const command: Command = {
 			required: true,
 		},
 	],
-	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	shouldBeEphemeral: interaction => interaction.channelId !== getState().config.botChannelId,
 	handler: (interaction, args) => {
-		const guildID = interaction.guildID as `${bigint}`;
+		const guildID = interaction.guildId as `${bigint}`;
 		const user = args.get("user")?.user?.id as `${bigint}`;
 		const modification = args.get("modification")?.value as string;
 		const command = args.get("command")?.value as string;

@@ -5,7 +5,7 @@ const command: Command = {
 	name: "uptime",
 	description: "Displays bot uptime.",
 	options: [],
-	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	shouldBeEphemeral: interaction => interaction.channelId !== getState().config.botChannelId,
 	handler: interaction => {
 		const uptime = process.uptime();
 		const seconds = (Math.floor(uptime) % 60).toString().padStart(2, "0");

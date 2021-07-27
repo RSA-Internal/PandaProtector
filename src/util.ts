@@ -1,5 +1,5 @@
 import type { Snowflake } from "discord-api-types";
-import type { Client, User } from "discord.js";
+import type { Client, Guild, User } from "discord.js";
 import { getCommands } from "./commands";
 import { log } from "./logger";
 import { getPermissions } from "./store/permissions";
@@ -10,6 +10,10 @@ export function assert<T>(expr: T, message?: string): asserts expr {
 	if (expr === null || expr === undefined) {
 		throw new Error(message ?? "assertion failed!");
 	}
+}
+
+export function getDisplayName(guild: Guild, resolvable: string | Snowflake): string {
+	return guild.members.cache.get(resolvable as Snowflake)?.displayName ?? resolvable;
 }
 
 export function getUserFromMention(client: Client, mention: string): User | undefined {

@@ -20,14 +20,14 @@ const event: Event = {
 						.create({
 							discordId: interaction.user.id,
 							command: command.name,
-							arguments: interaction.options.map(value => String(value.value)),
+							arguments: interaction.options.data.map(value => String(value.value)),
 						})
 						.catch(console.error.bind(console));
 
 					command.handler(interaction, interaction.options);
 				}
 			} else if (interaction.isSelectMenu()) {
-				const name = interaction.customID;
+				const name = interaction.customId;
 				const values = interaction.values;
 				const user = interaction.user;
 				const guild = interaction.guild;
@@ -49,7 +49,7 @@ const event: Event = {
 					handleCaptchaSelector(interaction, values, guild, user, member);
 				}
 			} else if (interaction.isButton()) {
-				const name = interaction.customID;
+				const name = interaction.customId;
 				const guild = interaction.guild;
 				const components = interaction.message.components;
 

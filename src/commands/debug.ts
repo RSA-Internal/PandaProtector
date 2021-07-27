@@ -6,7 +6,7 @@ const command: Command = {
 	name: "debug",
 	description: "Test logger.",
 	options: [],
-	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
+	shouldBeEphemeral: interaction => interaction.channelId !== getState().config.botChannelId,
 	handler: interaction => {
 		interaction
 			.reply({
