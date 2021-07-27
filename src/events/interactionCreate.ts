@@ -1,4 +1,5 @@
 import type { Interaction, MessageActionRow } from "discord.js";
+import { handleAccept } from "../buttons/acceptButton";
 import { handleJoinButtons } from "../buttons/joinEmbedButtons";
 import { handleRegenCaptcha } from "../buttons/regenCaptcha";
 import { getCommand } from "../commands";
@@ -72,6 +73,8 @@ const event: Event = {
 							handleJoinButtons(interaction, components as MessageActionRow[], guild, member, name);
 						} else if (name === "regenCaptcha") {
 							handleRegenCaptcha(interaction, member);
+						} else if (name === "accept") {
+							handleAccept(interaction, guild, member);
 						}
 					}
 				}

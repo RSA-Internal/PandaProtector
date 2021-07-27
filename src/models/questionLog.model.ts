@@ -5,9 +5,7 @@ export interface IQuestion extends Document {
 	readonly authorID: string;
 	readonly title: string;
 	readonly body: string;
-	readonly comments: IComment[];
-	readonly answers: IAnswer[];
-	readonly acceptedAnswer: string;
+	readonly acceptedAnswer: number;
 	readonly discordMessageID: string;
 	readonly threadID: string;
 }
@@ -76,9 +74,7 @@ const questionModel = model<IQuestion>(
 			authorID: { type: String, required: true },
 			title: { type: String, required: true },
 			body: { type: String, required: true },
-			comments: { type: [commentModel.schema], required: false, default: [] },
-			answers: { type: [answerModel.schema], required: false, default: [] },
-			acceptedAnswer: { type: String, required: false, default: "" },
+			acceptedAnswer: { type: Number, required: false, default: 0 },
 			discordMessageID: { type: String, required: false, default: "" },
 			threadID: { type: String, required: false, default: "" },
 		},

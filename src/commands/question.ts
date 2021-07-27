@@ -1,4 +1,13 @@
-import { Message, MessageEmbed, Snowflake, TextChannel, ThreadChannel, ThreadChannelResolvable } from "discord.js";
+import {
+	Message,
+	MessageActionRow,
+	MessageButton,
+	MessageEmbed,
+	Snowflake,
+	TextChannel,
+	ThreadChannel,
+	ThreadChannelResolvable,
+} from "discord.js";
 import { log } from "../logger";
 import { answerModel, commentModel, questionModel } from "../models/questionLog.model";
 import { getState } from "../store/state";
@@ -197,6 +206,18 @@ const command: Command = {
 																	.setDescription(body)
 																	.setFooter(`ID: ${count + 1}`),
 															],
+															components: [
+																new MessageActionRow().addComponents(
+																	new MessageButton()
+																		.setCustomId("upvote")
+																		.setLabel("Upvote")
+																		.setStyle("PRIMARY"),
+																	new MessageButton()
+																		.setCustomId("downvote")
+																		.setLabel("Downvote")
+																		.setStyle("DANGER")
+																),
+															],
 														})
 														.then(message => {
 															message.pin().catch(err => log(err, "warn"));
@@ -347,7 +368,7 @@ const command: Command = {
 													.setFooter(embed.footer?.text ?? "");
 
 												message
-													.edit({ embeds: [newEmbed] })
+													.edit({ embeds: [newEmbed], components: message.components })
 													.then(() => interaction.editReply("Comment posted successfully!"))
 													.catch(err => log(err, "error"));
 											}
@@ -414,6 +435,22 @@ const command: Command = {
 														.setTitle(getDisplayName(guild, guildMember.id))
 														.setDescription(answer)
 														.setFooter(`ID: ${count + 1}`),
+												],
+												components: [
+													new MessageActionRow().addComponents(
+														new MessageButton()
+															.setCustomId("accept")
+															.setLabel("Accept Answer")
+															.setStyle("SUCCESS"),
+														new MessageButton()
+															.setCustomId("upvote")
+															.setLabel("Upvote")
+															.setStyle("PRIMARY"),
+														new MessageButton()
+															.setCustomId("downvote")
+															.setLabel("Downvote")
+															.setStyle("DANGER")
+													),
 												],
 											})
 											.then(message => {
