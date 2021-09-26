@@ -27,7 +27,7 @@ const event: Event = {
 					command.handler(interaction, interaction.options);
 				}
 			} else if (interaction.isSelectMenu()) {
-				const name = interaction.customID;
+				const name = interaction.customId;
 				const values = interaction.values;
 				const user = interaction.user;
 				const guild = interaction.guild;
@@ -49,7 +49,7 @@ const event: Event = {
 					handleCaptchaSelector(interaction, values, guild, user, member);
 				}
 			} else if (interaction.isButton()) {
-				const name = interaction.customID;
+				const name = interaction.customId;
 				const guild = interaction.guild;
 				const components = interaction.message.components;
 
