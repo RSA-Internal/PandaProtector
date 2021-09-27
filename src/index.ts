@@ -35,9 +35,9 @@ try {
 	// Register Events
 	client.registerEvent(messageCreateEvent);
 
-	const memberId = "546036484591976468";
-	const modId = "546033699725246484";
-	const councilId = "645356739339747329";
+	const memberId = "198850936544821249";
+	const modId = "886109661772795944";
+	const councilId = "885901874174251079";
 
 	// Apply permissions
 	configSlashCommand.addPermission(modId, "ROLE", true);
