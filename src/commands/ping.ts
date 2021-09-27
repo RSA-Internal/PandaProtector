@@ -1,26 +1,16 @@
-import type { Command } from "../types/command";
-import { getState } from "../store/state";
+import { SlashCommand, WrappedClient } from "pandawrapper";
 
-const command: Command = {
-	name: "ping",
-	description: "Show bot latency information.",
-	options: [],
-	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
-	handler: interaction => {
-		const start = Date.now();
+export const pingSlashCommand = new SlashCommand("ping", "Show bot latency information.");
+pingSlashCommand.setCallback(async interaction => {
+	const start = Date.now();
 
-		interaction
-			.reply({
-				content: "Pinging...",
-				ephemeral: command.shouldBeEphemeral(interaction),
-			})
-			.then(() =>
-				interaction.editReply(
-					`Websocket heartbeat: ${getState().client.ws.ping}ms\nRoundtrip latency: ${Date.now() - start}ms`
-				)
+	await interaction
+		.reply("Pinging...")
+		.then(() =>
+			interaction.editReply(
+				`Websocket heartbeat: ${WrappedClient.getClient().ws.ping}ms\nRoundtrip latency: ${
+					Date.now() - start
+				}ms`
 			)
-			.catch(console.error.bind(console));
-	},
-};
-
-export default command;
+		);
+});

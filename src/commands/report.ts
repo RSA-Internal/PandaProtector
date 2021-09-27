@@ -1,125 +1,82 @@
-import type { Snowflake } from "discord-api-types";
-import { MessageEmbed } from "discord.js";
-import type { Command } from "../types/command";
+import { MessageEmbed, SlashCommand, SlashCommandOption, WrappedClient } from "pandawrapper";
 import { getState } from "../store/state";
 
-const command: Command = {
-	name: "report",
-	description: "Report a user to staff.",
-	options: [
-		{
-			type: "USER",
-			name: "user",
-			description: "The user to report.",
-			required: true,
-		},
-		{
-			type: "STRING",
-			name: "reason",
-			description: "The reason for the report.",
-			required: true,
-		},
-	],
-	shouldBeEphemeral: () => true,
-	handler: (interaction, args) => {
-		const reasonText = args.get("reason")?.value as string;
-		const state = getState();
-		const userObject = state.client.users.cache.get(args.get("user")?.value as Snowflake);
-		const reportChannel = state.client.channels.cache.get(state.config.reportChannelId);
+const reportOptionUser = new SlashCommandOption("user", "The user to report.", "USER").setRequired();
+const reportOptionReason = new SlashCommandOption(
+	"reason",
+	"The reason for reporting the user.",
+	"STRING"
+).setRequired();
 
-		if (!reportChannel?.isText()) {
-			// Ensure the report channel is a text channel.
-			console.error("Report channel does not exist or is not a text channel.");
-			return;
-		}
+export const reportSlashCommand = new SlashCommand("report", "Report a user to staff.");
+reportSlashCommand.addOption(reportOptionUser).addOption(reportOptionReason);
+reportSlashCommand.setCallback(async (interaction, args) => {
+	if (args.length < 2) return interaction.reply({ content: "Not enough args provided.", ephemeral: true });
 
-		if (!userObject || userObject.bot || userObject.id === interaction.user.id) {
-			// Ensure the target user is reportable and not the reporter.
-			interaction
-				.reply({
-					content: "Could not report this user.",
-					ephemeral: command.shouldBeEphemeral(interaction),
+	await interaction.deferReply({ ephemeral: true });
+
+	const client = WrappedClient.getClient();
+	const state = getState();
+	const reportChannel = client.channels.cache.get(state.config.reportChannelId);
+
+	const userObject = client.users.cache.get(args[0].value as string);
+	const reasonText = args[1].value as string;
+
+	let interactionResponse = "";
+
+	if (!reportChannel) interactionResponse = "No reportChannel";
+	if (reportChannel && !reportChannel.isText()) interactionResponse = "Invalid reportChannel";
+	if (!userObject || userObject.bot || userObject.id === interaction.user.id)
+		interactionResponse = "Could not report that user.";
+	if (!interaction.channel?.isText()) return;
+
+	if (interactionResponse.length > 0) {
+		return interaction.reply({ content: interactionResponse, ephemeral: true });
+	}
+
+	if (reportChannel?.isText()) {
+		await interaction.channel.send("Reporting...").then(async message => {
+			await reportChannel
+				.send({
+					embeds: [
+						new MessageEmbed({
+							fields: [
+								{
+									name: "Reporter",
+									value: `<@${interaction.user.id}>`,
+									inline: true,
+								},
+								{
+									name: "Accused",
+									value: `<@${args[0].value as string}>`,
+									inline: true,
+								},
+								{
+									name: "Jump Link",
+									value: `[Here](${message.url})`,
+									inline: true,
+								},
+								{
+									name: "Reason",
+									value: reasonText,
+								},
+							],
+							timestamp: interaction.createdTimestamp,
+							color: "#FF0000",
+						}),
+					],
 				})
-				.catch(console.error.bind(console));
-			return;
-		}
+				.then(async reportMessage => {
+					message.edit("Reported.").catch(console.error.bind(console));
+					interactionResponse = "You have successfully reported the user.";
+					await Promise.all([
+						reportMessage.react("👀"),
+						reportMessage.react("✅"),
+						reportMessage.react("❌"),
+					]);
+				});
+		});
 
-		if (!interaction.channel?.isText()) {
-			// Ensure the interaction channel is a text channel.
-			return;
-		}
-
-		interaction.channel
-			.send("Reporting...")
-			.then(message => {
-				reportChannel
-					.send({
-						embeds: [
-							new MessageEmbed({
-								fields: [
-									{
-										name: "Reporter",
-										value: `<@${interaction.user.id}>`,
-										inline: true,
-									},
-									{
-										name: "Accused",
-										value: `<@${userObject.id}>`,
-										inline: true,
-									},
-									{
-										name: "Jump Link",
-										value: `[Here](${message.url})`,
-										inline: true,
-									},
-									{
-										name: "Reason",
-										value: reasonText,
-									},
-								],
-								timestamp: interaction.createdTimestamp,
-								color: "#FF0000",
-							}),
-						],
-					})
-					.then(reportMessage => {
-						message.edit("Reported.").catch(console.error.bind(console));
-						interaction
-							.reply({
-								content: `You have reported the user.`,
-								ephemeral: command.shouldBeEphemeral(interaction),
-							})
-							.catch(console.error.bind(console));
-						reportMessage.react("👀").catch(console.error.bind(console));
-						reportMessage.react("✅").catch(console.error.bind(console));
-						reportMessage.react("❌").catch(console.error.bind(console));
-					})
-					.catch(reason => {
-						console.error(`Reporting ${userObject.username} with reason ${reasonText} failed (embed).`);
-						console.error(reason);
-
-						// If the embed fails to send, remove the jump link message.
-						message.delete().catch(console.error.bind(console));
-						interaction
-							.reply({
-								content: `Could not report the user, please mention an online mod.`,
-								ephemeral: command.shouldBeEphemeral(interaction),
-							})
-							.catch(console.error.bind(console));
-					});
-			})
-			.catch(reason => {
-				console.error(`Reporting ${userObject.username} with reason ${reasonText} failed (initial message).`);
-				console.error(reason);
-
-				interaction
-					.reply({
-						content: `Could not report the user, please mention an online mod.`,
-						ephemeral: command.shouldBeEphemeral(interaction),
-					})
-					.catch(console.error.bind(console));
-			});
-	},
-};
-
-export default command;
+		await interaction.reply({ content: interactionResponse, ephemeral: true });
+	}
+});

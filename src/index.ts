@@ -1,58 +1,18 @@
-import exitHook from "async-exit-hook";
-import { Client, Intents } from "discord.js";
 import { readFileSync } from "fs";
-import { connect, connection, disconnect } from "mongoose";
-import { getEvents } from "./events";
-import { canUpdateVerbosity, log } from "./logger";
-import { setOauth } from "./store/githubOauth";
+import { WrappedClient } from "pandawrapper";
+import { configSlashCommand } from "./commands/config";
+import { pingSlashCommand } from "./commands/ping";
+import { reportSlashCommand } from "./commands/report";
+import { serverInfoMessageCommand, serverInfoSlashCommand } from "./commands/serverinfo";
+import { uptimeMessageCommand, uptimeSlashCommand } from "./commands/uptime";
+import { messageCreateEvent } from "./events/messageCreate";
 import { setState } from "./store/state";
 import { isConfig } from "./structures/config";
-import { isSecrets, Secrets } from "./structures/secrets";
-import type { State } from "./types/state";
+import { isSecrets } from "./structures/secrets";
 
 // USAGE: npm start [configPath] [secretsPath]
 const configPath = process.argv[2] ?? "config.json";
 const secretsPath = process.argv[3] ?? "secrets.json";
-
-function main(state: State, secrets: Secrets) {
-	const { config, client } = state;
-
-	setState(state);
-
-	if (!canUpdateVerbosity(config.verbosityLevel)) {
-		// TODO: a more scalable approach to sanity checking config.
-		config.verbosityLevel = "all";
-		log("Invalid verbosity level, using all instead.", "warn");
-	}
-
-	getEvents().forEach(event => {
-		log(`Loading event: ${event.name}.`, "debug");
-		if (event.once) {
-			log(`Loaded event: ${event.name} as once.`, "debug");
-			client.once(event.name, (...args) => event.execute(...args));
-		} else {
-			log(`Loaded event: ${event.name} as on.`, "debug");
-			client.on(event.name, (...args) => event.execute(...args));
-		}
-	});
-
-	// Connect to the database.
-	connect(secrets.dbUri, {
-		ssl: true,
-		useCreateIndex: true,
-		useFindAndModify: false,
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	}).catch(reason => log(`Could not connect to the database: ${String(reason)}`, "error"));
-
-	connection.on("error", reason => {
-		log(String(reason), "error");
-	});
-
-	exitHook(() => {
-		disconnect().catch(console.error.bind(console));
-	});
-}
 
 try {
 	const config = JSON.parse(readFileSync(configPath, "utf-8")) as unknown;
@@ -68,18 +28,41 @@ try {
 		throw new Error("Secrets file does not match the Secrets interface.");
 	}
 
-	const client = new Client({
-		intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS],
-	});
+	const client = new WrappedClient("pp!");
 
-	if (secrets.ghOauth !== "") {
-		setOauth(secrets.ghOauth);
-	}
+	setState({ version, config, configPath });
+
+	// Register Events
+	client.registerEvent(messageCreateEvent);
+
+	const memberId = "546036484591976468";
+	const modId = "546033699725246484";
+	const councilId = "645356739339747329";
+
+	// Apply permissions
+	configSlashCommand.addPermission(modId, "ROLE", true);
+	configSlashCommand.addPermission(councilId, "ROLE", true);
+	pingSlashCommand.addPermission(memberId, "ROLE", true);
+	reportSlashCommand.addPermission(memberId, "ROLE", true);
+	serverInfoSlashCommand.addPermission(memberId, "ROLE", true);
+	serverInfoMessageCommand.addAllowed(memberId);
+	uptimeSlashCommand.addPermission(memberId, "ROLE", true);
+	uptimeMessageCommand.addAllowed(memberId);
+
+	// Register Commands
+	client.registerCommandObject(configSlashCommand);
+	client.registerCommandObject(pingSlashCommand);
+	client.registerCommandObject(reportSlashCommand);
+	client.registerCommandObject(serverInfoSlashCommand);
+	client.registerCommandObject(uptimeSlashCommand);
+
+	client.registerMessageCommand(serverInfoMessageCommand);
+	client.registerMessageCommand(uptimeMessageCommand);
 
 	// Connect to Discord.
 	client
 		.login(secrets.token)
-		.then(() => main({ version, config, client, configPath }, secrets))
+		.then(() => WrappedClient.getClient().user?.setActivity(version))
 		.catch(console.error.bind(console));
 } catch (e) {
 	console.error(e);
