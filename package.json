@@ -23,7 +23,7 @@
 	"dependencies": {
 		"@types/node": "^15.14.9",
 		"canvas-constructor": "^4.1.0",
-		"pandawrapper": "^0.1.0-beta.8",
+		"pandawrapper": "^0.1.0-beta.10a",
 		"typescript": "^4.4.3",
 		"wandbox-api-updated": "^1.0.4"
 	},
