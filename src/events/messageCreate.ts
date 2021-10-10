@@ -11,15 +11,16 @@ messageCreateEvent.setCallback(message => {
 		// Handle showcase.
 		if (message.attachments.size === 0 && !/https?:\/\//.test(message.content)) {
 			// Ensure messages in showcase contain an attachment or link.
-			if (!message.member?.roles.cache.has(config.staffRoleId)) {
-				message.delete().catch(console.error.bind(console));
-				return; // Do not do any further processing.
+			const member = message.member;
+
+			if (member) {
+				const roleCache = member.roles.cache;
+				if (!roleCache.has(config.modRoleId) && !roleCache.has(config.adminRoleId)) {
+					message.delete().catch(console.error.bind(console));
+					return; // Do not do any further processing.
+				}
 			}
 		} else {
-			// Add up vote and down vote reaction to message.
-			// TODO: make emotes configurable in the future?
-			message.react("👍").catch(console.error.bind(console));
-			message.react("👎").catch(console.error.bind(console));
 			message.react("⭐").catch(console.error.bind(console));
 		}
 	}

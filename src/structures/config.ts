@@ -1,18 +1,12 @@
 export interface Config {
 	guildId: string;
 	memberRoleId: string;
-	staffRoleId: string;
-	developerRoleId: string;
+	modRoleId: string;
+	adminRoleId: string;
 	showcaseChannelId: string;
 	reportChannelId: string;
 	botChannelId: string;
 	staffCategoryId: string;
-	ghRepoPath: string;
-	verbosityLevel: string;
-	logChannelId: string;
-	removeMemberRoleOnMute: string;
-	mutedRoleId: string;
-	joinLogChannelId: string;
 }
 
 export function isConfig(config: unknown): config is Config {
@@ -23,17 +17,11 @@ export function isConfig(config: unknown): config is Config {
 		config !== null &&
 		typeof record["guildId"] === "string" &&
 		typeof record["memberRoleId"] === "string" &&
-		typeof record["staffRoleId"] === "string" &&
-		typeof record["developerRoleId"] === "string" &&
+		typeof record["modRoleId"] === "string" &&
+		typeof record["adminRoleId"] === "string" &&
 		typeof record["showcaseChannelId"] === "string" &&
 		typeof record["reportChannelId"] === "string" &&
 		typeof record["botChannelId"] === "string" &&
-		typeof record["staffCategoryId"] === "string" &&
-		typeof record["ghRepoPath"] === "string" &&
-		typeof record["verbosityLevel"] === "string" &&
-		typeof record["logChannelId"] === "string" &&
-		typeof record["removeMemberRoleOnMute"] === "string" &&
-		typeof record["mutedRoleId"] === "string" &&
-		typeof record["joinLogChannelId"] === "string"
+		typeof record["staffCategoryId"] === "string"
 	);
 }
