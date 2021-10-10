@@ -4,6 +4,7 @@ import { configSlashCommand } from "./commands/config";
 import { pingSlashCommand } from "./commands/ping";
 import { reportSlashCommand } from "./commands/report";
 import { serverInfoMessageCommand, serverInfoSlashCommand } from "./commands/serverinfo";
+import { updateSlashCommand } from "./commands/update";
 import { uptimeMessageCommand, uptimeSlashCommand } from "./commands/uptime";
 import { messageCreateEvent } from "./events/messageCreate";
 import { setState } from "./store/state";
@@ -35,7 +36,7 @@ try {
 	// Register Events
 	client.registerEvent(messageCreateEvent);
 
-	const memberId = "871952569050759199";
+	const memberId = "198850936544821249";
 	const modId = "886109661772795944";
 	const councilId = "885901874174251079";
 
@@ -46,6 +47,7 @@ try {
 	reportSlashCommand.addPermission(memberId, "ROLE", true);
 	serverInfoSlashCommand.addPermission(memberId, "ROLE", true);
 	serverInfoMessageCommand.addAllowed(memberId);
+	updateSlashCommand.addPermission(councilId, "ROLE", true);
 	uptimeSlashCommand.addPermission(memberId, "ROLE", true);
 	uptimeMessageCommand.addAllowed(memberId);
 
@@ -54,6 +56,7 @@ try {
 	client.registerCommandObject(pingSlashCommand);
 	client.registerCommandObject(reportSlashCommand);
 	client.registerCommandObject(serverInfoSlashCommand);
+	client.registerCommandObject(updateSlashCommand);
 	client.registerCommandObject(uptimeSlashCommand);
 
 	client.registerMessageCommand(serverInfoMessageCommand);
