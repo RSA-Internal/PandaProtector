@@ -12,7 +12,7 @@ export const reportSlashCommand = new SlashCommand("report", "Report a user to s
 reportSlashCommand.addOption(reportOptionReason).addOption(reportOptionUser);
 
 for (let i = 1; i < 9; i++) {
-	const reportOptionUser = new SlashCommandOption(`user ${i}`, `The number ${i} user to report.`, "USER");
+	const reportOptionUser = new SlashCommandOption(`user${i}`, `The number ${i} user to report.`, "USER");
 	reportSlashCommand.addOption(reportOptionUser);
 }
 
