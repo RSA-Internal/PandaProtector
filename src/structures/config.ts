@@ -1,19 +1,18 @@
-import type { Snowflake } from "discord.js";
-
 export interface Config {
-	guildId: Snowflake;
-	memberRoleId: Snowflake;
-	staffRoleId: Snowflake;
-	developerRoleId: Snowflake;
-	showcaseChannelId: Snowflake;
-	reportChannelId: Snowflake;
-	botChannelId: Snowflake;
-	staffCategoryId: Snowflake;
+	guildId: string;
+	memberRoleId: string;
+	staffRoleId: string;
+	developerRoleId: string;
+	showcaseChannelId: string;
+	reportChannelId: string;
+	botChannelId: string;
+	staffCategoryId: string;
 	ghRepoPath: string;
 	verbosityLevel: string;
-	logChannelId: Snowflake;
+	logChannelId: string;
 	removeMemberRoleOnMute: string;
 	mutedRoleId: string;
+	joinLogChannelId: string;
 }
 
 export function isConfig(config: unknown): config is Config {
@@ -34,6 +33,7 @@ export function isConfig(config: unknown): config is Config {
 		typeof record["verbosityLevel"] === "string" &&
 		typeof record["logChannelId"] === "string" &&
 		typeof record["removeMemberRoleOnMute"] === "string" &&
-		typeof record["mutedRoleId"] === "string"
+		typeof record["mutedRoleId"] === "string" &&
+		typeof record["joinLogChannelId"] === "string"
 	);
 }

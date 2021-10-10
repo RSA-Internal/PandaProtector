@@ -1,14 +1,7 @@
-import type { Command } from "../types/command";
+import { SlashCommand, WrappedClient } from "pandawrapper";
 
-const command: Command = {
-	name: "update",
-	description: "Shutdowns the bot for an update.",
-	options: [],
-	shouldBeEphemeral: () => false,
-	handler: state => {
-		state.client.destroy();
-		process.exit();
-	},
-};
-
-export default command;
+export const updateSlashCommand = new SlashCommand("update", "Shutdown the bot in lieu of an update.");
+updateSlashCommand.setCallback(() => {
+	WrappedClient.getClient().destroy();
+	process.exit();
+});

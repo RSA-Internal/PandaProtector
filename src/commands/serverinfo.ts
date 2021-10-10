@@ -1,44 +1,56 @@
-import { MessageEmbed } from "discord.js";
-import type { Command } from "../types/command";
-import { log } from "../logger";
-import { getState } from "../store/state";
+import { MessageCommand, MessageEmbed, SlashCommand } from "pandawrapper";
 
-const command: Command = {
-	name: "serverinfo",
-	description: "Show info about the server.",
-	options: [],
-	shouldBeEphemeral: interaction => interaction.channelID !== getState().config.botChannelId,
-	handler: interaction => {
-		interaction.defer({ ephemeral: command.shouldBeEphemeral(interaction) }).catch(err => log(err, "error"));
-		const embed = new MessageEmbed().setTitle("Server Info");
-		const guild = interaction.guild;
+export const serverInfoSlashCommand = new SlashCommand("serverinfo", "Display info about the server");
+serverInfoSlashCommand.setCallback(async interaction => {
+	await interaction.deferReply();
+	const embed = new MessageEmbed().setTitle("Server Info");
+	const guild = interaction.guild;
 
-		if (guild) {
-			guild
-				.fetchInvites()
-				.then(invites => {
-					embed.addField("Server Name", guild.name, true);
-					embed.addField("Server ID", guild.id, true);
-					embed.addField("Invite", invites.first()?.code ?? "No invites found.", true);
-					embed.addField("Member Count", guild.memberCount.toString(), true);
-					embed.addField("Role Count", guild.roles.cache.size.toString(), true);
-					embed.addField(
-						"Text Channels",
-						guild.channels.cache.filter(channel => channel.type === "text").size.toString(),
-						true
-					);
-					embed.addField(
-						"Voice Channels",
-						guild.channels.cache.filter(channel => channel.type === "voice").size.toString(),
-						true
-					);
-				})
-				.then(() => {
-					interaction.editReply({ embeds: [embed] }).catch(err => log(err, "error"));
-				})
-				.catch(err => log(err, "error"));
-		}
-	},
-};
+	if (guild) {
+		const invites = guild.invites.cache;
+		embed.addField("Server Name", guild.name, true);
+		embed.addField("Server ID", guild.id, true);
+		embed.addField("Invite", invites.first()?.code ?? "No invites found.", true);
+		embed.addField("Member Count", guild.memberCount.toString(), true);
+		embed.addField("Role Count", guild.roles.cache.size.toString(), true);
+		embed.addField(
+			"Text Channels",
+			guild.channels.cache.filter(channel => channel.type === "GUILD_TEXT").size.toString(),
+			true
+		);
+		embed.addField(
+			"Voice Channels",
+			guild.channels.cache.filter(channel => channel.type === "GUILD_VOICE").size.toString(),
+			true
+		);
 
-export default command;
+		await interaction.editReply({ embeds: [embed] });
+	}
+});
+
+export const serverInfoMessageCommand = new MessageCommand("serverinfo");
+serverInfoMessageCommand.setCallback(message => {
+	const embed = new MessageEmbed().setTitle("Server Info");
+	const guild = message.guild;
+
+	if (guild) {
+		const invites = guild.invites.cache;
+		embed.addField("Server Name", guild.name, true);
+		embed.addField("Server ID", guild.id, true);
+		embed.addField("Invite", invites.first()?.code ?? "No invites found.", true);
+		embed.addField("Member Count", guild.memberCount.toString(), true);
+		embed.addField("Role Count", guild.roles.cache.size.toString(), true);
+		embed.addField(
+			"Text Channels",
+			guild.channels.cache.filter(channel => channel.type === "GUILD_TEXT").size.toString(),
+			true
+		);
+		embed.addField(
+			"Voice Channels",
+			guild.channels.cache.filter(channel => channel.type === "GUILD_VOICE").size.toString(),
+			true
+		);
+
+		message.reply({ embeds: [embed] }).catch(console.error.bind(console));
+	}
+});
