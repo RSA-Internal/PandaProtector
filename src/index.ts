@@ -35,7 +35,7 @@ try {
 	// Register Events
 	client.registerEvent(messageCreateEvent);
 
-	const memberId = "198850936544821249";
+	const memberId = "871952569050759199";
 	const modId = "886109661772795944";
 	const councilId = "885901874174251079";
 
