@@ -16,10 +16,6 @@ messageCreateEvent.setCallback(message => {
 				return; // Do not do any further processing.
 			}
 		} else {
-			// Add up vote and down vote reaction to message.
-			// TODO: make emotes configurable in the future?
-			message.react("👍").catch(console.error.bind(console));
-			message.react("👎").catch(console.error.bind(console));
 			message.react("⭐").catch(console.error.bind(console));
 		}
 	}
